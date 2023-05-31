@@ -4,5 +4,4 @@ project(armv8_18 C)
 set(CMAKE_C_STANDARD 99)
 
 add_executable(armv8_18
-        src/assemble.c
-        src/emulate.c)
+        src/emulate.c src/utils.c)
