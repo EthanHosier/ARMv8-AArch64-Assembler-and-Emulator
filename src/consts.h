@@ -1,1 +1,2 @@
 #define NUM_OF_GP 31
+#define BYTE_MEMORY_SIZE 2097152

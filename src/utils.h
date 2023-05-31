@@ -13,11 +13,13 @@ typedef struct {
   bool zero;
   bool carry;
   bool overflow;
-} pState;
-struct processor {
-  uint64_t genPurpose[NUM_OF_GP];
+} PState;
+typedef struct {
+  uint64_t generalPurpose[NUM_OF_GP];
   uint64_t programCounter;
-  pState pState;
-};
+  PState pState;
+  uint8_t primaryMemory[BYTE_MEMORY_SIZE];
+} SystemState;
+void initialiseSystemState(SystemState state);
 
 #endif
