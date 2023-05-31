@@ -24,12 +24,12 @@ int readBinaryFile(char *filename, uint32_t *fileMemory, int MAX_WORDS) {
   fclose(file);
   return 0;
 }
-void zero64Array(u_int64_t *array, int size) {
+void zero64Array(uint64_t *array, int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
   }
 }
-void zero8Array(u_int8_t *array, int size) {
+void zero8Array(uint8_t *array, int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
   }
