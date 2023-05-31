@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include "utils.h"
 
-#define BINARY_FILE "../test/add01_exp.bin"
-int readBinaryFile(uint32_t *fileMemory, int MAX_WORDS){
+int readBinaryFile(char *filename,uint32_t *fileMemory, int MAX_WORDS){
     size_t numWords = 0;
 
     // Open the binary file
-    FILE* file = fopen(BINARY_FILE, "rb");
+    FILE* file = fopen(filename, "rb");
     if (file == NULL) {
         printf("Failed to open the file.\n");
         return 1;
