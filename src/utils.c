@@ -26,25 +26,25 @@ int readBinaryFile(char *filename, uint32_t *fileMemory, int MAX_WORDS) {
 }
 void zero64Array(u_int64_t *array, int size) {
   for (int i = 0; i < size; i++) {
-    array[i] = 4;
+    array[i] = 0;
   }
 }
 void zero8Array(u_int8_t *array, int size) {
   for (int i = 0; i < size; i++) {
-    array[i] = 4;
+    array[i] = 0;
   }
 }
 
-void initialisePState(PState pState) {
-  pState.negative = 0;
-  pState.zero = 0;
-  pState.carry = 0;
-  pState.overflow = 0;
+void initialisePState(PState *pState) {
+  (*pState).negative = 0;
+  (*pState).zero = 0;
+  (*pState).carry = 0;
+  (*pState).overflow = 0;
 }
 
-void initialiseSystemState(SystemState state) {
-  zero64Array(state.generalPurpose, NUM_OF_GP);
-  zero64Array(&state.programCounter, 1);
-  initialisePState(state.pState);
-  zero8Array(state.primaryMemory, BYTE_MEMORY_SIZE);
+void initialiseSystemState(SystemState *state) {
+  zero64Array((*state).generalPurpose, NUM_OF_GP);
+  zero64Array(&(*state).programCounter, 1);
+  initialisePState(&(*state).pState);
+  zero8Array((*state).primaryMemory, BYTE_MEMORY_SIZE);
 }

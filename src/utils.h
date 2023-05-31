@@ -20,6 +20,6 @@ typedef struct {
   PState pState;
   uint8_t primaryMemory[BYTE_MEMORY_SIZE];
 } SystemState;
-void initialiseSystemState(SystemState state);
+void initialiseSystemState(SystemState *state);
 
 #endif

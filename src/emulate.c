@@ -17,7 +17,6 @@ int main(int argc, char **argv) {
     fprintf(stdout, "Word %zu: %" PRIu32 "\n", i + 1, instructions[i]);
   } */
   SystemState state;
-  initialiseSystemState(state);
-  printf("Hello world");
+  initialiseSystemState(&state);
   return 0;
 }
