@@ -6,8 +6,7 @@ int executeImmediateDP(SystemState *state, bool bits[]) {
   uint8_t opc = (bits[30] << 1) | bits[29];
   switch (opi) {
     case 2:
-      switch (opc)
-      {
+      switch (opc) {
         case 0:
           //add
           break;
@@ -25,8 +24,7 @@ int executeImmediateDP(SystemState *state, bool bits[]) {
           return 1;
       }
     case 5:
-      switch (opc)
-      {
+      switch (opc) {
         case 0:
           //movn
         case 2:
@@ -57,8 +55,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
   uint8_t opc = (bits[30] << 1) | bits[29];
   uint8_t opc_n = (opc << 1) | bits[21];
   uint8_t opc_x = (opc << 1) | bits[15];
-  switch (m_opr)
-  {
+  switch (m_opr) {
     case 8:
     case 10:
     case 12:
@@ -86,7 +83,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
     case 2:
     case 3:
     case 4:
-    case 5:    
+    case 5:
     case 6:
     case 7:
       switch (opc_n) {
@@ -107,7 +104,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
           break;
         case 5:
           //eon
-          break; 
+          break;
         case 6:
           //ands
           break;
@@ -120,8 +117,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
       }
       break;
     case 24:
-      switch (opc_x)
-      {
+      switch (opc_x) {
         case 0:
           //madd
           break;

@@ -20,9 +20,13 @@ typedef struct {
   PState pState;
   uint8_t primaryMemory[MEMORY_SIZE_BYTES];
 } SystemState;
+
 void initialiseSystemState(SystemState *state);
+
 void getBits(uint32_t instruction, bool *bits);
+
 void printInstructions(uint32_t instructions[], int numberOfInstructions);
+
 void printInstruction(bool bits[]);
 
 #endif

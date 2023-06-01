@@ -8,7 +8,7 @@ int readBinaryFile(char filename[], uint32_t output[], int *instructionCount) {
   // Open the binary file
   FILE *file = fopen(filename, "rb");
   if (file == NULL) {
-    fprintf(stderr, "Failed to open file \".%s\"!\n", filename);
+    fprintf(stderr, "Failed to open file \"%s\"!\n", filename);
     return 1;
   }
 
@@ -24,11 +24,13 @@ int readBinaryFile(char filename[], uint32_t output[], int *instructionCount) {
   fclose(file);
   return 0;
 }
+
 void zero64Array(uint64_t array[], int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
   }
 }
+
 void zero8Array(uint8_t array[], int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
