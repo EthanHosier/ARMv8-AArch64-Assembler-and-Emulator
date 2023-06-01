@@ -25,19 +25,19 @@ int readBinaryFile(char filename[], uint32_t output[], int *instructionCount) {
   return 0;
 }
 
-void zero64Array(uint64_t array[], int size) {
+static void zero64Array(uint64_t array[], int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
   }
 }
 
-void zero8Array(uint8_t array[], int size) {
+static void zero8Array(uint8_t array[], int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
   }
 }
 
-void initialisePState(PState *pState) {
+static void initialisePState(PState *pState) {
   (*pState).negative = 0;
   (*pState).zero = 0;
   (*pState).carry = 0;
