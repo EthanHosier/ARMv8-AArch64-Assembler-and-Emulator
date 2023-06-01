@@ -236,7 +236,7 @@ uint64_t ror64(uint64_t operand, int bitsToRotate)
 
 uint32_t ror32(uint32_t operand, int bitsToRotate)
 {
-  assert(bitsToRotate <= 64);
+  assert(bitsToRotate <= 32);
   
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
