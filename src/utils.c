@@ -37,17 +37,13 @@ static void zero8Array(uint8_t array[], int size) {
   }
 }
 
-static void initialisePState(PState *pState) {
-  (*pState).negative = 0;
-  (*pState).zero = 0;
-  (*pState).carry = 0;
-  (*pState).overflow = 0;
-}
-
 void initialiseSystemState(SystemState *state) {
   zero64Array((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
   zero64Array(&(*state).programCounter, 1);
-  initialisePState(&(*state).pState);
+  (*state).pState.negative = 0;
+  (*state).pState.zero = 0;
+  (*state).pState.carry = 0;
+  (*state).pState.overflow = 0;
   zero8Array((*state).primaryMemory, MEMORY_SIZE_BYTES);
 }
 
