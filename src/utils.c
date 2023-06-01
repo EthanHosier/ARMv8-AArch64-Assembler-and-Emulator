@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include <inttypes.h>
+#include <assert.h>
 
 int readBinaryFile(char filename[], uint32_t output[], int *instructionCount) {
   int numWords = 0;
@@ -77,17 +78,16 @@ int invalidInstruction(void) {
 
 //TODO: add carry flag + pls test this
 //assume the number given is a 64 bit
-uint64_t asr64(uint64_t operand, int bitsToShift){
+uint64_t asr64(uint64_t operand, int bitsToShift) {
   assert(bitsToShift < 64);
 
-  if(bitsToShift == 0) return operand;
+  if (bitsToShift == 0) return operand;
 
   uint64_t ones = (UINT64_C(1) << 63) & operand; //1000000000000000;
-  operand = operand >> bitsToShift; 
+  operand = operand >> bitsToShift;
 
-  if(ones != 0){
-    for (int i = 0; i < bitsToShift; i++)
-    {
+  if (ones != 0) {
+    for (int i = 0; i < bitsToShift; i++) {
       ones += (ones >> 1);
     }
     operand = operand | ones;
@@ -98,17 +98,16 @@ uint64_t asr64(uint64_t operand, int bitsToShift){
 
 //TODO: add carry flag + pls test this
 //assume the number given is 32 bit (the first 32 0s are removed already)
-uint32_t asr32(uint32_t operand, int bitsToShift){
+uint32_t asr32(uint32_t operand, int bitsToShift) {
   assert(bitsToShift < 32);
 
-  if(bitsToShift == 0) return operand;
+  if (bitsToShift == 0) return operand;
 
   uint32_t ones = (UINT32_C(1) << 31) & operand;
-  operand = operand >> bitsToShift; 
+  operand = operand >> bitsToShift;
 
-  if(ones != 0){
-    for (int i = 0; i < bitsToShift; i++)
-    {
+  if (ones != 0) {
+    for (int i = 0; i < bitsToShift; i++) {
       ones += (ones >> 1);
     }
     operand = operand | ones;
@@ -119,8 +118,7 @@ uint32_t asr32(uint32_t operand, int bitsToShift){
 
 
 //test
-uint64_t ror64(uint64_t operand, int bitsToRotate)
-{
+uint64_t ror64(uint64_t operand, int bitsToRotate) {
   assert(bitsToRotate <= 64);
 
   uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
@@ -132,10 +130,9 @@ uint64_t ror64(uint64_t operand, int bitsToRotate)
 
 //test
 //assume the number given is the 32 bit used portion of the operand
-uint32_t ror32(uint32_t operand, int bitsToRotate)
-{
+uint32_t ror32(uint32_t operand, int bitsToRotate) {
   assert(bitsToRotate <= 32);
-  
+
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
   operand = operand >> bitsToRotate;
@@ -151,15 +148,12 @@ int getMemAddress(bool bits[]) {
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
-    int16_t simm9 = getBitsSubset(bits, 20, 12);
+    int16_t simm9 = (int16_t) getBitsSubset(bits, 20, 12);
     updateBitsSubset(bits, xn + simm9, 9, 5);
-    switch (bits[11])
-    {
-    case 0:
-      //Post Indexed
-      return xn;
-    case 1:
+    if (bits[11]) {
       return xn + simm9;
+    } else {
+      return xn;
     }
   } else {
     //Unsigned Offset
@@ -168,7 +162,7 @@ int getMemAddress(bool bits[]) {
   }
 }
 
-uint16_t getBitsSubset(bool bits[], int msb, int lsb) {
+uint16_t getBitsSubset(const bool bits[], int msb, int lsb) {
   uint16_t subset = 0;
   for (int i = msb; i >= lsb; i--) {
     subset = subset << 1 | bits[i];

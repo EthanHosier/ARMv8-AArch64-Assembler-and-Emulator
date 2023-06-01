@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "utils.h"
 
-int executeImmediateDP(SystemState *state, bool bits[]) {
+int executeImmediateDP(SystemState *state, const bool bits[]) {
   uint8_t opi = (bits[25] << 2) | (bits[24] << 1) | bits[23];
   uint8_t opc = (bits[30] << 1) | bits[29];
   switch (opi) {
@@ -46,7 +46,7 @@ int executeImmediateDP(SystemState *state, bool bits[]) {
   return 0;
 }
 
-int executeRegisterDP(SystemState *state, bool bits[]) {
+int executeRegisterDP(SystemState *state, const bool bits[]) {
   /*
    * "and x0 x0 x0" is the halt instruction - use premature `return` statement
    * after overriding the value of the PC. This will avoid the PC being
@@ -138,19 +138,14 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
   uint8_t rt = (uint8_t) getBitsSubset(bits, 4, 0);
-  switch (bits[22]) {
-    case 0:
-      //store
-      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
-      break;
-    case 1:
-      //load
-      (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
-      break;
-    default:
-      return invalidInstruction();
+  if (bits[22]) {
+    //load
+    (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
+  } else {
+    //store
+    (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
   }
-  
+
   fprintf(stdout, "Single Data Transfer Instruction\n");
   (*state).programCounter++;
   return 0;
@@ -163,7 +158,7 @@ int executeLoadLiteral(SystemState *state, bool bits[]) {
   return 0;
 }
 
-int executeBranch(SystemState *state, bool bits[]) {
+int executeBranch(SystemState *state, const bool bits[]) {
   // Todo: Body
   int valForRegLhs = 0;
   for (int i = 31; i >= 10; i--) {
@@ -171,7 +166,7 @@ int executeBranch(SystemState *state, bool bits[]) {
   }
   int valForRegRhs = 0;
   for (int i = 4; i >= 0; i--) {
-    valForRegLhs = valForRegLhs << 1 | bits[i];
+    valForRegRhs = valForRegRhs << 1 | bits[i];
   }
   int valForCond = 0;
   for (int i = 31; i >= 24; i--) {
