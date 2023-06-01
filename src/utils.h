@@ -39,5 +39,10 @@ uint64_t asr64(uint64_t, int);
 
 uint32_t asr32(uint32_t, int);
 
+int getMemAddress(bool bits[]);
+
+uint16_t getBitsSubset(bool bits[], int msb, int lsb);
+
+void updateBitsSubset(bool bits[], int newBits, int msb, int lsb);
 
 #endif

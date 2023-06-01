@@ -137,7 +137,20 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
 }
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
-  // Todo: Body
+  uint8_t rt = (uint8_t) getBitsSubset(bits, 4, 0);
+  switch (bits[22]) {
+    case 0:
+      //store
+      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+      break;
+    case 1:
+      //load
+      (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
+      break;
+    default:
+      return invalidInstruction();
+  }
+  
   fprintf(stdout, "Single Data Transfer Instruction\n");
   (*state).programCounter++;
   return 0;
