@@ -20,24 +20,26 @@ int executeImmediateDP(SystemState *state, bool bits[]) {
           //subs
           break;
         default:
-          fprintf(stderr, "Invalid instruction type!");
-          return 1;
+          return invalidInstruction();
       }
+      break;
     case 5:
       switch (opc) {
         case 0:
           //movn
+          break;
         case 2:
           //movz
+          break;
         case 3:
           //movk
+          break;
         default:
-          fprintf(stderr, "Invalid instruction type!");
-          return 1;
+          return invalidInstruction();
       }
+      break;
     default:
-      fprintf(stderr, "Invalid instruction type!");
-      return 1;
+      return invalidInstruction();
   }
   fprintf(stdout, "Immediate DP Instruction\n");
   (*state).programCounter++;
@@ -74,8 +76,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
           //subs
           break;
         default:
-          fprintf(stderr, "Invalid instruction type!");
-          return 1;
+          return invalidInstruction();
       }
       break;
     case 0:
@@ -112,8 +113,7 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
           //bics
           break;
         default:
-          fprintf(stderr, "Invalid instruction type!");
-          return 1;
+          return invalidInstruction();
       }
       break;
     case 24:
@@ -125,13 +125,11 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
           //msub
           break;
         default:
-          fprintf(stderr, "Invalid instruction type!");
-          return 1;
+          return invalidInstruction();
       }
       break;
     default:
-      fprintf(stderr, "Invalid instruction type!");
-      return 1;
+      return invalidInstruction();
   }
   fprintf(stdout, "Register DP Instruction\n");
   (*state).programCounter++;
@@ -187,10 +185,10 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
   } else if (bits[27] && !bits[26] && bits[25]) { // DP (Register)
     return executeRegisterDP(state, bits);
   } else if (bits[31] && bits[29] && bits[28] && bits[27] && !bits[26]
-      && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
+             && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
     return executeSingleDataTransfer(state, bits);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
-      && !bits[25] && !bits[24]) { // Load Literal
+             && !bits[25] && !bits[24]) { // Load Literal
     return executeLoadLiteral(state, bits);
   } else if (!bits[29] && bits[28] && !bits[27] && bits[26]) { // Branch
     return executeBranch(state, bits);

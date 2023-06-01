@@ -69,3 +69,8 @@ void printInstructions(uint32_t instructions[], int numberOfInstructions) {
     fprintf(stdout, "Instruction %i: %" PRIu32 "\n", i + 1, instructions[i]);
   }
 }
+
+int invalidInstruction(void) {
+  fprintf(stderr, "Invalid instruction!");
+  return 1;
+}
