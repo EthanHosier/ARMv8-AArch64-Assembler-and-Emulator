@@ -35,5 +35,9 @@ uint64_t ror64(uint64_t, int);
 
 uint32_t ror32(uint32_t, int);
 
+uint64_t asr64(uint64_t, int);
+
+uint32_t asr32(uint32_t, int);
+
 
 #endif

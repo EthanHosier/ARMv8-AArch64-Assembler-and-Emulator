@@ -222,25 +222,3 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-uint64_t ror64(uint64_t operand, int bitsToRotate)
-{
-  assert(bitsToRotate <= 64);
-
-  uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
-  uint64_t toAdd = ones & operand;
-  operand = operand >> bitsToRotate;
-  operand += (toAdd << (64 - bitsToRotate));
-  return operand;
-}
-
-
-uint32_t ror32(uint32_t operand, int bitsToRotate)
-{
-  assert(bitsToRotate <= 32);
-  
-  uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
-  uint32_t toAdd = ones & operand;
-  operand = operand >> bitsToRotate;
-  operand += (toAdd << (32 - bitsToRotate));
-  return operand;
-}

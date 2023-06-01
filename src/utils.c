@@ -74,3 +74,68 @@ int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
   return 1;
 }
+
+//TODO: add carry flag + pls test this
+uint64_t asr64(uint64_t operand, int bitsToShift){
+  assert(bitsToShift < 64);
+
+  if(bitsToShift == 0) return operand;
+
+  uint64_t ones = (UINT64_C(1) << 63) & operand; //1000000000000000;
+  operand = operand >> bitsToShift; 
+
+  if(ones != 0){
+    for (int i = 0; i < bitsToShift; i++)
+    {
+      ones += (ones >> 1);
+    }
+    operand = operand | ones;
+  }
+
+  return operand;
+}
+
+//TODO: add carry flag + pls test this 
+uint32_t asr32(uint32_t operand, int bitsToShift){
+  assert(bitsToShift < 32);
+
+  if(bitsToShift == 0) return operand;
+
+  uint32_t ones = (UINT32_C(1) << 31) & operand;
+  operand = operand >> bitsToShift; 
+
+  if(ones != 0){
+    for (int i = 0; i < bitsToShift; i++)
+    {
+      ones += (ones >> 1);
+    }
+    operand = operand | ones;
+  }
+
+  return operand;
+}
+
+
+//test
+uint64_t ror64(uint64_t operand, int bitsToRotate)
+{
+  assert(bitsToRotate <= 64);
+
+  uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
+  uint64_t toAdd = ones & operand;
+  operand = operand >> bitsToRotate;
+  operand += (toAdd << (64 - bitsToRotate));
+  return operand;
+}
+
+//test
+uint32_t ror32(uint32_t operand, int bitsToRotate)
+{
+  assert(bitsToRotate <= 32);
+  
+  uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
+  uint32_t toAdd = ones & operand;
+  operand = operand >> bitsToRotate;
+  operand += (toAdd << (32 - bitsToRotate));
+  return operand;
+}
