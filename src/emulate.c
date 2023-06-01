@@ -2,7 +2,45 @@
 #include "utils.h"
 
 int executeImmediateDP(SystemState *state, bool bits[]) {
-  // Todo: Body
+  uint8_t opi = (bits[25] << 2) | (bits[24] << 1) | bits[23];
+  uint8_t opc = (bits[30] << 1) | bits[29];
+  switch (opi) {
+    case 2:
+      switch (opc)
+      {
+        case 0:
+          //add
+          break;
+        case 1:
+          //adds
+          break;
+        case 2:
+          //sub
+          break;
+        case 3:
+          //subs
+          break;
+        default:
+          fprintf(stderr, "Invalid instruction type!");
+          return 1;
+      }
+    case 5:
+      switch (opc)
+      {
+        case 0:
+          //movn
+        case 2:
+          //movz
+        case 3:
+          //movk
+        default:
+          fprintf(stderr, "Invalid instruction type!");
+          return 1;
+      }
+    default:
+      fprintf(stderr, "Invalid instruction type!");
+      return 1;
+  }
   fprintf(stdout, "Immediate DP Instruction\n");
   (*state).programCounter++;
   return 0;
@@ -15,24 +53,133 @@ int executeRegisterDP(SystemState *state, bool bits[]) {
    * incremented at the end of this function.
   */
   // Todo: Body
+  uint8_t m_opr = (bits[28] << 4) | (bits[24] << 3) | (bits[23] << 2) | (bits[22] << 1) | bits[21];
+  uint8_t opc = (bits[30] << 1) | bits[29];
+  uint8_t opc_n = (opc << 1) | bits[21];
+  uint8_t opc_x = (opc << 1) | bits[15];
+  switch (m_opr)
+  {
+    case 8:
+    case 10:
+    case 12:
+    case 14:
+      switch (opc) {
+        case 0:
+          //add
+          break;
+        case 1:
+          //adds
+          break;
+        case 2:
+          //sub
+          break;
+        case 3:
+          //subs
+          break;
+        default:
+          fprintf(stderr, "Invalid instruction type!");
+          return 1;
+      }
+      break;
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:    
+    case 6:
+    case 7:
+      switch (opc_n) {
+        case 0:
+          //and
+          break;
+        case 1:
+          //bic
+          break;
+        case 2:
+          //orr
+          break;
+        case 3:
+          //orn
+          break;
+        case 4:
+          //eor
+          break;
+        case 5:
+          //eon
+          break; 
+        case 6:
+          //ands
+          break;
+        case 7:
+          //bics
+          break;
+        default:
+          fprintf(stderr, "Invalid instruction type!");
+          return 1;
+      }
+      break;
+    case 24:
+      switch (opc_x)
+      {
+        case 0:
+          //madd
+          break;
+        case 1:
+          //msub
+          break;
+        default:
+          fprintf(stderr, "Invalid instruction type!");
+          return 1;
+      }
+      break;
+    default:
+      fprintf(stderr, "Invalid instruction type!");
+      return 1;
+  }
   fprintf(stdout, "Register DP Instruction\n");
   (*state).programCounter++;
   return 0;
 }
+
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
   // Todo: Body
   fprintf(stdout, "Single Data Transfer Instruction\n");
   (*state).programCounter++;
   return 0;
 }
+
 int executeLoadLiteral(SystemState *state, bool bits[]) {
   // Todo: Body
   fprintf(stdout, "Load Literal Instruction\n");
   (*state).programCounter++;
   return 0;
 }
+
 int executeBranch(SystemState *state, bool bits[]) {
   // Todo: Body
+  int valForRegLhs = 0;
+  for (int i = 31; i >= 10; i--) {
+    valForRegLhs = valForRegLhs << 1 | bits[i];
+  }
+  int valForRegRhs = 0;
+  for (int i = 4; i >= 0; i--) {
+    valForRegLhs = valForRegLhs << 1 | bits[i];
+  }
+  int valForCond = 0;
+  for (int i = 31; i >= 24; i--) {
+    valForCond = valForCond << 1 | bits[i];
+  }
+
+
+  if (!bits[31] && !bits[30]) {
+    //b
+  } else if (valForRegLhs == 3508160 && valForRegRhs == 0) {
+    //br
+  } else if (valForCond == 84 && !bits[4]) {
+    //b.cond
+  }
+
   fprintf(stdout, "Branch Instruction\n");
   (*state).programCounter++;
   return 0;
