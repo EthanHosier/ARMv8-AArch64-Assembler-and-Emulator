@@ -76,6 +76,7 @@ int invalidInstruction(void) {
 }
 
 //TODO: add carry flag + pls test this
+//assume the number given is a 64 bit
 uint64_t asr64(uint64_t operand, int bitsToShift){
   assert(bitsToShift < 64);
 
@@ -95,7 +96,8 @@ uint64_t asr64(uint64_t operand, int bitsToShift){
   return operand;
 }
 
-//TODO: add carry flag + pls test this 
+//TODO: add carry flag + pls test this
+//assume the number given is 32 bit (the first 32 0s are removed already)
 uint32_t asr32(uint32_t operand, int bitsToShift){
   assert(bitsToShift < 32);
 
@@ -129,6 +131,7 @@ uint64_t ror64(uint64_t operand, int bitsToRotate)
 }
 
 //test
+//assume the number given is the 32 bit used portion of the operand
 uint32_t ror32(uint32_t operand, int bitsToRotate)
 {
   assert(bitsToRotate <= 32);
