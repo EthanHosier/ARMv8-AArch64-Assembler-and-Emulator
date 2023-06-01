@@ -29,6 +29,6 @@ void printInstructions(uint32_t instructions[], int numberOfInstructions);
 
 void printInstruction(bool bits[]);
 
-int invalidInstruction(void)
+int invalidInstruction(void);
 
 #endif
