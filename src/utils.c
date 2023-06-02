@@ -119,7 +119,7 @@ uint32_t asr32(uint32_t operand, int bitsToShift) {
 
 //test
 uint64_t ror64(uint64_t operand, int bitsToRotate) {
-  assert(bitsToRotate <= 64);
+  assert(bitsToRotate < 64);
 
   uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
   uint64_t toAdd = ones & operand;
@@ -131,7 +131,7 @@ uint64_t ror64(uint64_t operand, int bitsToRotate) {
 //test
 //assume the number given is the 32 bit used portion of the operand
 uint32_t ror32(uint32_t operand, int bitsToRotate) {
-  assert(bitsToRotate <= 32);
+  assert(bitsToRotate < 32);
 
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
