@@ -2,36 +2,36 @@
 #include "utils.h"
 
 int executeImmediateDP(SystemState *state, const bool bits[]) {
-  uint8_t opi = (bits[25] << 2) | (bits[24] << 1) | bits[23];
-  uint8_t opc = (bits[30] << 1) | bits[29];
+  int opi = getBitsSubset(bits, 25, 23);
+  int opc = getBitsSubset(bits, 30, 29);
   switch (opi) {
-    case 2:
+    case 2://opi = 010
       switch (opc) {
-        case 0:
+        case 0://opc = 00 (add)
           //add
           break;
-        case 1:
+        case 1://opc = 01 (adds)
           //adds
           break;
-        case 2:
+        case 2://opc = 10 (sub)
           //sub
           break;
-        case 3:
+        case 3://opc = 11 (subs)
           //subs
           break;
         default:
           return invalidInstruction();
       }
       break;
-    case 5:
+    case 5://opi = 101
       switch (opc) {
-        case 0:
+        case 0://opc = 00 (movn)
           //movn
           break;
-        case 2:
+        case 2://opc = 10 (movz)
           //movz
           break;
-        case 3:
+        case 3://opc = 11 (movk)
           //movk
           break;
         default:
@@ -53,26 +53,26 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
    * incremented at the end of this function.
   */
   // Todo: Body
-  uint8_t m_opr = (bits[28] << 4) | (bits[24] << 3) | (bits[23] << 2) | (bits[22] << 1) | bits[21];
-  uint8_t opc = (bits[30] << 1) | bits[29];
-  uint8_t opc_n = (opc << 1) | bits[21];
-  uint8_t opc_x = (opc << 1) | bits[15];
+  int m_opr = (bits[28] << 4) | getBitsSubset(bits, 24, 21);
+  int opc = getBitsSubset(bits, 30, 29);;
+  int opc_n = (opc << 1) | bits[21];
+  int opc_x = (opc << 1) | bits[15];
   switch (m_opr) {
     case 8:
     case 10:
     case 12:
-    case 14:
+    case 14://M = 0, opr = 1xx0 (fall-through for unknowns)
       switch (opc) {
-        case 0:
+        case 0://opc = 00 (add)
           //add
           break;
-        case 1:
+        case 1://opc = 01 (adds)
           //adds
           break;
-        case 2:
+        case 2://opc = 10 (sub)
           //sub
           break;
-        case 3:
+        case 3://opc  = 11 (subs)
           //subs
           break;
         default:
@@ -86,42 +86,42 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 4:
     case 5:
     case 6:
-    case 7:
+    case 7://M = 0, opr = 0xxx (fall-through for unknowns)
       switch (opc_n) {
-        case 0:
+        case 0://opc = 00, N = 0 (and)
           //and
           break;
-        case 1:
+        case 1://opc = 00, N = 1 (bic)
           //bic
           break;
-        case 2:
+        case 2://opc = 01, N = 0 (orr)
           //orr
           break;
-        case 3:
+        case 3://opc = 01, N = 1 (orn)
           //orn
           break;
-        case 4:
+        case 4://opc = 10, N = 0 (eor)
           //eor
           break;
-        case 5:
+        case 5://opc = 10, N = 1 (eon)
           //eon
           break;
-        case 6:
+        case 6://opc = 11, N = 0 (ands)
           //ands
           break;
-        case 7:
+        case 7://opc = 11, N = 1 (bics)
           //bics
           break;
         default:
           return invalidInstruction();
       }
       break;
-    case 24:
+    case 24://M = 1, opr = 1000
       switch (opc_x) {
-        case 0:
+        case 0://opc = 00, x = 0 (madd)
           //madd
           break;
-        case 1:
+        case 1://opc = 00, x = 1 (msub)
           //msub
           break;
         default:
@@ -137,12 +137,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
 }
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
-  uint8_t rt = (uint8_t) getBitsSubset(bits, 4, 0);
-  if (bits[22]) {
-    //load
+  int rt = getBitsSubset(bits, 4, 0);
+  if (bits[22]) {//load
     (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
-  } else {
-    //store
+  } else {//store
     (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
   }
 
@@ -160,25 +158,15 @@ int executeLoadLiteral(SystemState *state, bool bits[]) {
 
 int executeBranch(SystemState *state, const bool bits[]) {
   // Todo: Body
-  int valForRegLhs = 0;
-  for (int i = 31; i >= 10; i--) {
-    valForRegLhs = valForRegLhs << 1 | bits[i];
-  }
-  int valForRegRhs = 0;
-  for (int i = 4; i >= 0; i--) {
-    valForRegRhs = valForRegRhs << 1 | bits[i];
-  }
-  int valForCond = 0;
-  for (int i = 31; i >= 24; i--) {
-    valForCond = valForCond << 1 | bits[i];
-  }
+  int valForReg31to10 = getBitsSubset(bits, 31, 10);
+  int valForReg4to0 = getBitsSubset(bits, 4, 0);
+  int valForCond = getBitsSubset(bits, 31, 24);
 
-
-  if (!bits[31] && !bits[30]) {
+  if (!bits[31] && !bits[30]) {//b
     //b
-  } else if (valForRegLhs == 3508160 && valForRegRhs == 0) {
+  } else if (valForReg31to10 == 3508160 && valForReg4to0 == 0) {//br
     //br
-  } else if (valForCond == 84 && !bits[4]) {
+  } else if (valForCond == 84 && !bits[4]) {//b.cond
     //b.cond
   }
 

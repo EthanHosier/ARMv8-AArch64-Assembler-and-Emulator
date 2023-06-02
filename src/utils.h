@@ -41,7 +41,7 @@ uint32_t asr32(uint32_t, int);
 
 int getMemAddress(bool bits[]);
 
-uint16_t getBitsSubset(const bool bits[], int msb, int lsb);
+int getBitsSubset(const bool bits[], int msb, int lsb);
 
 void updateBitsSubset(bool bits[], int newBits, int msb, int lsb);
 

@@ -141,14 +141,15 @@ uint32_t ror32(uint32_t operand, int bitsToRotate) {
 }
 
 int getMemAddress(bool bits[]) {
-  uint8_t xn = (uint8_t) getBitsSubset(bits, 9, 5);
+  int xn = getBitsSubset(bits, 9, 5);
   if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12] && bits[11] && !bits[10]) {
     //register offset
-    uint8_t xm = (uint8_t) getBitsSubset(bits, 20, 16);
+    int xm = getBitsSubset(bits, 20, 16);
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
-    int16_t simm9 = (int16_t) getBitsSubset(bits, 20, 12);
+    int simm9 = getBitsSubset(bits, 20, 12);
+    if (bits[20] = 1) simm9 = -simm9;  
     updateBitsSubset(bits, xn + simm9, 9, 5);
     if (bits[11]) {
       return xn + simm9;
@@ -157,13 +158,13 @@ int getMemAddress(bool bits[]) {
     }
   } else {
     //Unsigned Offset
-    uint16_t imm12 = getBitsSubset(bits, 21, 10);
+    int imm12 = getBitsSubset(bits, 21, 10);
     return xn + imm12;
   }
 }
 
-uint16_t getBitsSubset(const bool bits[], int msb, int lsb) {
-  uint16_t subset = 0;
+int getBitsSubset(const bool bits[], int msb, int lsb) {
+  int subset = 0;
   for (int i = msb; i >= lsb; i--) {
     subset = subset << 1 | bits[i];
   }
