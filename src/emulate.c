@@ -2,8 +2,8 @@
 #include "utils.h"
 
 int executeImmediateDP(SystemState *state, const bool bits[]) {
-  int opi = getBitsSubset(bits, 25, 23);
-  int opc = getBitsSubset(bits, 30, 29);
+  uint32_t opi = getBitsSubset(bits, 25, 23);
+  uint32_t opc = getBitsSubset(bits, 30, 29);
   switch (opi) {
     case 2://opi = 010
       switch (opc) {
@@ -53,10 +53,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
    * incremented at the end of this function.
   */
   // Todo: Body
-  int m_opr = (bits[28] << 4) | getBitsSubset(bits, 24, 21);
-  int opc = getBitsSubset(bits, 30, 29);;
-  int opc_n = (opc << 1) | bits[21];
-  int opc_x = (opc << 1) | bits[15];
+  uint32_t m_opr = (bits[28] << 4) | getBitsSubset(bits, 24, 21);
+  uint32_t opc = getBitsSubset(bits, 30, 29);;
+  uint32_t opc_n = (opc << 1) | bits[21];
+  uint32_t opc_x = (opc << 1) | bits[15];
   switch (m_opr) {
     case 8:
     case 10:
@@ -137,7 +137,7 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
 }
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
-  int rt = getBitsSubset(bits, 4, 0);
+  uint32_t rt = getBitsSubset(bits, 4, 0);
   if (bits[22]) {//load
     (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
   } else {//store
@@ -158,16 +158,42 @@ int executeLoadLiteral(SystemState *state, bool bits[]) {
 
 int executeBranch(SystemState *state, const bool bits[]) {
   // Todo: Body
-  int valForReg31to10 = getBitsSubset(bits, 31, 10);
-  int valForReg4to0 = getBitsSubset(bits, 4, 0);
-  int valForCond = getBitsSubset(bits, 31, 24);
+  uint32_t valForReg31to10 = getBitsSubset(bits, 31, 10);
+  uint32_t valForReg4to0 = getBitsSubset(bits, 4, 0);
+  uint32_t valForCond = getBitsSubset(bits, 31, 24);
 
   if (!bits[31] && !bits[30]) {//b
-    //b
+    b(state, bits);
   } else if (valForReg31to10 == 3508160 && valForReg4to0 == 0) {//br
-    //br
+    br(state, bits);
   } else if (valForCond == 84 && !bits[4]) {//b.cond
-    //b.cond
+    uint32_t cond = getBitsSubset(bits, 3, 0);
+    switch (cond) {
+      case 0://cond = 0000 (beq)
+        beq(state, bits);
+        break;
+      case 1://cond = 0001 (bne)
+        bne(state, bits);
+        break;
+      case 10://cond = 1010 (bge)
+        bge(state, bits);
+        break;
+      case 11://cond = 1011 (blt)
+        blt(state, bits);
+        break;
+      case 12://cond = 1100 (bgt)
+        bgt(state, bits);
+        break;
+      case 13://cond = 1101 (ble)
+        ble(state, bits);
+        break;
+      case 14://cond = 1110 (bal)
+        bal(state, bits);
+        break;
+      default:
+        return invalidInstruction();
+    }
+    return 0;
   }
 
   fprintf(stdout, "Branch Instruction\n");

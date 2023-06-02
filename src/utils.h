@@ -41,8 +41,28 @@ uint32_t asr32(uint32_t, int);
 
 int getMemAddress(bool bits[]);
 
-int getBitsSubset(const bool bits[], int msb, int lsb);
+uint32_t getBitsSubset(const bool bits[], int msb, int lsb);
 
 void updateBitsSubset(bool bits[], int newBits, int msb, int lsb);
+
+int32_t convertFromUnsignedToSigned(bool bits[], uint32_t number, int posOfMSB);
+
+void b(SystemState *state, bool bits[]);
+
+void br(SystemState *state, bool bits[]);
+
+void beq(SystemState *state, bool bits[]);
+
+void bne(SystemState *state, bool bits[]);
+
+void bge(SystemState *state, bool bits[]);
+
+void blt(SystemState *state, bool bits[]);
+
+void bgt(SystemState *state, bool bits[]);
+
+void ble(SystemState *state, bool bits[]);
+
+void bal(SystemState *state, bool bits[]);
 
 #endif

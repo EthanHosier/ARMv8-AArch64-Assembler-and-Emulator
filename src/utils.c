@@ -148,8 +148,7 @@ int getMemAddress(bool bits[]) {
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
-    int simm9 = getBitsSubset(bits, 20, 12);
-    if (bits[20] = 1) simm9 = -simm9;  
+    int simm9 = convertFromUnsignedToSigned(bits, getBitsSubset(bits, 20, 12), 20);
     updateBitsSubset(bits, xn + simm9, 9, 5);
     if (bits[11]) {
       return xn + simm9;
@@ -163,12 +162,16 @@ int getMemAddress(bool bits[]) {
   }
 }
 
-int getBitsSubset(const bool bits[], int msb, int lsb) {
-  int subset = 0;
+uint32_t getBitsSubset(const bool bits[], int msb, int lsb) {
+  uint32_t subset = 0;
   for (int i = msb; i >= lsb; i--) {
     subset = subset << 1 | bits[i];
   }
   return subset;
+}
+
+int32_t convertFromUnsignedToSigned(bool bits[], uint32_t number, int posOfMSB) {
+  return (int32_t) (bits[posOfMSB]) ? -number : number;
 }
 
 void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
@@ -176,4 +179,60 @@ void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
     bits[i] = newBits & 1;
     newBits = newBits >> 1;
   }
+}
+
+void b(SystemState *state, bool bits[]) {
+  int64_t simm26 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 25, 0), 25);
+  (*state).programCounter += simm26;
+}
+
+void br(SystemState *state, bool bits[]) {
+  (*state).programCounter = (*state).generalPurpose[getBitsSubset(bits, 9, 5)];
+}
+
+void beq(SystemState *state, bool bits[]) {
+  if ((*state).pState.zero) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void bne(SystemState *state, bool bits[]) {
+  if (!(*state).pState.zero) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void bge(SystemState *state, bool bits[]) {
+  if ((*state).pState.negative == (*state).pState.overflow) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void blt(SystemState *state, bool bits[]) {
+  if ((*state).pState.negative != (*state).pState.overflow) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void bgt(SystemState *state, bool bits[]) {
+  if (!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void ble(SystemState *state, bool bits[]) {
+  if (!(!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow)) {
+    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    (*state).programCounter += simm19;
+  }
+}
+
+void bal(SystemState *state, bool bits[]) {
+  int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+  (*state).programCounter += simm19;
 }
