@@ -193,7 +193,8 @@ int executeBranch(SystemState *state, const bool bits[]) {
       default:
         return invalidInstruction();
     }
-    return 0;
+  } else {
+    return invalidInstruction();
   }
 
   fprintf(stdout, "Branch Instruction\n");
