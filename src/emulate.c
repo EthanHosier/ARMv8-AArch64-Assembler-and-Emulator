@@ -101,8 +101,22 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
 
           break;
         case 3://opc = 11 (movk)
+          //TODO: add when 11111 case (for entire instruction set)
+          if(sf){//64 bit
+            uint64_t val = (*state).generalPurpose[rd];
+            uint64_t top = val / (1 << (shift + 14)); //might be +15 idk
+            uint64_t bottom = val % (1 << (shift - 1)); //i think -1
 
-          //movk
+            uint64_t joined = bottom | (imm16 << shift) | bottom;   
+            (*state).generalPurpose[rd] = joined;
+          } else {
+            uint32_t val = (uint32_t) (*state).generalPurpose[rd];
+            uint32_t top = val / (1 << (shift + 14)); //might be +15 idk
+            uint32_t bottom = val % (1 << (shift - 1)); //i think -1
+
+            uint64_t joined = (uint64_t) (bottom | (imm16 << shift) | bottom);   
+            (*state).generalPurpose[rd] = joined;
+          }
           break;
         default:
           return invalidInstruction();
@@ -291,11 +305,57 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
   uint32_t rt = getBitsSubset(bits, 4, 0);
-  if (bits[22]) {//load
-    (*state).generalPurpose[rt] = (*state).primaryMemory[getMemAddress(bits)];
-  } else {//store
-    (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+  if (bits[30]) {//64bit
+
+    if (bits[22]) {//load
+
+      uint64_t val = 0;
+      int base = getMemAddress(bits);
+      for (int i = 0; i < 8; i ++) {
+        val = val | (*state).primaryMemory[base + i] << i*8;
+      }
+      (*state).generalPurpose[rt] = val;
+
+    } else {//store
+
+      int base = getMemAddress(bits);
+      uint64_t val = (*state).generalPurpose[rt];
+      for (int i = 0; i < 8; i ++) {
+        uint8_t subset = 0;
+        for (int j = i*8; j < (i+1)*8; j++) {
+          subset = (subset << 1) | bits[j];
+        }
+        (*state).primaryMemory[base + i] = subset;
+      }
+      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+    }
+
+  } else {//32bit
+    
+    if (bits[22]) {//load
+      uint64_t val = 0;
+      int base = getMemAddress(bits);
+      for (int i = 0; i < 4; i ++) {
+        val = val | (*state).primaryMemory[base + i] << i*8;
+      }
+      (*state).generalPurpose[rt] = val;
+      
+    } else {//store
+
+      int base = getMemAddress(bits);
+      uint64_t val = (*state).generalPurpose[rt];
+      for (int i = 0; i < 4; i ++) {
+        uint8_t subset = 0;
+        for (int j = i*8; j < (i+1)*8; j++) {
+          subset = (subset << 1) | bits[j];
+        }
+        (*state).primaryMemory[base + i] = subset;
+      }
+      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+    }
+
   }
+  
 
   fprintf(stdout, "Single Data Transfer Instruction\n");
   (*state).programCounter++;
@@ -304,9 +364,33 @@ int executeSingleDataTransfer(SystemState *state, bool bits[]) {
 
 int executeLoadLiteral(SystemState *state, bool bits[]) {
   // Todo: Body
-  fprintf(stdout, "Load Literal Instruction\n");
-  (*state).programCounter++;
-  return 0;
+  uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
+  int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
+  int32_t address = (*state).programCounter + simm19;
+
+  if (bits[30]) {//64bit
+
+    uint64_t val = 0;
+    int base = address;
+    for (int i = 0; i < 8; i ++) {
+      val = val | (*state).primaryMemory[base + i] << i*8;
+    }
+    (*state).generalPurpose[rt] = val;
+
+  } else {//32bit
+    
+    uint64_t val = 0;
+    int base = getMemAddress(bits);
+    for (int i = 0; i < 4; i ++) {
+      val = val | (*state).primaryMemory[base + i] << i*8;
+    }
+    (*state).generalPurpose[rt] = val;
+
+  }
+
+    fprintf(stdout, "Load Literal Instruction\n");
+    (*state).programCounter++;
+    return 0;
 }
 
 int executeBranch(SystemState *state, const bool bits[]) {
