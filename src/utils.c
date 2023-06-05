@@ -165,7 +165,7 @@ int getMemAddress(bool bits[]) {
 uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
   for (int i = msb; i >= lsb; i--) {
-    subset = subset << 1 | bits[i];
+    subset = (subset << 1) | bits[i];
   }
   return subset;
 }
@@ -173,7 +173,7 @@ uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
 int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = bits[msb] ? -1 : 0;
   for (int i = msb; i >= lsb; i--) {
-    subset = subset << 1 | bits[i];
+    subset = (subset << 1) | bits[i];
   }
   return subset;
 }
