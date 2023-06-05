@@ -88,9 +88,9 @@ uint64_t asr64(uint64_t operand, int bitsToShift) {
 
   if (ones != 0) {
     for (int i = 0; i < bitsToShift; i++) {
-      ones += (ones >> 1);
+      operand = operand | ones;
+      (ones >> 1);
     }
-    operand = operand | ones;
   }
 
   return operand;
@@ -108,9 +108,9 @@ uint32_t asr32(uint32_t operand, int bitsToShift) {
 
   if (ones != 0) {
     for (int i = 0; i < bitsToShift; i++) {
-      ones += (ones >> 1);
+      operand = operand | ones;
+      ones >> 1;
     }
-    operand = operand | ones;
   }
 
   return operand;
