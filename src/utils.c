@@ -89,7 +89,7 @@ uint64_t asr64(uint64_t operand, int bitsToShift) {
   if (ones != 0) {
     for (int i = 0; i < bitsToShift; i++) {
       operand = operand | ones;
-      (ones >> 1);
+      ones = ones >> 1;
     }
   }
 
@@ -109,7 +109,7 @@ uint32_t asr32(uint32_t operand, int bitsToShift) {
   if (ones != 0) {
     for (int i = 0; i < bitsToShift; i++) {
       operand = operand | ones;
-      ones >> 1;
+      ones = ones >> 1;
     }
   }
 
@@ -252,4 +252,3 @@ void write32bitreg(SystemState *state, uint32_t reg, uint32_t value) {
 void write64bitreg(SystemState *state, uint32_t reg, uint64_t value) {
   return (*state).generalPurpose[reg] = value;
 }
-
