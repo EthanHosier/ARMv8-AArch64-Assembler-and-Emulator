@@ -2,22 +2,72 @@
 #include "utils.h"
 
 int executeImmediateDP(SystemState *state, const bool bits[]) {
-  uint32_t opi = getBitsSubset(bits, 25, 23);
-  uint32_t opc = getBitsSubset(bits, 30, 29);
+  uint32_t opi = getBitsSubsetUnsigned(bits, 25, 23);
+  uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
+  bool sf = bits[31];
+  uint32_t rd = getBitsSubsetUnsigned(bits, 4, 0);
   switch (opi) {
-    case 2://opi = 010
+    case 2://opi = 010 (ARITHMETIC)
+      assert(rd < 32);
+      bool sh = bits[22];
+      uint32_t rn = getBitsSubsetUnsigned(bits, 9, 5);
+      assert(rn < 32);
+      int32_t imm12 =  getBitsSubsetSigned(bits, 21, 10);
+      if (sh) {
+        imm12 = imm12 << 12;
+      }
       switch (opc) {
         case 0://opc = 00 (add)
-          //add
+          if (sf) {
+            (*state).generalPurpose[rd] = ((int64_t) (*state).generalPurpose[rn]) + imm12;
+          } else {
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(((int32_t) (*state).generalPurpose[rn]) + imm12);
+          }
           break;
         case 1://opc = 01 (adds)
-          //adds
+          if (sf) {
+            int64_t res = (int64_t) ((*state).generalPurpose[rn]) + imm12;
+            (*state).generalPurpose[rd] = res;
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
+          } else {
+            int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
+          }
           break;
         case 2://opc = 10 (sub)
-          //sub
+          if (sf) {
+            (*state).generalPurpose[rd] = ((int64_t) (*state).generalPurpose[rn]) - imm12;
+          } else {
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(((int32_t) (*state).generalPurpose[rn]) - imm12);
+          }
           break;
         case 3://opc = 11 (subs)
-          //subs
+          if (sf) {
+            int64_t res = (int64_t) ((*state).generalPurpose[rn]) - imm12;
+            (*state).generalPurpose[rd] = res;
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn],(int64_t) imm12);
+          } else {
+            int32_t res = (int32_t) ((*state).generalPurpose[rn]) - imm12;
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
+          }
           break;
         default:
           return invalidInstruction();
