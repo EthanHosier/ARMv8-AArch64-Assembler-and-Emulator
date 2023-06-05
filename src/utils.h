@@ -73,8 +73,4 @@ void write32bitreg(SystemState *state, uint32_t reg, uint32_t value);
 
 void write64bitreg(SystemState *state, uint32_t reg, uint64_t value);
 
-void and32(SystemState *state, bool bits[]);
-
-void and64(SystemState *state, bool bits[]);
-
 #endif

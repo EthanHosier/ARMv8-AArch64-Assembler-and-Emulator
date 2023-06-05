@@ -253,10 +253,3 @@ void write64bitreg(SystemState *state, uint32_t reg, uint64_t value) {
   return (*state).generalPurpose[reg] = value;
 }
 
-void and32(SystemState *state, bool bits[]) {
-
-}
-
-void and64(SystemState *state, bool bits[]) {
-
-}
