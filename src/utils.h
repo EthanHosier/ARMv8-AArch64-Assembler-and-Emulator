@@ -73,4 +73,10 @@ void write32bitreg(SystemState *state, uint32_t reg, uint32_t value);
 
 void write64bitreg(SystemState *state, uint32_t reg, uint64_t value);
 
+uint64_t zeroPad32BitSigned(int32_t num);
+
+int checkOverflow32(int32_t a, int32_t b);
+
+int checkOverflow64(int64_t a, int64_t b);
+
 #endif

@@ -260,3 +260,25 @@ void write32bitreg(SystemState *state, uint32_t reg, uint32_t value) {
 void write64bitreg(SystemState *state, uint32_t reg, uint64_t value) {
   return (*state).generalPurpose[reg] = value;
 }
+
+uint64_t zeroPad32BitSigned(int32_t num) {
+    return (uint64_t) ((uint32_t) num);
+}
+
+int checkOverflow32(int32_t a, int32_t b) {
+  if((b > 0 && a > INT32_MAX - b) ||
+  (b < 0 && a < INT32_MIN - b)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int checkOverflow64(int64_t a, int64_t b) {
+  if((b > 0 && a > INT64_MAX - b) ||
+  (b < 0 && a < INT64_MIN - b)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
