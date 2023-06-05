@@ -41,7 +41,9 @@ uint32_t asr32(uint32_t, int);
 
 int getMemAddress(bool bits[]);
 
-uint32_t getBitsSubset(const bool bits[], int msb, int lsb);
+uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb);
+
+int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb);
 
 void updateBitsSubset(bool bits[], int newBits, int msb, int lsb);
 
@@ -75,8 +77,8 @@ void write64bitreg(SystemState *state, uint32_t reg, uint64_t value);
 
 uint64_t zeroPad32BitSigned(int32_t num);
 
-int checkOverflow32(int32_t a, int32_t b);
+int checkOverUnderflow32(int32_t a, int32_t b);
 
-int checkOverflow64(int64_t a, int64_t b);
+int checkOverUnderflow64(int64_t a, int64_t b);
 
 #endif

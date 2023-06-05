@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "utils.h"
+#include <assert.h>
 
 int executeImmediateDP(SystemState *state, const bool bits[]) {
   uint32_t opi = getBitsSubsetUnsigned(bits, 25, 23);
@@ -32,7 +33,7 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
             (*state).pState.zero = res == 0;
             // Come back to this later
             (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn],(int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
             (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
@@ -40,7 +41,7 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
             (*state).pState.zero = res == 0;
             // Come back to this later
             (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
+            (*state).pState.overflow = checkOverUnderflow32((int32_t) ((*state).generalPurpose[rn]), imm12);
           }
           break;
         case 2://opc = 10 (sub)
