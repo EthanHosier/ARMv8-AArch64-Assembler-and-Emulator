@@ -236,3 +236,27 @@ void bal(SystemState *state, bool bits[]) {
   int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
   (*state).programCounter += simm19;
 }
+
+int32_t read32bitreg(SystemState *state, uint32_t reg) {
+  return (uint32_t) (*state).generalPurpose[reg];
+}
+
+int64_t read64bitreg(SystemState *state, uint32_t reg) {
+  return (*state).generalPurpose[reg];
+}
+
+void write32bitreg(SystemState *state, uint32_t reg, uint32_t value) {
+  (*state).generalPurpose[reg] = value;
+}
+
+void write64bitreg(SystemState *state, uint32_t reg, uint64_t value) {
+  return (*state).generalPurpose[reg] = value;
+}
+
+void and32(SystemState *state, bool bits[]) {
+
+}
+
+void and64(SystemState *state, bool bits[]) {
+
+}
