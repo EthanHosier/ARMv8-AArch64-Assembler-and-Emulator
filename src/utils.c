@@ -148,7 +148,7 @@ int getMemAddress(bool bits[]) {
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
-    int simm9 = convertFromUnsignedToSigned(bits, getBitsSubset(bits, 20, 12), 20);
+    int simm9 = getBitsSubsetSigned(bits, 20, 12);
     updateBitsSubset(bits, xn + simm9, 9, 5);
     if (bits[11]) {
       return xn + simm9;
@@ -190,7 +190,7 @@ void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
 }
 
 void b(SystemState *state, bool bits[]) {
-  int64_t simm26 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 25, 0), 25);
+  int64_t simm26 = (int64_t) getBitsSubsetSigned(bits, 25, 0);
   (*state).programCounter += simm26;
 }
 
@@ -200,48 +200,48 @@ void br(SystemState *state, bool bits[]) {
 
 void beq(SystemState *state, bool bits[]) {
   if ((*state).pState.zero) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void bne(SystemState *state, bool bits[]) {
   if (!(*state).pState.zero) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void bge(SystemState *state, bool bits[]) {
   if ((*state).pState.negative == (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void blt(SystemState *state, bool bits[]) {
   if ((*state).pState.negative != (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void bgt(SystemState *state, bool bits[]) {
   if (!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void ble(SystemState *state, bool bits[]) {
   if (!(!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow)) {
-    int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
 void bal(SystemState *state, bool bits[]) {
-  int64_t simm19 = (int64_t) convertFromUnsignedToSigned(bits, getBitsSubset(bits, 23, 5), 23);
+  int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
   (*state).programCounter += simm19;
 }
 
@@ -285,4 +285,97 @@ int checkOverUnderflow64(int64_t a, int64_t b) {
   } else {
     return 0;
   }
+}
+
+uint32_t conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift, uint32_t shiftMagnitude) {
+  switch (shiftCond) {
+    case 0://shift = 00
+      return valToShift << shiftMagnitude;
+    case 1://shift = 01
+      return valToShift >> shiftMagnitude;
+    case 2://shift = 10
+      return asr64(valToShift, shiftMagnitude);
+    default://shift = 11
+      return ror64(valToShift, shiftMagnitude);
+  }
+}
+
+uint64_t conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift, uint64_t shiftMagnitude) {
+  switch (shiftCond) {
+    case 0://shift = 00
+      return valToShift << shiftMagnitude;
+    case 1://shift = 01
+      return valToShift >> shiftMagnitude;
+    case 2://shift = 10
+      return asr64(valToShift, shiftMagnitude);
+    default://shift = 11
+      return ror64(valToShift, shiftMagnitude);
+  }
+}
+
+void and64_bic64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat) {
+  write64bitreg(state, rd_reg, rn_dat & rm_dat);
+}
+
+void orr64_orn64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat) {
+  write64bitreg(state, rd_reg, rn_dat | rm_dat);
+}
+
+void eor64_eon64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat) {
+  write64bitreg(state, rd_reg, rn_dat ^ rm_dat);
+}
+
+void ands64_bics64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat) {
+  int64_t result = rn_dat & rm_dat;
+  write64bitreg(state, rd_reg, result);
+  (*state).pState.negative = result < 0;
+  (*state).pState.zero = result == 0;
+  (*state).pState.carry = 0;
+  (*state).pState.overflow = 0;
+}
+
+void and32_bic32(SystemState *state, uint32_t rd_reg, int32_t rn_dat, int32_t rm_dat) {
+  write32bitreg(state, rd_reg, rn_dat & rm_dat);
+}
+
+void orr32_orn32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat) {
+  write32bitreg(state, rd_reg, rn_dat | rm_dat);
+}
+
+void eor32_eon32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat) {
+  write32bitreg(state, rd_reg, rn_dat ^ rm_dat);
+}
+
+void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat) {
+  int64_t result = rn_dat & rm_dat;
+  write32bitreg(state, rd_reg, result);
+  (*state).pState.negative = result < 0;
+  (*state).pState.zero = result == 0;
+  (*state).pState.carry = 0;
+  (*state).pState.overflow = 0;
+}
+
+void outputToFile(SystemState *state) {
+  FILE *file;
+  file = fopen("output.out", "w");
+
+  fprintf(file, "Registers:\n");
+  for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i ++) {
+    fprintf(file, "X%d = %x", i, (*state).generalPurpose[i]);
+  }
+  fprintf(file, "PC = %x\n", (*state).programCounter*4);
+  fprintf(file, "PSTATE : ");
+  (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
+  (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
+  (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");
+  (*state).pState.overflow ? fprintf(file, "V") : fprintf(file, "-");
+  fprintf(file, "\nNon-zero memory:\n");
+  for (int i = 0; i < MEMORY_SIZE_BYTES; i ++) {
+    uint8_t val = (*state).primaryMemory[i];
+    if (val != 0) {
+      fprintf(file, "%x: %x", i*4, val);
+    }
+  }
+
+  fclose(file);
 }

@@ -81,4 +81,26 @@ int checkOverUnderflow32(int32_t a, int32_t b);
 
 int checkOverUnderflow64(int64_t a, int64_t b);
 
+uint32_t conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift, uint32_t shiftMagnitude);
+
+uint64_t conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift, uint64_t shiftMagnitude);
+
+void and64_bic64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat);
+
+void orr64_orn64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat);
+
+void eor64_eon64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat);
+
+void ands64_bics64(SystemState *state, uint64_t rd_reg, int64_t rn_dat, int64_t rm_dat);
+
+void and32_bic32(SystemState *state, uint32_t rd_reg, int32_t rn_dat, int32_t rm_dat);
+
+void orr32_orn32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat);
+
+void eor32_eon32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat);
+
+void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t rm_dat);
+
+void outputToFile(SystemState *state);
+
 #endif

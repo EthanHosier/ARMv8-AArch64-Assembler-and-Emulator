@@ -157,45 +157,128 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 5:
     case 6:
     case 7://M = 0, opr = 0xxx (fall-through for unknowns)
-      switch (opc_n) {
-        case 0://opc = 00, N = 0 (and)
-          //and
-          break;
-        case 1://opc = 00, N = 1 (bic)
-          //bic
-          break;
-        case 2://opc = 01, N = 0 (orr)
-          //orr
-          break;
-        case 3://opc = 01, N = 1 (orn)
-          //orn
-          break;
-        case 4://opc = 10, N = 0 (eor)
-          //eor
-          break;
-        case 5://opc = 10, N = 1 (eon)
-          //eon
-          break;
-        case 6://opc = 11, N = 0 (ands)
-          //ands
-          break;
-        case 7://opc = 11, N = 1 (bics)
-          //bics
-          break;
-        default:
-          return invalidInstruction();
+      bool sf = bits[31];
+      if (sf) {
+        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
+        uint64_t rn_dat = read64bitreg(state, getBitsSubset(bits, 9, 5));
+        uint64_t rm_dat = read64bitreg(state, getBitsSubset(bits, 20, 16));
+        uint32_t shift = getBitsSubset(bits, 23, 22);
+        int32_t operand = getBitsSubsetSigned(bits, 15, 10);
+        rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+        switch (opc_n) {
+          case 0://opc = 00, N = 0 (and)
+            and64_bic64(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 1://opc = 00, N = 1 (bic)
+            //bic
+            and64_bic64(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 2://opc = 01, N = 0 (orr)
+            //orr
+            orr64_orn64(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 3://opc = 01, N = 1 (orn)
+            //orn
+            orr64_orn64(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 4://opc = 10, N = 0 (eor)
+            //eor
+            eor64_eon64(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 5://opc = 10, N = 1 (eon)
+            //eon
+            eor64_eon64(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 6://opc = 11, N = 0 (ands)
+            //ands
+            ands64_bics64(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 7://opc = 11, N = 1 (bics)
+            //bics
+            ands64_bics64(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          default:
+            return invalidInstruction();
+        }
+      } else {
+        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
+        uint32_t rn_dat = read32bitreg(state, getBitsSubset(bits, 9, 5));
+        uint32_t rm_dat = read32bitreg(state, getBitsSubset(bits, 20, 16));
+        uint32_t shift = getBitsSubset(bits, 23, 22);
+        int32_t operand = getBitsSubsetSigned(bits, 15, 10);
+        rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+        switch (opc_n) {
+          case 0://opc = 00, N = 0 (and)
+            and32_bic32(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 1://opc = 00, N = 1 (bic)
+            //bic
+            and32_bic32(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 2://opc = 01, N = 0 (orr)
+            //orr
+            orr32_orn32(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 3://opc = 01, N = 1 (orn)
+            //orn
+            orr32_orn32(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 4://opc = 10, N = 0 (eor)
+            //eor
+            eor32_eon32(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 5://opc = 10, N = 1 (eon)
+            //eon
+            eor32_eon32(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          case 6://opc = 11, N = 0 (ands)
+            //ands
+            ands32_bics32(state, rd_reg, rn_dat, rm_dat);
+            break;
+          case 7://opc = 11, N = 1 (bics)
+            //bics
+            ands32_bics32(state, rd_reg, rn_dat, ~rm_dat);
+            break;
+          default:
+            return invalidInstruction();
+        }
       }
       break;
     case 24://M = 1, opr = 1000
-      switch (opc_x) {
-        case 0://opc = 00, x = 0 (madd)
-          //madd
-          break;
-        case 1://opc = 00, x = 1 (msub)
-          //msub
-          break;
-        default:
-          return invalidInstruction();
+      if (bits[31]) {
+        uint64_t rd_reg = getBitsSubset(bits, 4, 0);
+        int64_t rn_dat = read64bitreg(state, getBitsSubset(bits, 9, 5));
+        int64_t ra_dat = read64bitreg(state, getBitsSubset(bits, 14, 10));
+        int64_t rm_dat = read64bitreg(state, getBitsSubset(bits, 20, 16));
+        switch (opc_x) {
+          case 0://opc = 00, x = 0 (madd)
+            //madd
+            write64bitreg(state, rd_reg, ra_dat + (rn_dat * rm_dat));
+            break;
+          case 1://opc = 00, x = 1 (msub)
+            //msub
+            write64bitreg(state, rd_reg, ra_dat - (rn_dat * rm_dat));
+            break;
+          default:
+            return invalidInstruction();
+        }
+      } else {
+        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
+        int32_t rn_dat = read32bitreg(state, getBitsSubset(bits, 9, 5));
+        int32_t ra_dat = read32bitreg(state, getBitsSubset(bits, 14, 10));
+        int32_t rm_dat = read32bitreg(state, getBitsSubset(bits, 20, 16));
+        switch (opc_x) {
+          case 0://opc = 00, x = 0 (madd)
+            //madd
+            write32bitreg(state, rd_reg, ra_dat + (rn_dat * rm_dat));
+            break;
+          case 1://opc = 00, x = 1 (msub)
+            //msub
+            write32bitreg(state, rd_reg, ra_dat - (rn_dat * rm_dat));
+            break;
+          default:
+            return invalidInstruction();
+        }
       }
       break;
     default:
