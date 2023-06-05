@@ -75,14 +75,33 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
       }
       break;
     case 5://opi = 101
+      uint32_t hw = getBitsSubsetUnsigned(bits,22,21);
+      uint16_t imm16 = getBitsSubsetSigned(bits, 20, 5); //assuming this number is meant to be signed
+      
+      int32_t shift = (hw*16);
+      int64_t op64 = imm16 << shift;
+      int32_t op32 = imm16 << shift;
+    
       switch (opc) {
         case 0://opc = 00 (movn)
-          //movn
+          if (sf) //64 bit
+          {
+            (*state).generalPurpose[rd] = ~op64;
+          } else {
+            (*state).generalPurpose[rd] = ~op32;
+          } 
+          
           break;
         case 2://opc = 10 (movz)
-          //movz
+          if(sf){
+            (*state).generalPurpose[rd] = op64;            
+          } else {
+            (*state).generalPurpose[rd] = op32;
+          }
+
           break;
         case 3://opc = 11 (movk)
+
           //movk
           break;
         default:
