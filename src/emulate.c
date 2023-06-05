@@ -176,7 +176,7 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
           } else {
             rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
             int32_t res = (int32_t) rn_dat + (int32_t) rm_dat;
-            (*state).generalPurpose[rd_reg] = res;
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -206,7 +206,7 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
           } else {
             rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
             int32_t res = (int32_t) rn_dat - (int32_t) rm_dat;
-            (*state).generalPurpose[rd_reg] = res;
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
