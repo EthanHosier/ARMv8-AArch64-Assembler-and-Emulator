@@ -76,7 +76,7 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
       break;
     case 5://opi = 101
       uint32_t hw = getBitsSubsetUnsigned(bits,22,21);
-      uint16_t imm16 = getBitsSubsetSigned(bits, 20, 5); //assuming this number is meant to be signed
+      int16_t imm16 = getBitsSubsetSigned(bits, 20, 5); //assuming this number is meant to be signed
       
       int32_t shift = (hw*16);
       int64_t op64 = imm16 << shift;
@@ -102,19 +102,20 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc = 11 (movk)
           //TODO: add when 11111 case (for entire instruction set)
+          //TESTTTTTTTTTTTTTTTTT
           if(sf){//64 bit
             uint64_t val = (*state).generalPurpose[rd];
-            uint64_t top = val / (1 << (shift + 14)); //might be +15 idk
+            uint64_t top = val / (1 << (shift + 15)); //might be +14 idk
             uint64_t bottom = val % (1 << (shift - 1)); //i think -1
 
-            uint64_t joined = bottom | (imm16 << shift) | bottom;   
+            uint64_t joined = top | (imm16 << shift) | bottom;   
             (*state).generalPurpose[rd] = joined;
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
-            uint32_t top = val / (1 << (shift + 14)); //might be +15 idk
+            uint32_t top = val / (1 << (shift + 15)); //might be +14 idk
             uint32_t bottom = val % (1 << (shift - 1)); //i think -1
 
-            uint64_t joined = (uint64_t) (bottom | (imm16 << shift) | bottom);   
+            uint64_t joined = (uint64_t) (top | (imm16 << shift) | bottom);   
             (*state).generalPurpose[rd] = joined;
           }
           break;
@@ -137,8 +138,8 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
    * incremented at the end of this function.
   */
   // Todo: Body
-  uint32_t m_opr = (bits[28] << 4) | getBitsSubset(bits, 24, 21);
-  uint32_t opc = getBitsSubset(bits, 30, 29);;
+  uint32_t m_opr = (bits[28] << 4) | getBitsSubsetUnsigned(bits, 24, 21);
+  uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);;
   uint32_t opc_n = (opc << 1) | bits[21];
   uint32_t opc_x = (opc << 1) | bits[15];
   switch (m_opr) {
@@ -173,10 +174,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 7://M = 0, opr = 0xxx (fall-through for unknowns)
       bool sf = bits[31];
       if (sf) {
-        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
-        uint64_t rn_dat = read64bitreg(state, getBitsSubset(bits, 9, 5));
-        uint64_t rm_dat = read64bitreg(state, getBitsSubset(bits, 20, 16));
-        uint32_t shift = getBitsSubset(bits, 23, 22);
+        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        uint64_t rn_dat = read64bitreg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        uint64_t rm_dat = read64bitreg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
         int32_t operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
@@ -215,10 +216,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
             return invalidInstruction();
         }
       } else {
-        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
-        uint32_t rn_dat = read32bitreg(state, getBitsSubset(bits, 9, 5));
-        uint32_t rm_dat = read32bitreg(state, getBitsSubset(bits, 20, 16));
-        uint32_t shift = getBitsSubset(bits, 23, 22);
+        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        uint32_t rn_dat = read32bitreg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        uint32_t rm_dat = read32bitreg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
         int32_t operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
@@ -260,10 +261,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
       break;
     case 24://M = 1, opr = 1000
       if (bits[31]) {
-        uint64_t rd_reg = getBitsSubset(bits, 4, 0);
-        int64_t rn_dat = read64bitreg(state, getBitsSubset(bits, 9, 5));
-        int64_t ra_dat = read64bitreg(state, getBitsSubset(bits, 14, 10));
-        int64_t rm_dat = read64bitreg(state, getBitsSubset(bits, 20, 16));
+        uint64_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        int64_t rn_dat = read64bitreg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        int64_t ra_dat = read64bitreg(state, getBitsSubsetUnsigned(bits, 14, 10));
+        int64_t rm_dat = read64bitreg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
             //madd
@@ -277,10 +278,10 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
             return invalidInstruction();
         }
       } else {
-        uint32_t rd_reg = getBitsSubset(bits, 4, 0);
-        int32_t rn_dat = read32bitreg(state, getBitsSubset(bits, 9, 5));
-        int32_t ra_dat = read32bitreg(state, getBitsSubset(bits, 14, 10));
-        int32_t rm_dat = read32bitreg(state, getBitsSubset(bits, 20, 16));
+        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        int32_t rn_dat = read32bitreg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        int32_t ra_dat = read32bitreg(state, getBitsSubsetUnsigned(bits, 14, 10));
+        int32_t rm_dat = read32bitreg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
             //madd
@@ -304,7 +305,7 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
 }
 
 int executeSingleDataTransfer(SystemState *state, bool bits[]) {
-  uint32_t rt = getBitsSubset(bits, 4, 0);
+  uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   if (bits[30]) {//64bit
 
     if (bits[22]) {//load
@@ -321,11 +322,9 @@ int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       int base = getMemAddress(bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i ++) {
-        uint8_t subset = 0;
-        for (int j = i*8; j < (i+1)*8; j++) {
-          subset = (subset << 1) | bits[j];
-        }
-        (*state).primaryMemory[base + i] = subset;
+        unsigned int mask = (1 << ((8*i + 7) - (8*i) + 1)) - 1;//mask of 1s with correct size
+        mask = mask << i;  //shift mask to correct pos
+        (*state).primaryMemory[base + i] = (val & mask) >> i;
       }
       (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
     }
@@ -344,12 +343,10 @@ int executeSingleDataTransfer(SystemState *state, bool bits[]) {
 
       int base = getMemAddress(bits);
       uint64_t val = (*state).generalPurpose[rt];
-      for (int i = 0; i < 4; i ++) {
-        uint8_t subset = 0;
-        for (int j = i*8; j < (i+1)*8; j++) {
-          subset = (subset << 1) | bits[j];
-        }
-        (*state).primaryMemory[base + i] = subset;
+      for (int i = 0; i < 8; i ++) {
+        unsigned int mask = (1 << ((8*i + 7) - (8*i) + 1)) - 1;//mask of 1s with correct size
+        mask = mask << i;  //shift mask to correct pos
+        (*state).primaryMemory[base + i] = (val & mask) >> i;
       }
       (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
     }
@@ -395,16 +392,16 @@ int executeLoadLiteral(SystemState *state, bool bits[]) {
 
 int executeBranch(SystemState *state, const bool bits[]) {
   // Todo: Body
-  uint32_t valForReg31to10 = getBitsSubset(bits, 31, 10);
-  uint32_t valForReg4to0 = getBitsSubset(bits, 4, 0);
-  uint32_t valForCond = getBitsSubset(bits, 31, 24);
+  uint32_t valForReg31to10 = getBitsSubsetUnsigned(bits, 31, 10);
+  uint32_t valForReg4to0 = getBitsSubsetUnsigned(bits, 4, 0);
+  uint32_t valForCond = getBitsSubsetUnsigned(bits, 31, 24);
 
   if (!bits[31] && !bits[30]) {//b
     b(state, bits);
   } else if (valForReg31to10 == 3508160 && valForReg4to0 == 0) {//br
     br(state, bits);
   } else if (valForCond == 84 && !bits[4]) {//b.cond
-    uint32_t cond = getBitsSubset(bits, 3, 0);
+    uint32_t cond = getBitsSubsetUnsigned(bits, 3, 0);
     switch (cond) {
       case 0://cond = 0000 (beq)
         beq(state, bits);
@@ -479,6 +476,7 @@ int main(int argc, char **argv) {
       return 1;
     }
   }
+  outputToFile(&state);
   return 0;
 }
 

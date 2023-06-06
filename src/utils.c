@@ -141,10 +141,10 @@ uint32_t ror32(uint32_t operand, int bitsToRotate) {
 }
 
 int getMemAddress(bool bits[]) {
-  int xn = getBitsSubset(bits, 9, 5);
+  int xn = getBitsSubsetSigned(bits, 9, 5);
   if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12] && bits[11] && !bits[10]) {
     //register offset
-    int xm = getBitsSubset(bits, 20, 16);
+    int xm = getBitsSubsetSigned(bits, 20, 16);
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
@@ -157,7 +157,7 @@ int getMemAddress(bool bits[]) {
     }
   } else {
     //Unsigned Offset
-    int imm12 = getBitsSubset(bits, 21, 10);
+    int imm12 = getBitsSubsetSigned(bits, 21, 10);
     return xn + imm12;
   }
 }
@@ -195,7 +195,7 @@ void b(SystemState *state, bool bits[]) {
 }
 
 void br(SystemState *state, bool bits[]) {
-  (*state).programCounter = (*state).generalPurpose[getBitsSubset(bits, 9, 5)];
+  (*state).programCounter = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
 }
 
 void beq(SystemState *state, bool bits[]) {
@@ -376,6 +376,5 @@ void outputToFile(SystemState *state) {
       fprintf(file, "%x: %x", i*4, val);
     }
   }
-
   fclose(file);
 }
