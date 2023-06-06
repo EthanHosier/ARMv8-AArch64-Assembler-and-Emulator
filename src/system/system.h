@@ -19,7 +19,7 @@ typedef struct {
     uint32_t instructionMemory[MAX_INSTRUCTIONS];
 } SystemState;
 
-extern void initialiseSystemState(SystemState *state, int, uint32_t *);
+extern void initialiseSystemState(SystemState *state, int, const uint32_t *);
 
 extern void outputToFile(SystemState *state, char *, int);
 

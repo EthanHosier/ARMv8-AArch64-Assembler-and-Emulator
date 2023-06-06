@@ -452,7 +452,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
    * after overriding the value of the PC. This will avoid the PC being
    * incremented at the end of this function.
   */
-  // Todo: Body
+  /* ^ Halt instruction now implemented! */
   uint32_t m_opr = (bits[28] << 4) | getBitsSubsetUnsigned(bits, 24, 21);
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
   uint32_t opc_n = (opc << 1) | bits[21];
@@ -736,7 +736,6 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
 }
 
 static int executeLoadLiteral(SystemState *state, bool bits[]) {
-  // Todo: Body
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
   int32_t address = (int32_t) ((*state).programCounter + simm19);
@@ -767,7 +766,6 @@ static int executeLoadLiteral(SystemState *state, bool bits[]) {
 }
 
 static int executeBranch(SystemState *state, const bool bits[]) {
-  // Todo: Body
   uint32_t valForReg31to10 = getBitsSubsetUnsigned(bits, 31, 10);
   uint32_t valForReg4to0 = getBitsSubsetUnsigned(bits, 4, 0);
   uint32_t valForCond = getBitsSubsetUnsigned(bits, 31, 24);
@@ -830,7 +828,7 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
   return 1;
 }
 
-void initialiseSystemState(SystemState *state, int numberOfInstructions, uint32_t instructions[]) {
+void initialiseSystemState(SystemState *state, int numberOfInstructions, const uint32_t instructions[]) {
   zero64Array((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
   zero32Array((*state).instructionMemory, MAX_INSTRUCTIONS);
   for (int i = 0; i < numberOfInstructions; i++) {
@@ -844,7 +842,6 @@ void initialiseSystemState(SystemState *state, int numberOfInstructions, uint32_
   zero8Array((*state).dataMemory, MEMORY_SIZE_BYTES);
 }
 
-//PRIx64 might not be necessary, it was a warning that i had (check if fine on linux)
 void outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
   FILE *file;
   file = fopen(filename, "w");
@@ -866,19 +863,19 @@ void outputToFile(SystemState *state, char *filename, int numberOfInstructions) 
       if (i == 0) {
         fprintf(file, "0x00000000");
       } else {
-        fprintf(file, "%#010"PRIx64, i * 4);
+        fprintf(file, "%#010"PRIx16, (int16_t) (i * 4));
       }
       fprintf(file, " : %08"
-                    PRIx64"\n", val);
+                    PRIx32"\n", val);
     }
   }
   for (int i = 0; i < MEMORY_SIZE_BYTES; i++) {
     uint8_t val = (*state).dataMemory[i];
     if (val != 0) {
       fprintf(file, "Data Memory: %#010"
-                    PRIx8
+                    PRIx16
                     " : %08"
-                    PRIx8"\n", (i + numberOfInstructions) * 4, val);
+                    PRIx8"\n", (int16_t) ((i + numberOfInstructions) * 4), val);
     }
   }
   fclose(file);
