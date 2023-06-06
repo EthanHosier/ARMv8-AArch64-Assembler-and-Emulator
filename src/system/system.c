@@ -3,24 +3,10 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <assert.h>
-
-static void zero64Array(uint64_t array[], int size) {
-  for (int i = 0; i < size; i++) {
-    array[i] = 0;
+#define zeroArray(array, size)\
+  for (int i = 0; i < size; i++) {\
+    array[i] = 0;\
   }
-}
-
-static void zero32Array(uint32_t array[], int size) {
-  for (int i = 0; i < size; i++) {
-    array[i] = 0;
-  }
-}
-
-static void zero8Array(uint8_t array[], int size) {
-  for (int i = 0; i < size; i++) {
-    array[i] = 0;
-  }
-}
 
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
@@ -249,7 +235,7 @@ static void bgt(SystemState *state, const bool bits[]) {
 
 static void ble(SystemState *state, const bool bits[]) {
   if (!(!(*state).pState.zero &&
-        (*state).pState.negative == (*state).pState.overflow)) {
+      (*state).pState.negative == (*state).pState.overflow)) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
@@ -346,10 +332,10 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
         case 0://opc = 00 (add)
           if (sf) {
             (*state).generalPurpose[rd] =
-                    ((int64_t) (*state).generalPurpose[rn]) + imm12;
+                ((int64_t) (*state).generalPurpose[rn]) + imm12;
           } else {
             (*state).generalPurpose[rd] = zeroPad32BitSigned(
-                    ((int32_t) (*state).generalPurpose[rn]) + imm12);
+                ((int32_t) (*state).generalPurpose[rn]) + imm12);
           }
           break;
         case 1://opc = 01 (adds)
@@ -361,8 +347,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             // Come back to this later
             (*state).pState.carry = 0;
             (*state).pState.overflow = checkOverUnderflow64(
-                    (int64_t) (*state).generalPurpose[rn],
-                    (int64_t) imm12);
+                (int64_t) (*state).generalPurpose[rn],
+                (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
             (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
@@ -371,16 +357,16 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             // Come back to this later
             (*state).pState.carry = 0;
             (*state).pState.overflow = checkOverUnderflow32(
-                    (int32_t) ((*state).generalPurpose[rn]), imm12);
+                (int32_t) ((*state).generalPurpose[rn]), imm12);
           }
           break;
         case 2://opc = 10 (sub)
           if (sf) {
             (*state).generalPurpose[rd] =
-                    ((int64_t) (*state).generalPurpose[rn]) - imm12;
+                ((int64_t) (*state).generalPurpose[rn]) - imm12;
           } else {
             (*state).generalPurpose[rd] = zeroPad32BitSigned(
-                    ((int32_t) (*state).generalPurpose[rn]) - imm12);
+                ((int32_t) (*state).generalPurpose[rn]) - imm12);
           }
           break;
         case 3://opc = 11 (subs)
@@ -392,8 +378,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             // Come back to this later
             (*state).pState.carry = 0;
             (*state).pState.overflow = checkOverUnderflow64(
-                    (int64_t) (*state).generalPurpose[rn],
-                    (int64_t) imm12);
+                (int64_t) (*state).generalPurpose[rn],
+                (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) - imm12;
             (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
@@ -402,7 +388,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             // Come back to this later
             (*state).pState.carry = 0;
             (*state).pState.overflow = checkOverUnderflow32(
-                    (int32_t) ((*state).generalPurpose[rn]), imm12);
+                (int32_t) ((*state).generalPurpose[rn]), imm12);
           }
           break;
         default:
@@ -447,7 +433,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             uint64_t bottom = val % (1 << (shift - 1)); //i think -1
 
             uint64_t joined = (top << (shift + 15)) |
-                              (((uint64_t) imm16) << (shift - 1)) | bottom;
+                (((uint64_t) imm16) << (shift - 1)) | bottom;
             (*state).generalPurpose[rd] = joined;
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
@@ -455,8 +441,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             uint32_t bottom = val % (1 << (shift - 1)); //i think -1
 
             uint64_t joined = (uint64_t) ((top << (shift + 15)) |
-                                          (((uint64_t) imm16) << (shift - 1)) |
-                                          bottom);
+                (((uint64_t) imm16) << (shift - 1)) |
+                bottom);
             (*state).generalPurpose[rd] = joined;
           }
           break;
@@ -506,12 +492,12 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
             (*state).generalPurpose[rd_reg] =
-                    (int64_t) rn_dat + (int64_t) rm_dat;
+                (int64_t) rn_dat + (int64_t) rm_dat;
           } else {
             rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat,
                                                   operand);
             (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(
-                    (int32_t) rn_dat + (int32_t) rm_dat);
+                (int32_t) rn_dat + (int32_t) rm_dat);
           }
           break;
         case 1://opc = 01 (adds)
@@ -543,12 +529,12 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
             (*state).generalPurpose[rd_reg] =
-                    (int64_t) rn_dat - (int64_t) rm_dat;
+                (int64_t) rn_dat - (int64_t) rm_dat;
           } else {
             rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat,
                                                   operand);
             (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(
-                    (int32_t) rn_dat - (int32_t) rm_dat);
+                (int32_t) rn_dat - (int32_t) rm_dat);
           }
           break;
         case 3://opc  = 11 (subs)
@@ -749,7 +735,7 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
-                            1;//mask of 1s with correct size
+            1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
         (*state).dataMemory[base + i] = (val & mask) >> i;
       }
@@ -772,7 +758,7 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
-                            1;//mask of 1s with correct size
+            1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
         (*state).dataMemory[base + i] = (val & mask) >> i;
       }
@@ -868,10 +854,10 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
   } else if (bits[27] && !bits[26] && bits[25]) { // DP (Register)
     return executeRegisterDP(state, bits);
   } else if (bits[31] && bits[29] && bits[28] && bits[27] && !bits[26]
-             && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
+      && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
     return executeSingleDataTransfer(state, bits);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
-             && !bits[25] && !bits[24]) { // Load Literal
+      && !bits[25] && !bits[24]) { // Load Literal
     return executeLoadLiteral(state, bits);
   } else if (!bits[29] && bits[28] && !bits[27] && bits[26]) { // Branch
     return executeBranch(state, bits);
@@ -882,17 +868,17 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
 
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
-  zero64Array((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
-  zero32Array((*state).instructionMemory, MAX_INSTRUCTIONS);
+  zeroArray((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
+  zeroArray((*state).instructionMemory, MAX_INSTRUCTIONS);
   for (int i = 0; i < numberOfInstructions; i++) {
     (*state).instructionMemory[i] = instructions[i];
   }
-  zero64Array(&(*state).programCounter, 1);
+  zeroArray((&(*state).programCounter), 1);
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
-  zero8Array((*state).dataMemory, MEMORY_SIZE_BYTES);
+  zeroArray((*state).dataMemory, MEMORY_SIZE_BYTES);
 }
 
 static void outputInstruction(FILE *file, uint32_t val) {
