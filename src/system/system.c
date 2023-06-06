@@ -446,13 +446,13 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
   uint32_t opc_n = (opc << 1) | bits[21];
   uint32_t opc_x = (opc << 1) | bits[15];
-  uint32_t sf = bits[31];
+  bool sf = bits[31];
 
   uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
   uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
   int32_t operand = getBitsSubsetSigned(bits, 15, 10);
-  uint64_t rn_dat = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
-  uint64_t rm_dat = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 20, 16)];
+  int64_t rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
+  int64_t rm_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits, 20, 16)];
   switch (m_opr) {
     case 8:
     case 10:
@@ -461,7 +461,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       switch (opc) {
         case 0://opc = 00 (add)
           if (sf) {
-            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
             (*state).generalPurpose[rd_reg] = (int64_t) rn_dat + (int64_t) rm_dat;
           } else {
             rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat, operand);
@@ -470,7 +470,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           break;
         case 1://opc = 01 (adds)
           if (sf) {
-            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
             int64_t res = (int64_t) rn_dat + (int64_t) rm_dat;
             (*state).generalPurpose[rd_reg] = res;
             (*state).pState.negative = res < 0;
@@ -491,7 +491,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           break;
         case 2://opc = 10 (sub)
           if (sf) {
-            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
             (*state).generalPurpose[rd_reg] = (int64_t) rn_dat - (int64_t) rm_dat;
           } else {
             rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat, operand);
@@ -500,7 +500,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc  = 11 (subs)
           if (sf) {
-            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
             int64_t res = (int64_t) rn_dat - (int64_t) rm_dat;
             (*state).generalPurpose[rd_reg] = res;
             (*state).pState.negative = res < 0;
@@ -531,14 +531,14 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 5:
     case 6:
     case 7://M = 0, opr = 0xxx (fall-through for unknowns)
-    {
-      bool sf = bits[31];
+
+      sf = bits[31];
       if (sf) {
-        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        int64_t rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int64_t rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
-        uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
-        int32_t operand = getBitsSubsetSigned(bits, 15, 10);
+        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        shift = getBitsSubsetUnsigned(bits, 23, 22);
+        operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
@@ -576,56 +576,55 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             return invalidInstruction();
         }
       } else {
-        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        int32_t rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int32_t rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
-        uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
-        int32_t operand = getBitsSubsetSigned(bits, 15, 10);
-        rm_dat = (int32_t) conditionalShiftForLogical32(shift, rm_dat, operand);
+        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        int32_t rn_dat_32 = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        int32_t rm_dat_32 = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        shift = getBitsSubsetUnsigned(bits, 23, 22);
+        operand = getBitsSubsetSigned(bits, 15, 10);
+        rm_dat_32 = (int32_t) conditionalShiftForLogical32(shift, rm_dat_32, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
-            and32_bic32(state, rd_reg, rn_dat, rm_dat);
+            and32_bic32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 1://opc = 00, N = 1 (bic)
             //bic
-            and32_bic32(state, rd_reg, rn_dat, ~rm_dat);
+            and32_bic32(state, rd_reg, rn_dat_32, ~rm_dat_32);
             break;
           case 2://opc = 01, N = 0 (orr)
             //orr
-            orr32_orn32(state, rd_reg, rn_dat, rm_dat);
+            orr32_orn32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 3://opc = 01, N = 1 (orn)
             //orn
-            orr32_orn32(state, rd_reg, rn_dat, ~rm_dat);
+            orr32_orn32(state, rd_reg, rn_dat_32, ~rm_dat_32);
             break;
           case 4://opc = 10, N = 0 (eor)
             //eor
-            eor32_eon32(state, rd_reg, rn_dat, rm_dat);
+            eor32_eon32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 5://opc = 10, N = 1 (eon)
             //eon
-            eor32_eon32(state, rd_reg, rn_dat, ~rm_dat);
+            eor32_eon32(state, rd_reg, rn_dat_32, ~rm_dat_32);
             break;
           case 6://opc = 11, N = 0 (ands)
             //ands
-            ands32_bics32(state, rd_reg, rn_dat, rm_dat);
+            ands32_bics32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 7://opc = 11, N = 1 (bics)
             //bics
-            ands32_bics32(state, rd_reg, rn_dat, ~rm_dat);
+            ands32_bics32(state, rd_reg, rn_dat_32, ~rm_dat_32);
             break;
           default:
             return invalidInstruction();
         }
       }
-    }
       break;
     case 24://M = 1, opr = 1000
       if (bits[31]) {
-        uint64_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        int64_t rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
         int64_t ra_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 14, 10));
-        int64_t rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
             //madd
@@ -639,10 +638,10 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             return invalidInstruction();
         }
       } else {
-        uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        int32_t rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+        rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
         int32_t ra_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 14, 10));
-        int32_t rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
             //madd
