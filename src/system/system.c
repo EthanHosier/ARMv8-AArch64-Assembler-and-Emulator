@@ -4,8 +4,8 @@
 #include <inttypes.h>
 #include <assert.h>
 #define zeroArray(array, size)\
-  for (int i = 0; i < size; i++) {\
-    array[i] = 0;\
+  for (int i = 0; i < (size); i++) {\
+    (array)[i] = 0;\
   }
 
 static int invalidInstruction(void) {
@@ -868,17 +868,17 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
 
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
-  zeroArray((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
-  zeroArray((*state).instructionMemory, MAX_INSTRUCTIONS);
+  zeroArray((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
+  zeroArray((*state).instructionMemory, MAX_INSTRUCTIONS)
   for (int i = 0; i < numberOfInstructions; i++) {
     (*state).instructionMemory[i] = instructions[i];
   }
-  zeroArray((&(*state).programCounter), 1);
+  zeroArray(&(*state).programCounter, 1)
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
-  zeroArray((*state).dataMemory, MEMORY_SIZE_BYTES);
+  zeroArray((*state).dataMemory, MEMORY_SIZE_BYTES)
 }
 
 static void outputInstruction(FILE *file, uint32_t val) {
