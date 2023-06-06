@@ -28,10 +28,19 @@ int main(int argc, char **argv) {
     // Most significant bit has the highest index
     getBits(instructions[(*state).programCounter], bits);
     printInstruction(bits);
-    if (execute(state, bits)) {
-      return 1;
+    switch (execute(state, bits)) {
+      case 0:
+        break;
+      case 1: //Error message already printed
+        return 1;
+      case HALT:
+        goto END_FDE_CYCLE;
+      default:
+        fprintf(stderr, "Unknown error!");
+        return UNKNOWN_ERROR;
     }
   }
+  END_FDE_CYCLE:
   outputToFile(state, argv[2]);
   free(state);
   return 0;

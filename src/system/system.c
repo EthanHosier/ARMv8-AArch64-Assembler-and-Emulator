@@ -546,13 +546,18 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       sf = bits[31];
       if (sf) {
         rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        uint32_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
+        uint32_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
+        rn_dat = read64bitReg(state, rn_reg);
+        rm_dat = read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
+            if (rm_reg == 0 && rd_reg == 0 && rn_reg == 0) {
+              return HALT;
+            }
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
             break;
           case 1://opc = 00, N = 1 (bic)
