@@ -895,7 +895,7 @@ void initialiseSystemState(SystemState *state, int numberOfInstructions,
   zero8Array((*state).dataMemory, MEMORY_SIZE_BYTES);
 }
 
-static void outputInstruction(struct __sFILE *file, uint32_t val) {
+static void outputInstruction(FILE *file, uint32_t val) {
   fprintf(file, " : %08"PRIx32"\n", val);
 }
 
