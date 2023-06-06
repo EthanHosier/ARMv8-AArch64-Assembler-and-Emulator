@@ -33,7 +33,7 @@ static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   for (int i = msb; i >= lsb; i--) {
     subset = (subset << 1) | bits[i];
   }
-  return subset;
+  return (int32_t) subset;
 }
 
 static int getMemAddress(bool bits[]) {
@@ -67,8 +67,9 @@ static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   return subset;
 }
 
-static int32_t convertFromUnsignedToSigned(bool bits[], uint32_t number, int posOfMSB) {
-  return (int32_t) (bits[posOfMSB]) ? -number : number;
+static int32_t convertFromUnsignedToSigned(const bool bits[], uint32_t number, int posOfMSB) {
+  int32_t signedNumber = (int32_t) number;
+  return (int32_t) (bits[posOfMSB]) ? -signedNumber : signedNumber;
 }
 
 static uint64_t zeroPad32BitSigned(int32_t num) {
@@ -161,7 +162,7 @@ static uint32_t ror32(uint32_t operand, int bitsToRotate) {
   return operand;
 }
 
-static uint32_t conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift, uint32_t shiftMagnitude) {
+static uint32_t conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift, int shiftMagnitude) {
   switch (shiftCond) {
     case 0://shift = 00
       return valToShift << shiftMagnitude;
@@ -174,7 +175,7 @@ static uint32_t conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToS
   }
 }
 
-static uint64_t conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift, uint64_t shiftMagnitude) {
+static uint64_t conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift, int shiftMagnitude) {
   switch (shiftCond) {
     case 0://shift = 00
       return valToShift << shiftMagnitude;
@@ -244,11 +245,11 @@ static void bal(SystemState *state, const bool bits[]) {
 }
 
 static int32_t read32bitReg(SystemState *state, uint32_t reg) {
-  return (uint32_t) (*state).generalPurpose[reg];
+  return (int32_t) (*state).generalPurpose[reg];
 }
 
 static int64_t read64bitReg(SystemState *state, uint32_t reg) {
-  return (*state).generalPurpose[reg];
+  return (int64_t) (*state).generalPurpose[reg];
 }
 
 static void write32bitReg(SystemState *state, uint32_t reg, uint32_t value) {
@@ -378,9 +379,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
     case 5://opi = 101
     {
       uint32_t hw = getBitsSubsetUnsigned(bits, 22, 21);
-      int16_t imm16 = getBitsSubsetSigned(bits, 20, 5); //assuming this number is meant to be signed
+      int16_t imm16 = (int16_t) getBitsSubsetSigned(bits, 20, 5); //assuming this number is meant to be signed
 
-      int32_t shift = (hw * 16);
+      int32_t shift = (int32_t) (hw * 16);
       int64_t op64 = imm16 << shift;
       int32_t op32 = imm16 << shift;
 
@@ -534,8 +535,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       bool sf = bits[31];
       if (sf) {
         uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        uint64_t rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        uint64_t rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        int64_t rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        int64_t rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
         int32_t operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
@@ -576,11 +577,11 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         }
       } else {
         uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        uint32_t rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        uint32_t rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
+        int32_t rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
+        int32_t rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
         int32_t operand = getBitsSubsetSigned(bits, 15, 10);
-        rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+        rm_dat = (int32_t) conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and32_bic32(state, rd_reg, rn_dat, rm_dat);
@@ -723,7 +724,7 @@ static int executeLoadLiteral(SystemState *state, bool bits[]) {
   // Todo: Body
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
-  int32_t address = (*state).programCounter + simm19;
+  int32_t address = (int32_t) ((*state).programCounter + simm19);
 
   if (bits[30]) {//64bit
 
@@ -832,11 +833,11 @@ void outputToFile(SystemState *state) {
   fprintf(file, "Registers:\n");
   for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i++) {
     fprintf(file, "X%02d = %016llx"
-                  PRIx64, i, (*state).generalPurpose[i]);
+    PRIx64, i, (*state).generalPurpose[i]);
   }
   fprintf(file, "PC = %016llx"
-                PRIx64
-                "\n", (*state).programCounter * 4);
+  PRIx64
+  "\n", (*state).programCounter * 4);
   fprintf(file, "PSTATE : ");
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
@@ -847,9 +848,9 @@ void outputToFile(SystemState *state) {
     uint8_t val = (*state).primaryMemory[i];
     if (val != 0) {
       fprintf(file, "#%08x"
-                    PRIx64
-                    ": #%08x"
-                    PRIx64, i * 4, val);
+      PRIx64
+      ": #%08x"
+      PRIx64, i * 4, val);
     }
   }
   fclose(file);
