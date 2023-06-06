@@ -845,7 +845,7 @@ void initialiseSystemState(SystemState *state, int numberOfInstructions, uint32_
 }
 
 //PRIx64 might not be necessary, it was a warning that i had (check if fine on linux)
-void outputToFile(SystemState *state, char *filename) {
+void outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
   FILE *file;
   file = fopen(filename, "w");
 
@@ -860,7 +860,7 @@ void outputToFile(SystemState *state, char *filename) {
   (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");
   (*state).pState.overflow ? fprintf(file, "V") : fprintf(file, "-");
   fprintf(file, "\nNon-zero memory:\n");
-  for (int i = 0; i < MAX_INSTRUCTIONS; i++) {
+  for (int i = 0; i < numberOfInstructions; i++) {
     uint32_t val = (*state).instructionMemory[i];
     if (val != 0) {
       if (i == 0) {
@@ -878,7 +878,7 @@ void outputToFile(SystemState *state, char *filename) {
       fprintf(file, "Data Memory: %#010"
                     PRIx8
                     " : %08"
-                    PRIx8"\n", (i + MAX_INSTRUCTIONS) * 4, val);
+                    PRIx8"\n", (i + numberOfInstructions) * 4, val);
     }
   }
   fclose(file);

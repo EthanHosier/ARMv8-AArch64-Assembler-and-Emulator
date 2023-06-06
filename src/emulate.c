@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     }
   }
   END_FDE_CYCLE:
-  outputToFile(state, argv[2]);
+  outputToFile(state, argv[2], numberOfInstructions);
   free(state);
   return 0;
 }

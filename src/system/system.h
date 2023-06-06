@@ -21,7 +21,7 @@ typedef struct {
 
 extern void initialiseSystemState(SystemState *state, int, uint32_t *);
 
-extern void outputToFile(SystemState *state, char *);
+extern void outputToFile(SystemState *state, char *, int);
 
 extern int execute(SystemState *state, bool bits[]);
 
