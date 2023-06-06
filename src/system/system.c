@@ -837,10 +837,10 @@ void initialiseSystemState(SystemState *state, int numberOfInstructions, uint32_
     (*state).instructionMemory[i] = instructions[i];
   }
   zero64Array(&(*state).programCounter, 1);
-  (*state).pState.negative = 0;
-  (*state).pState.zero = 0;
-  (*state).pState.carry = 0;
-  (*state).pState.overflow = 0;
+  (*state).pState.negative = false;
+  (*state).pState.zero = true;
+  (*state).pState.carry = false;
+  (*state).pState.overflow = false;
   zero8Array((*state).dataMemory, MEMORY_SIZE_BYTES);
 }
 
