@@ -148,6 +148,7 @@ int getMemAddress(bool bits[]) {
     return xn + xm;
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
+    //INCORRECT IMPLEMENTATION (don't understand)
     int simm9 = getBitsSubsetSigned(bits, 20, 12);
     updateBitsSubset(bits, xn + simm9, 9, 5);
     if (bits[11]) {
@@ -189,58 +190,58 @@ void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
   }
 }
 
-void b(SystemState *state, bool bits[]) {
+void b(SystemState *state, const bool bits[]) {
   int64_t simm26 = (int64_t) getBitsSubsetSigned(bits, 25, 0);
   (*state).programCounter += simm26;
 }
 
-void br(SystemState *state, bool bits[]) {
+void br(SystemState *state, const bool bits[]) {
   (*state).programCounter = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
 }
 
-void beq(SystemState *state, bool bits[]) {
+void beq(SystemState *state, const bool bits[]) {
   if ((*state).pState.zero) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void bne(SystemState *state, bool bits[]) {
+void bne(SystemState *state, const bool bits[]) {
   if (!(*state).pState.zero) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void bge(SystemState *state, bool bits[]) {
+void bge(SystemState *state, const bool bits[]) {
   if ((*state).pState.negative == (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void blt(SystemState *state, bool bits[]) {
+void blt(SystemState *state, const bool bits[]) {
   if ((*state).pState.negative != (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void bgt(SystemState *state, bool bits[]) {
+void bgt(SystemState *state, const bool bits[]) {
   if (!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void ble(SystemState *state, bool bits[]) {
+void ble(SystemState *state, const bool bits[]) {
   if (!(!(*state).pState.zero && (*state).pState.negative == (*state).pState.overflow)) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   }
 }
 
-void bal(SystemState *state, bool bits[]) {
+void bal(SystemState *state, const bool bits[]) {
   int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
   (*state).programCounter += simm19;
 }
@@ -355,15 +356,16 @@ void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat, int32_t 
   (*state).pState.overflow = 0;
 }
 
+//PRIx64 might not be necessary, it was a warning that i had (check if fine on linux)
 void outputToFile(SystemState *state) {
   FILE *file;
   file = fopen("output.out", "w");
 
   fprintf(file, "Registers:\n");
   for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i ++) {
-    fprintf(file, "X%d = %x", i, (*state).generalPurpose[i]);
+    fprintf(file, "X%02d = %016x" PRIx64 , i, (*state).generalPurpose[i]);
   }
-  fprintf(file, "PC = %x\n", (*state).programCounter*4);
+  fprintf(file, "PC = %016x" PRIx64 "\n", (*state).programCounter*4);
   fprintf(file, "PSTATE : ");
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
@@ -373,7 +375,7 @@ void outputToFile(SystemState *state) {
   for (int i = 0; i < MEMORY_SIZE_BYTES; i ++) {
     uint8_t val = (*state).primaryMemory[i];
     if (val != 0) {
-      fprintf(file, "%x: %x", i*4, val);
+      fprintf(file, "#%08x" PRIx64 ": #%08x" PRIx64 , i*4, val);
     }
   }
   fclose(file);

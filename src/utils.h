@@ -49,23 +49,23 @@ void updateBitsSubset(bool bits[], int newBits, int msb, int lsb);
 
 int32_t convertFromUnsignedToSigned(bool bits[], uint32_t number, int posOfMSB);
 
-void b(SystemState *state, bool bits[]);
+void b(SystemState *state, const bool bits[]);
 
-void br(SystemState *state, bool bits[]);
+void br(SystemState *state, const bool bits[]);
 
-void beq(SystemState *state, bool bits[]);
+void beq(SystemState *state, const bool bits[]);
 
-void bne(SystemState *state, bool bits[]);
+void bne(SystemState *state, const bool bits[]);
 
-void bge(SystemState *state, bool bits[]);
+void bge(SystemState *state, const bool bits[]);
 
-void blt(SystemState *state, bool bits[]);
+void blt(SystemState *state, const bool bits[]);
 
-void bgt(SystemState *state, bool bits[]);
+void bgt(SystemState *state, const bool bits[]);
 
-void ble(SystemState *state, bool bits[]);
+void ble(SystemState *state, const bool bits[]);
 
-void bal(SystemState *state, bool bits[]);
+void bal(SystemState *state, const bool bits[]);
 
 int32_t read32bitreg(SystemState *state, uint32_t reg);
 

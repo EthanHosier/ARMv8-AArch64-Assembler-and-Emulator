@@ -147,8 +147,8 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
   uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
   uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
   int32_t operand = getBitsSubsetSigned(bits, 15, 10);
-  uint64_t rn_dat = (*state).generalPurpose[getBitsSubset(bits, 9, 5)];
-  uint64_t rm_dat = (*state).generalPurpose[getBitsSubset(bits, 20, 16)];
+  uint64_t rn_dat = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
+  uint64_t rm_dat = (*state).generalPurpose[getBitsSubsetUnsigned(bits, 20, 16)];
   switch (m_opr) {
     case 8:
     case 10:
