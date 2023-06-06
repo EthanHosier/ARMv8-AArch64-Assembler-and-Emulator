@@ -20,7 +20,7 @@ typedef struct {
 
 extern void initialiseSystemState(SystemState *state);
 
-extern void outputToFile(SystemState *state);
+extern void outputToFile(SystemState *state, char *);
 
 extern int execute(SystemState *state, bool bits[]);
 

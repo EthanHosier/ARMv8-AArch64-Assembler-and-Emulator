@@ -323,7 +323,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           if (sf) {
             (*state).generalPurpose[rd] = ((int64_t) (*state).generalPurpose[rn]) + imm12;
           } else {
-            (*state).generalPurpose[rd] = zeroPad32BitSigned(((int32_t) (*state).generalPurpose[rn]) + imm12);
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(
+                    ((int32_t) (*state).generalPurpose[rn]) + imm12);
           }
           break;
         case 1://opc = 01 (adds)
@@ -334,7 +335,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             (*state).pState.zero = res == 0;
             // Come back to this later
             (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn], (int64_t) imm12);
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn],
+                                                            (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
             (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
@@ -349,7 +351,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           if (sf) {
             (*state).generalPurpose[rd] = ((int64_t) (*state).generalPurpose[rn]) - imm12;
           } else {
-            (*state).generalPurpose[rd] = zeroPad32BitSigned(((int32_t) (*state).generalPurpose[rn]) - imm12);
+            (*state).generalPurpose[rd] = zeroPad32BitSigned(
+                    ((int32_t) (*state).generalPurpose[rn]) - imm12);
           }
           break;
         case 3://opc = 11 (subs)
@@ -360,7 +363,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             (*state).pState.zero = res == 0;
             // Come back to this later
             (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn], (int64_t) imm12);
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) (*state).generalPurpose[rn],
+                                                            (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) - imm12;
             (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
@@ -418,7 +422,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             uint32_t top = val / (1 << (shift + 15)); //might be +14 idk
             uint32_t bottom = val % (1 << (shift - 1)); //i think -1
 
-            uint64_t joined = (uint64_t) ((top << (shift + 15)) | (((uint64_t) imm16) << (shift - 1)) | bottom);
+            uint64_t joined = (uint64_t) ((top << (shift + 15)) | (((uint64_t) imm16) << (shift - 1)) |
+                                          bottom);
             (*state).generalPurpose[rd] = joined;
           }
           break;
@@ -825,18 +830,18 @@ void initialiseSystemState(SystemState *state) {
 }
 
 //PRIx64 might not be necessary, it was a warning that i had (check if fine on linux)
-void outputToFile(SystemState *state) {
+void outputToFile(SystemState *state, char *filename) {
   FILE *file;
-  file = fopen("output.out", "w");
+  file = fopen(filename, "w");
 
   fprintf(file, "Registers:\n");
   for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i++) {
     fprintf(file, "X%02d = %016llx"
-    PRIx64, i, (*state).generalPurpose[i]);
+                  PRIx64, i, (*state).generalPurpose[i]);
   }
   fprintf(file, "PC = %016llx"
-  PRIx64
-  "\n", (*state).programCounter * 4);
+                PRIx64
+                "\n", (*state).programCounter * 4);
   fprintf(file, "PSTATE : ");
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
@@ -847,9 +852,9 @@ void outputToFile(SystemState *state) {
     uint8_t val = (*state).primaryMemory[i];
     if (val != 0) {
       fprintf(file, "#%08x"
-      PRIx64
-      ": #%08x"
-      PRIx64, i * 4, val);
+                    PRIx64
+                    ": #%08x"
+                    PRIx64, i * 4, val);
     }
   }
   fclose(file);
