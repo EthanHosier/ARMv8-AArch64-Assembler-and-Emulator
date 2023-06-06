@@ -7,9 +7,9 @@ int executeImmediateDP(SystemState *state, const bool bits[]) {
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
   bool sf = bits[31];
   uint32_t rd = getBitsSubsetUnsigned(bits, 4, 0);
+  assert(rd < 32);
   switch (opi) {
     case 2://opi = 010 (ARITHMETIC)
-      assert(rd < 32);
       bool sh = bits[22];
       uint32_t rn = getBitsSubsetUnsigned(bits, 9, 5);
       assert(rn < 32);
@@ -142,6 +142,13 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);;
   uint32_t opc_n = (opc << 1) | bits[21];
   uint32_t opc_x = (opc << 1) | bits[15];
+  uint32_t sf = bits[31];
+
+  uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+  uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
+  int32_t operand = getBitsSubsetSigned(bits, 15, 10);
+  uint64_t rn_dat = (*state).generalPurpose[getBitsSubset(bits, 9, 5)];
+  uint64_t rm_dat = (*state).generalPurpose[getBitsSubset(bits, 20, 16)];
   switch (m_opr) {
     case 8:
     case 10:
@@ -149,16 +156,64 @@ int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 14://M = 0, opr = 1xx0 (fall-through for unknowns)
       switch (opc) {
         case 0://opc = 00 (add)
-          //add
+          if (sf) {
+            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            (*state).generalPurpose[rd_reg] = (int64_t) rn_dat + (int64_t) rm_dat;
+          } else {
+            rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat, operand);
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned((int32_t) rn_dat + (int32_t) rm_dat);
+          }
           break;
         case 1://opc = 01 (adds)
-          //adds
+          if (sf) {
+            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            int64_t res = (int64_t) rn_dat + (int64_t) rm_dat;
+            (*state).generalPurpose[rd_reg] = res;
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat, (int64_t) rm_dat);
+          } else {
+            rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+            int32_t res = (int32_t) rn_dat + (int32_t) rm_dat;
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat, (int32_t) rm_dat);
+          }
           break;
         case 2://opc = 10 (sub)
-          //sub
+          if (sf) {
+            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            (*state).generalPurpose[rd_reg] = (int64_t) rn_dat - (int64_t) rm_dat;
+          } else {
+            rm_dat = conditionalShiftForLogical32(shift, (uint32_t) rm_dat, operand);
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned((int32_t) rn_dat - (int32_t) rm_dat);
+          }
           break;
         case 3://opc  = 11 (subs)
-          //subs
+          if (sf) {
+            rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+            int64_t res = (int64_t) rn_dat - (int64_t) rm_dat;
+            (*state).generalPurpose[rd_reg] = res;
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat, (int64_t) rm_dat);
+          } else {
+            rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+            int32_t res = (int32_t) rn_dat - (int32_t) rm_dat;
+            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            (*state).pState.negative = res < 0;
+            (*state).pState.zero = res == 0;
+            // Come back to this later
+            (*state).pState.carry = 0;
+            (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat, (int32_t) rm_dat);
+          }
           break;
         default:
           return invalidInstruction();
