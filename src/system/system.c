@@ -10,6 +10,12 @@ static void zero64Array(uint64_t array[], int size) {
   }
 }
 
+static void zero32Array(uint32_t array[], int size) {
+  for (int i = 0; i < size; i++) {
+    array[i] = 0;
+  }
+}
+
 static void zero8Array(uint8_t array[], int size) {
   for (int i = 0; i < size; i++) {
     array[i] = 0;
@@ -678,7 +684,7 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = 0;
       int base = getMemAddress(bits);
       for (int i = 0; i < 8; i++) {
-        val = val | (*state).primaryMemory[base + i] << i * 8;
+        val = val | (*state).dataMemory[base + i] << i * 8;
       }
       (*state).generalPurpose[rt] = val;
 
@@ -689,9 +695,9 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
-        (*state).primaryMemory[base + i] = (val & mask) >> i;
+        (*state).dataMemory[base + i] = (val & mask) >> i;
       }
-      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+      (*state).dataMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
     }
 
   } else {//32bit
@@ -700,7 +706,7 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = 0;
       int base = getMemAddress(bits);
       for (int i = 0; i < 4; i++) {
-        val = val | (*state).primaryMemory[base + i] << i * 8;
+        val = val | (*state).dataMemory[base + i] << i * 8;
       }
       (*state).generalPurpose[rt] = val;
 
@@ -711,9 +717,9 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
-        (*state).primaryMemory[base + i] = (val & mask) >> i;
+        (*state).dataMemory[base + i] = (val & mask) >> i;
       }
-      (*state).primaryMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+      (*state).dataMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
     }
 
   }
@@ -735,7 +741,7 @@ static int executeLoadLiteral(SystemState *state, bool bits[]) {
     uint64_t val = 0;
     int base = address;
     for (int i = 0; i < 8; i++) {
-      val = val | (*state).primaryMemory[base + i] << i * 8;
+      val = val | (*state).dataMemory[base + i] << i * 8;
     }
     (*state).generalPurpose[rt] = val;
 
@@ -744,7 +750,7 @@ static int executeLoadLiteral(SystemState *state, bool bits[]) {
     uint64_t val = 0;
     int base = getMemAddress(bits);
     for (int i = 0; i < 4; i++) {
-      val = val | (*state).primaryMemory[base + i] << i * 8;
+      val = val | (*state).dataMemory[base + i] << i * 8;
     }
     (*state).generalPurpose[rt] = val;
 
@@ -819,14 +825,18 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
   return 1;
 }
 
-void initialiseSystemState(SystemState *state) {
+void initialiseSystemState(SystemState *state, int numberOfInstructions, uint32_t instructions[]) {
   zero64Array((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS);
+  zero32Array((*state).instructionMemory, MAX_INSTRUCTIONS);
+  for (int i = 0; i < numberOfInstructions; i++) {
+    (*state).instructionMemory[i] = instructions[i];
+  }
   zero64Array(&(*state).programCounter, 1);
   (*state).pState.negative = 0;
   (*state).pState.zero = 0;
   (*state).pState.carry = 0;
   (*state).pState.overflow = 0;
-  zero8Array((*state).primaryMemory, MEMORY_SIZE_BYTES);
+  zero8Array((*state).dataMemory, MEMORY_SIZE_BYTES);
 }
 
 //PRIx64 might not be necessary, it was a warning that i had (check if fine on linux)
@@ -836,25 +846,34 @@ void outputToFile(SystemState *state, char *filename) {
 
   fprintf(file, "Registers:\n");
   for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i++) {
-    fprintf(file, "X%02d = %016llx"
-                  PRIx64, i, (*state).generalPurpose[i]);
+    fprintf(file, "X%02d    = %016"PRIx64"\n", i, (*state).generalPurpose[i]);
   }
-  fprintf(file, "PC = %016llx"
-                PRIx64
-                "\n", (*state).programCounter * 4);
+  fprintf(file, "PC     = %016"PRIx64"\n", (*state).programCounter * 4);
   fprintf(file, "PSTATE : ");
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
   (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");
   (*state).pState.overflow ? fprintf(file, "V") : fprintf(file, "-");
   fprintf(file, "\nNon-zero memory:\n");
-  for (int i = 0; i < MEMORY_SIZE_BYTES; i++) {
-    uint8_t val = (*state).primaryMemory[i];
+  for (int i = 0; i < MAX_INSTRUCTIONS; i++) {
+    uint32_t val = (*state).instructionMemory[i];
     if (val != 0) {
-      fprintf(file, "#%08x"
-                    PRIx64
-                    ": #%08x"
-                    PRIx64, i * 4, val);
+      if (i == 0) {
+        fprintf(file, "0x00000000");
+      } else {
+        fprintf(file, "%#010"PRIx64, i * 4);
+      }
+      fprintf(file, " : %08"
+                    PRIx64"\n", val);
+    }
+  }
+  for (int i = 0; i < MEMORY_SIZE_BYTES; i++) {
+    uint8_t val = (*state).dataMemory[i];
+    if (val != 0) {
+      fprintf(file, "Data Memory: %#010"
+                    PRIx8
+                    " : %08"
+                    PRIx8"\n", (i + MAX_INSTRUCTIONS) * 4, val);
     }
   }
   fclose(file);
