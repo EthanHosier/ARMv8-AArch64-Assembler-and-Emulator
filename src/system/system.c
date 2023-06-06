@@ -919,7 +919,7 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
     uint32_t val = (*state).instructionMemory[i];
     if (val != 0) {
       fprintf(file, "%#010"PRIx16, (int16_t) (i * 4));
-      outputInstruction(file, (*state).instructionMemory[i]);
+      outputInstruction(file, val);
     }
   }
   for (int i = 0; i < MEMORY_SIZE_BYTES; i++) {
