@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "io/io.h"
 #include "system/system.h"
+#include <stdlib.h>
 
 static void getBits(uint32_t instruction, bool bits[]) {
   for (int i = 0; i < INSTRUCTION_SIZE_BITS; i++) {
@@ -20,18 +21,19 @@ int main(int argc, char **argv) {
     return 1;
   }
   // printInstructions(instructions, numberOfInstructions);
-  SystemState state;
-  initialiseSystemState(&state);
-  while (state.programCounter < numberOfInstructions) {
+  SystemState *state = malloc(sizeof(SystemState));
+  initialiseSystemState(state);
+  while ((*state).programCounter < numberOfInstructions) {
     bool bits[INSTRUCTION_SIZE_BITS];
     // Most significant bit has the highest index
-    getBits(instructions[state.programCounter], bits);
+    getBits(instructions[(*state).programCounter], bits);
     printInstruction(bits);
-    if (execute(&state, bits)) {
+    if (execute(state, bits)) {
       return 1;
     }
   }
-  outputToFile(&state);
+  outputToFile(state);
+  free(state);
   return 0;
 }
 
