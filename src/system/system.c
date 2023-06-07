@@ -616,9 +616,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
-            if (rm_reg == 0 && rd_reg == 0 && rn_reg == 0) {
-              return HALT;
-            }
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
             break;
           case 1://opc = 00, N = 1 (bic)
@@ -664,9 +661,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
                                                            operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
-            if (rm_reg == 0 && rd_reg == 0 && rn_reg == 0) {
-              return HALT;
-            }
             and32_bic32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 1://opc = 00, N = 1 (bic)
@@ -952,7 +946,13 @@ static int executeBranch(SystemState *state, const bool bits[]) {
 int execute(SystemState *state,
             bool bits[],
             int numberOfInstructions) { // Don't forget about `nop` !!
-  if (bits[28] && !bits[27] && !bits[26]) { // DP (Immediate)
+  if ((*state).instructionMemory[(*state).programCounter] == 0xD503201F) {// nop
+    (*state).programCounter++;
+    return 0;
+  } else if ((*state).instructionMemory[(*state).programCounter]
+      == 0x8A000000) { // halt
+    return HALT;
+  } else if (bits[28] && !bits[27] && !bits[26]) { // DP (Immediate)
     return executeImmediateDP(state, bits);
   } else if (bits[27] && !bits[26] && bits[25]) { // DP (Register)
     return executeRegisterDP(state, bits);
