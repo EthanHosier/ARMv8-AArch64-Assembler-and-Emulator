@@ -287,7 +287,7 @@ static void logicalFlagUpdate(SystemState *state, int64_t result) {
 static void ands64_bics64(SystemState *state, uint64_t rd_reg, int64_t rn_dat,
                           int64_t rm_dat) {
   int64_t result = rn_dat & rm_dat;
-  write64bitReg(state, rd_reg, result);
+  if (rd_reg != 31) write64bitReg(state, rd_reg, result);
   logicalFlagUpdate(state, result);
 }
 
@@ -309,7 +309,7 @@ static void eor32_eon32(SystemState *state, uint64_t rd_reg, int32_t rn_dat,
 static void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat,
                           int32_t rm_dat) {
   int64_t result = rn_dat & rm_dat;
-  write32bitReg(state, rd_reg, result);
+  if (rd_reg != 31) write32bitReg(state, rd_reg, result);
   logicalFlagUpdate(state, result);
 }
 
@@ -617,8 +617,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
         uint32_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
         uint32_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
-        rn_dat = read64bitReg(state, rn_reg);
-        rm_dat = read64bitReg(state, rm_reg);
+        rn_dat = (rn_reg == 31) ? 0 : read64bitReg(state, rn_reg);
+        rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
@@ -661,8 +661,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
         uint32_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
         uint32_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
-        int32_t rn_dat_32 = read32bitReg(state, rn_reg);
-        int32_t rm_dat_32 = read32bitReg(state, rm_reg);
+        int32_t rn_dat_32 = (rn_reg == 31) ? 0 : read32bitReg(state, rn_reg);
+        int32_t rm_dat_32 = (rm_reg == 31) ? 0 : read32bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat_32 = (int32_t) conditionalShiftForLogical32(shift, rm_dat_32,
