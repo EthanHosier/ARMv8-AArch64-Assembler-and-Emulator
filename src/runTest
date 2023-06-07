@@ -1,0 +1,3 @@
+gcc -Wall emulate.c ./system/system.c ./io/io.c -o ../../armv8_testsuite/solution/emulate
+cd ../../armv8_testsuite
+./run
