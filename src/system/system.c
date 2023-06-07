@@ -697,11 +697,11 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       }
       break;
     case 24://M = 1, opr = 1000
+      rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+      uint32_t ra_reg = getBitsSubsetUnsigned(bits, 14, 10);
       if (bits[31]) {
-        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
         rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int64_t ra_dat = read64bitReg(state,
-                                      getBitsSubsetUnsigned(bits, 14, 10));
+        int64_t ra_dat = (ra_reg = 31) ? 0 : read64bitReg(state, ra_reg);
         rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
@@ -716,10 +716,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             return invalidInstruction();
         }
       } else {
-        rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
         rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int32_t ra_dat = read32bitReg(state,
-                                      getBitsSubsetUnsigned(bits, 14, 10));
+        int32_t ra_dat = (ra_reg = 31) ? 0 : read32bitReg(state, ra_reg);
         rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
