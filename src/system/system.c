@@ -393,19 +393,21 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = minuend <= subtrahend;
+            (*state).pState.carry = minuend >= subtrahend;
             (*state).pState.overflow = checkOverUnderflow64(
                 (int64_t) (*state).generalPurpose[rn],
                 (int64_t) imm12);
           } else {
-            int32_t res = (int32_t) ((*state).generalPurpose[rn]) - imm12;
+            int32_t minuend = (int32_t) ((*state).generalPurpose[rn]);
+            int32_t subtrahend = (int32_t) imm12;
+            int32_t res = minuend - subtrahend;
             if (rd != 31) {
               (*state).generalPurpose[rd] = res;
             }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = minuend >= subtrahend;
             (*state).pState.overflow = checkOverUnderflow32(
                 (int32_t) ((*state).generalPurpose[rn]), imm12);
           }
@@ -563,22 +565,28 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           if (sf) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
-            int64_t res = (int64_t) rn_dat - (int64_t) rm_dat;
+            int64_t minuend = rn_dat;
+            int64_t subtrahend = rm_dat;
+
+            int64_t res = minuend - subtrahend;
             (*state).generalPurpose[rd_reg] = res;
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = minuend >= subtrahend;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
                                                             (int64_t) rm_dat);
           } else {
+
             rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
-            int32_t res = (int32_t) rn_dat - (int32_t) rm_dat;
+            int64_t minuend = (int32_t) rn_dat;
+            int64_t subtrahend = (int32_t) rm_dat;
+            int32_t res = minuend - subtrahend;
             (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = minuend >= subtrahend;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
           }
@@ -741,7 +749,31 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   return 0;
 }
 
-static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
+static uint8_t readByteUnifiedMemory(SystemState *state,
+                                     int32_t address,
+                                     int numberOfInstructions) {
+  if (address < numberOfInstructions * 4) { //fetch from instruction memory
+    uint32_t temp = (*state).instructionMemory[address / 4];
+    switch (address % 4) {
+      case 0:
+        return temp & 0xff;
+      case 1:
+        return temp & 0xff00;
+      case 2:
+        return temp & 0xff0000;
+      case 3:
+        return temp & 0xff000000;
+      default:
+        return 0; // Due to how mod works- this will never happen
+    }
+  } else { //fetch from data memory
+    return (*state).dataMemory[address - numberOfInstructions * 4];
+  }
+}
+
+static int executeSingleDataTransfer(SystemState *state,
+                                     bool bits[],
+                                     int numberOfInstructions) {
   fprintf(stdout, "Single Data Transfer Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   if (bits[30]) {//64bit
@@ -751,7 +783,8 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = 0;
       int base = getMemAddress(bits);
       for (int i = 0; i < 8; i++) {
-        val = val | (*state).dataMemory[base + i] << i * 8;
+        val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+            << i * 8;
       }
       (*state).generalPurpose[rt] = val;
 
@@ -774,7 +807,8 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
       uint64_t val = 0;
       int base = getMemAddress(bits);
       for (int i = 0; i < 4; i++) {
-        val = val | (*state).dataMemory[base + i] << i * 8;
+        val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+            << i * 8;
       }
       (*state).generalPurpose[rt] = val;
 
@@ -798,28 +832,6 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
   return 0;
 }
 
-static uint8_t readByteUnifiedMemory(SystemState *state,
-                                     int32_t address,
-                                     int numberOfInstructions) {
-  if (address < numberOfInstructions * 4) { //fetch from instruction memory
-    uint32_t temp = (*state).instructionMemory[address / 4];
-    switch (address % 4) {
-      case 0:
-        return temp & 0xff;
-      case 1:
-        return temp & 0xff00;
-      case 2:
-        return temp & 0xff0000;
-      case 3:
-        return temp & 0xff000000;
-      default:
-        return 0; // Due to how mod works- this will never happen
-    }
-  } else { //fetch from data memory
-    return (*state).dataMemory[address - numberOfInstructions * 4];
-  }
-}
-
 static int
 executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
   fprintf(stdout, "Load Literal Instruction\n\n");
@@ -828,10 +840,20 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
   int32_t address = (int32_t) (4 * ((*state).programCounter + simm19));
 
   if (bits[30]) {//64bit
-    uint8_t val = readByteUnifiedMemory(state, address, numberOfInstructions);
+    uint64_t val = 0;
+    int32_t base = address;
+    for (int i = 0; i < 8; i++) {
+      val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+          << i * 8;
+    }
     (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
-    uint8_t val = readByteUnifiedMemory(state, address, numberOfInstructions);
+    uint32_t val = 0;
+    int32_t base = getMemAddress(bits);
+    for (int i = 0; i < 4; i++) {
+      val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+          << i * 8;
+    }
     (*state).generalPurpose[rt] = (uint32_t) val;
   }
 
@@ -894,7 +916,7 @@ int execute(SystemState *state,
     return executeRegisterDP(state, bits);
   } else if (bits[31] && bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
-    return executeSingleDataTransfer(state, bits);
+    return executeSingleDataTransfer(state, bits, numberOfInstructions);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && !bits[24]) { // Load Literal
     return executeLoadLiteral(state, bits, numberOfInstructions);
