@@ -1,0 +1,10 @@
+
+test/expected/test/test_cases/general/mov06_exp.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	d2be1e02 	mov	x2, #0xf0f00000            	// #4042260480
+   4:	f29e1e02 	movk	x2, #0xf0f0
+   8:	8a000000 	and	x0, x0, x0

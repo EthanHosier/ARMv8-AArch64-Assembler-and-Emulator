@@ -52,6 +52,7 @@ static int getMemAddress(SystemState *state, bool bits[]) {
     }
   } else {
     fprintf(stderr, "something fucky wucky happened!");
+    return 78645873465897345;
   }
 }
 
@@ -431,8 +432,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
                                                     5); //assuming this number is meant to be signed
 
       int32_t shift = (int32_t) (hw * 16);
-      int64_t op64 = imm16 << shift;
-      int32_t op32 = imm16 << shift;
+      uint64_t op64 = (uint32_t) (imm16 << shift);
+      uint32_t op32 = imm16 << shift;
 
       switch (opc) {
         case 0://opc = 00 (movn)
@@ -467,8 +468,11 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             } else {
               bottom = val % (1 << (shift - 1)); //i think -1
             }
-            uint64_t joined = (top << (shift + 15)) |
-                (((uint64_t) imm16) << (shift)) | bottom;
+            uint64_t joined = (((uint64_t) ((uint16_t) imm16))
+                << (shift)) // bits to be inserted
+
+                | (top << (shift + 15))
+                | (bottom);
             (*state).generalPurpose[rd] = joined;
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
@@ -479,8 +483,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             } else {
               bottom = val % (1 << (shift - 1)); //i think -1
             }
-            uint64_t joined = (uint64_t) ((top << (shift + 15)) |
-                (((uint64_t) imm16) << (shift)) |
+            uint32_t joined = (uint32_t) ((top << (shift + 15)) |
+                (((uint32_t) ((uint16_t) imm16)) << (shift)) |
                 bottom);
             (*state).generalPurpose[rd] = joined;
           }
