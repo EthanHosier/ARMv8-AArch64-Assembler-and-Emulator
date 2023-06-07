@@ -454,16 +454,24 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
             uint64_t top = val / (1 << (shift + 15)); //might be +14 idk
-            uint64_t bottom = val % (1 << (shift - 1)); //i think -1
-
+            uint64_t bottom;
+            if (shift == 0) {
+              bottom = 0;
+            } else {
+              bottom = val % (1 << (shift - 1)); //i think -1
+            }
             uint64_t joined = (top << (shift + 15)) |
                 (((uint64_t) imm16) << (shift)) | bottom;
             (*state).generalPurpose[rd] = joined;
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
             uint32_t top = val / (1 << (shift + 15)); //might be +14 idk
-            uint32_t bottom = val % (1 << (shift - 1)); //i think -1
-
+            uint32_t bottom;
+            if (shift == 0) {
+              bottom = 0;
+            } else {
+              bottom = val % (1 << (shift - 1)); //i think -1
+            }
             uint64_t joined = (uint64_t) ((top << (shift + 15)) |
                 (((uint64_t) imm16) << (shift)) |
                 bottom);
