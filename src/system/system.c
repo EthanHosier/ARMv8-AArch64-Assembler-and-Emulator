@@ -800,18 +800,22 @@ static void storeByteUnifiedMemory(SystemState *state,
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0xFFFFFF00)
                 ^ ((uint32_t) value);
+        break;
       case 1:
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0xFFFF00FF)
                 ^ (((uint32_t) value) << 8);
+        break;
       case 2:
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0xFF00FFFF)
                 ^ (((uint32_t) value) << (2 * 8));
+      break;
       case 3:
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0x00FFFFFF)
                 ^ (((uint32_t) value) << (3 * 8));
+        break;
       default:
         return; // Due to how mod works- this will never happen
     }
@@ -876,12 +880,12 @@ static int executeSingleDataTransfer(SystemState *state,
       int base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
-        unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
+        uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
             1;//mask of 1s with correct size
-        mask = mask << i;  //shift mask to correct pos
+        mask = mask << i * 8;  //shift mask to correct pos
         storeByteUnifiedMemory(state,
                                base + i,
-                               (int8_t) ((val & mask) >> i),
+                               (int8_t) ((val & mask) >> i * 8),
                                numberOfInstructions);
       }
       /*storeByteUnifiedMemory(state,
@@ -986,7 +990,7 @@ int execute(SystemState *state,
   } else if (bits[27] && !bits[26] && bits[25]) { // DP (Register)
     return executeRegisterDP(state, bits);
   } else if (bits[31] && bits[29] && bits[28] && bits[27] && !bits[26]
-      && !bits[25] && bits[24] && !bits[23]) { // Single Data Transfer
+      && !bits[25] && !bits[23]) { // Single Data Transfer
     return executeSingleDataTransfer(state, bits, numberOfInstructions);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && !bits[24]) { // Load Literal
