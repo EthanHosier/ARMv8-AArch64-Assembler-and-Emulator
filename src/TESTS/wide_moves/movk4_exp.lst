@@ -1,0 +1,11 @@
+
+test/expected/test/test_cases/wide_moves/movk4_exp.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	52bde240 	mov	w0, #0xef120000            	// #-284033024
+   4:	f2c24680 	movk	x0, #0x1234, lsl #32
+   8:	729579a0 	movk	w0, #0xabcd
+   c:	8a000000 	and	x0, x0, x0
