@@ -384,7 +384,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc = 11 (subs)
           if (sf) {
-            int64_t minuend = (*state).generalPurpose[rn];
+            int64_t minuend = (int64_t) ((*state).generalPurpose[rn]);
             int64_t subtrahend = imm12;
             int64_t res = (int64_t) (minuend - subtrahend);
             if (rd != 31) {
@@ -579,8 +579,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           } else {
 
             rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
-            int64_t minuend = (int32_t) rn_dat;
-            int64_t subtrahend = (int32_t) rm_dat;
+            int32_t minuend = (int32_t) rn_dat;
+            int32_t subtrahend = (int32_t) rm_dat;
             int32_t res = minuend - subtrahend;
             (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
             (*state).pState.negative = res < 0;
@@ -758,16 +758,46 @@ static uint8_t readByteUnifiedMemory(SystemState *state,
       case 0:
         return temp & 0xff;
       case 1:
-        return temp & 0xff00;
+        return (temp & 0xff00) >> 8;
       case 2:
-        return temp & 0xff0000;
+        return (temp & 0xff0000) >> (2 * 8);
       case 3:
-        return temp & 0xff000000;
+        return (temp & 0xff000000) >> (3 * 8);
       default:
         return 0; // Due to how mod works- this will never happen
     }
   } else { //fetch from data memory
     return (*state).dataMemory[address - numberOfInstructions * 4];
+  }
+}
+
+static void storeByteUnifiedMemory(SystemState *state,
+                                   int32_t address,
+                                   int8_t value,
+                                   int numberOfInstructions) {
+  if (address < numberOfInstructions * 4) { //store to instruction memory
+    switch (address % 4) {
+      case 0:
+        (*state).instructionMemory[address / 4] =
+            (((*state).instructionMemory[address / 4]) & 0xFFFFFF00)
+                ^ ((uint32_t) value);
+      case 1:
+        (*state).instructionMemory[address / 4] =
+            (((*state).instructionMemory[address / 4]) & 0xFFFF00FF)
+                ^ (((uint32_t) value) << 8);
+      case 2:
+        (*state).instructionMemory[address / 4] =
+            (((*state).instructionMemory[address / 4]) & 0xFF00FFFF)
+                ^ (((uint32_t) value) << (2 * 8));
+      case 3:
+        (*state).instructionMemory[address / 4] =
+            (((*state).instructionMemory[address / 4]) & 0x00FFFFFF)
+                ^ (((uint32_t) value) << (3 * 8));
+      default:
+        return; // Due to how mod works- this will never happen
+    }
+  } else { //store to data memory
+    (*state).dataMemory[address - numberOfInstructions * 4] = value;
   }
 }
 
@@ -796,9 +826,15 @@ static int executeSingleDataTransfer(SystemState *state,
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
             1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
-        (*state).dataMemory[base + i] = (val & mask) >> i;
+        storeByteUnifiedMemory(state,
+                               base + i,
+                               (int8_t) ((val & mask) >> i),
+                               numberOfInstructions);
       }
-      (*state).dataMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+      /*storeByteUnifiedMemory(state,
+                             getMemAddress(bits),
+                             (*state).generalPurpose[rt],
+                             numberOfInstructions);*/
     }
 
   } else {//32bit
@@ -820,9 +856,15 @@ static int executeSingleDataTransfer(SystemState *state,
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
             1;//mask of 1s with correct size
         mask = mask << i;  //shift mask to correct pos
-        (*state).dataMemory[base + i] = (val & mask) >> i;
+        storeByteUnifiedMemory(state,
+                               base + i,
+                               (int8_t) ((val & mask) >> i),
+                               numberOfInstructions);
       }
-      (*state).dataMemory[getMemAddress(bits)] = (*state).generalPurpose[rt];
+      /*storeByteUnifiedMemory(state,
+                             getMemAddress(bits),
+                             (*state).generalPurpose[rt],
+                             numberOfInstructions);*/
     }
 
   }
