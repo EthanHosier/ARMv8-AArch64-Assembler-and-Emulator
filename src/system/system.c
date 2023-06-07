@@ -832,7 +832,9 @@ static int executeSingleDataTransfer(SystemState *state,
       uint64_t val = 0;
       int base = getMemAddress(state, bits);
       for (int i = 0; i < 8; i++) {
-        val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+        val = val | (uint64_t) readByteUnifiedMemory(state,
+                                                     base + i,
+                                                     numberOfInstructions)
             << i * 8;
       }
       (*state).generalPurpose[rt] = val;
@@ -862,7 +864,9 @@ static int executeSingleDataTransfer(SystemState *state,
       uint64_t val = 0;
       int base = getMemAddress(state, bits);
       for (int i = 0; i < 4; i++) {
-        val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+        val = val | (uint32_t) readByteUnifiedMemory(state,
+                                                     base + i,
+                                                     numberOfInstructions)
             << i * 8;
       }
       (*state).generalPurpose[rt] = val;
