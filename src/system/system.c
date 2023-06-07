@@ -313,6 +313,11 @@ static void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat,
   logicalFlagUpdate(state, result);
 }
 
+static int generalPurposeRegisterNotFound(uint32_t rd) {
+  fprintf(stderr, "General Purpose Register %"PRId32" does not exist!", rd);
+  return 1;
+}
+
 static int executeImmediateDP(SystemState *state, const bool bits[]) {
   fprintf(stdout, "Immediate DP Instruction\n\n");
   uint32_t opi = getBitsSubsetUnsigned(bits, 25, 23);
@@ -322,8 +327,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
   if (rd
       == 31); // if rd is 11111 in binary (rd thus codes for the zero register)
   else if (rd > GENERAL_PURPOSE_REGISTERS) {
-    fprintf(stderr, "General Purpose Register %"PRId32" does not exist!", rd);
-    return 1;
+    generalPurposeRegisterNotFound(rd);
   }
   switch (opi) {
     case 2://opi = 010 (ARITHMETIC)
@@ -337,7 +341,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
       }
       switch (opc) {
         case 0://opc = 00 (add)
-          assert(rd < 31);
+          assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
             (*state).generalPurpose[rd] =
                 ((int64_t) (*state).generalPurpose[rn]) + imm12;
@@ -373,7 +377,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           }
           break;
         case 2://opc = 10 (sub)
-          assert(rd < 31);
+          assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
             (*state).generalPurpose[rd] =
                 ((int64_t) (*state).generalPurpose[rn]) - imm12;
@@ -429,7 +433,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 
       switch (opc) {
         case 0://opc = 00 (movn)
-          assert(rd < 31);
+          assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) //64 bit
           {
             (*state).generalPurpose[rd] = ~op64;
@@ -439,7 +443,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 
           break;
         case 2://opc = 10 (movz)
-          assert(rd < 31);
+          assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
             (*state).generalPurpose[rd] = op64;
           } else {
@@ -450,7 +454,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
         case 3://opc = 11 (movk)
           //TODO: add when 11111 case (for entire instruction set)
           //TESTTTTTTTTTTTTTTTTT
-          assert(rd < 31);
+          assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
             uint64_t top = val / (1 << (shift + 15)); //might be +14 idk
@@ -505,6 +509,11 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   bool sf = bits[31];
 
   uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+  if (rd_reg
+      == 31); // if rd is 11111 in binary (rd thus codes for the zero register)
+  else if (rd_reg > GENERAL_PURPOSE_REGISTERS) {
+    generalPurposeRegisterNotFound(rd_reg);
+  }
   uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
   int32_t operand = getBitsSubsetSigned(bits, 15, 10);
   int64_t rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
@@ -520,6 +529,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
     case 14://M = 0, opr = 1xx0 (fall-through for unknowns)
       switch (opc) {
         case 0://opc = 00 (add)
+          assert(rd_reg < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
@@ -537,7 +547,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
             int64_t res = (int64_t) rn_dat + (int64_t) rm_dat;
-            (*state).generalPurpose[rd_reg] = res;
+            if (rd_reg != 31) {
+              (*state).generalPurpose[rd_reg] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -547,7 +559,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           } else {
             rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
             int32_t res = (int32_t) rn_dat + (int32_t) rm_dat;
-            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            if (rd_reg != 31) {
+              (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -557,6 +571,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           }
           break;
         case 2://opc = 10 (sub)
+          assert(rd_reg < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
             rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
                                                             operand);
@@ -577,7 +592,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             int64_t subtrahend = rm_dat;
 
             int64_t res = minuend - subtrahend;
-            (*state).generalPurpose[rd_reg] = res;
+            if (rd_reg != 31) {
+              (*state).generalPurpose[rd_reg] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -590,7 +607,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             int32_t minuend = (int32_t) rn_dat;
             int32_t subtrahend = (int32_t) rm_dat;
             int32_t res = minuend - subtrahend;
-            (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            if (rd_reg != 31) {
+              (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
