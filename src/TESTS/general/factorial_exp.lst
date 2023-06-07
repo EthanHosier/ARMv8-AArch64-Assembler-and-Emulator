@@ -1,0 +1,17 @@
+
+test/expected/test/test_cases/general/factorial_exp.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	d2800020 	mov	x0, #0x1                   	// #1
+   4:	d28000a1 	mov	x1, #0x5                   	// #5
+   8:	9b007c22 	mul	x2, x1, x0
+   c:	91000040 	add	x0, x2, #0x0
+  10:	d1000421 	sub	x1, x1, #0x1
+  14:	f100003f 	cmp	x1, #0x0
+  18:	54ffff81 	b.ne	0x8  // b.any
+  1c:	d2802003 	mov	x3, #0x100                 	// #256
+  20:	f9000062 	str	x2, [x3]
+  24:	8a000000 	and	x0, x0, x0

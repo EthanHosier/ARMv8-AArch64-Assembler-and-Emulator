@@ -28,27 +28,27 @@ static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   return (int32_t) subset;
 }
 
-static int getMemAddress(bool bits[]) {
+static int getMemAddress(SystemState *state, bool bits[]) {
   int xn = getBitsSubsetSigned(bits, 9, 5);
   if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12] && bits[11] &&
       !bits[10]) {
     //register offset
     int xm = getBitsSubsetSigned(bits, 20, 16);
-    return xn + xm;
+    return (*state).generalPurpose[xn] + (*state).generalPurpose[xm];
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
     //INCORRECT IMPLEMENTATION (don't understand)
     int simm9 = getBitsSubsetSigned(bits, 20, 12);
     updateBitsSubset(bits, xn + simm9, 9, 5);
     if (bits[11]) {
-      return xn + simm9;
+      return (*state).generalPurpose[xn] + simm9;
     } else {
-      return xn;
+      return (*state).generalPurpose[xn];
     }
   } else {
     //Unsigned Offset
     int imm12 = getBitsSubsetSigned(bits, 21, 10);
-    return xn + imm12;
+    return (*state).generalPurpose[xn] + imm12;
   }
 }
 
@@ -830,7 +830,7 @@ static int executeSingleDataTransfer(SystemState *state,
     if (bits[22]) {//load
 
       uint64_t val = 0;
-      int base = getMemAddress(bits);
+      int base = getMemAddress(state, bits);
       for (int i = 0; i < 8; i++) {
         val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
             << i * 8;
@@ -839,7 +839,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     } else {//store
 
-      int base = getMemAddress(bits);
+      int base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
@@ -860,7 +860,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     if (bits[22]) {//load
       uint64_t val = 0;
-      int base = getMemAddress(bits);
+      int base = getMemAddress(state, bits);
       for (int i = 0; i < 4; i++) {
         val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
             << i * 8;
@@ -869,7 +869,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     } else {//store
 
-      int base = getMemAddress(bits);
+      int base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
@@ -910,7 +910,7 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
     uint32_t val = 0;
-    int32_t base = getMemAddress(bits);
+    int32_t base = getMemAddress(state, bits);
     for (int i = 0; i < 4; i++) {
       val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
           << i * 8;
