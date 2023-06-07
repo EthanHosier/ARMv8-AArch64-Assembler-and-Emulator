@@ -461,19 +461,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
-            uint64_t top = val / (1 << (shift + 15)); //might be +14 idk
-            uint64_t bottom;
-            if (shift == 0) {
-              bottom = 0;
-            } else {
-              bottom = val % (1 << (shift - 1)); //i think -1
-            }
-            uint64_t joined = (((uint64_t) ((uint16_t) imm16))
-                << (shift)) // bits to be inserted
-
-                | (top << (shift + 15))
-                | (bottom);
-            (*state).generalPurpose[rd] = joined;
+            
+            (*state).generalPurpose[rd] = (val & ~(0xFFFFULL << shift))
+              | ((uint64_t)(uint16_t)imm16 << shift);
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
             uint32_t top = val / (1 << (shift + 15)); //might be +14 idk
