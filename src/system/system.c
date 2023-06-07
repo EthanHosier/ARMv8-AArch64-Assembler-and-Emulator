@@ -1040,11 +1040,19 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
       outputInstruction(file, val);
     }
   }
-  for (int i = 0; i < MEMORY_SIZE_BYTES; i++) {
-    uint8_t val = (*state).dataMemory[i];
+  for (int i = 0; i < MEMORY_SIZE_BYTES; i += 4) {
+    int absoluteAddress = i + numberOfInstructions * 4;
+    uint32_t val = 0;
+    for (int j = 0; j < 4; j++) {
+      val = val | (uint32_t) readByteUnifiedMemory(state,
+                                                   absoluteAddress + j,
+                                                   numberOfInstructions)
+          << j * 8;
+    }
     if (val != 0) {
-      fprintf(file, "Data Memory: %#010"PRIx16" : %08"
-                    PRIx8"\n", (int16_t) (i + numberOfInstructions * 4), val);
+      //fprintf(file, "Data Memory: ");
+      fprintf(file, "%#010"PRIx16" : %08"
+                    PRIx32"\n", (int16_t) absoluteAddress, val);
     }
   }
   fclose(file);
