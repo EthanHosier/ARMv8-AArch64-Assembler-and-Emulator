@@ -908,7 +908,7 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     uint64_t val = 0;
     int32_t base = address;
     for (int i = 0; i < 8; i++) {
-      val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+      val = val | (uint64_t) readByteUnifiedMemory(state, base + i, numberOfInstructions)
           << i * 8;
     }
     (*state).generalPurpose[rt] = (uint64_t) val;
@@ -916,7 +916,7 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     uint32_t val = 0;
     int32_t base = getMemAddress(state, bits);
     for (int i = 0; i < 4; i++) {
-      val = val | readByteUnifiedMemory(state, base + i, numberOfInstructions)
+      val = val | (uint32_t) readByteUnifiedMemory(state, base + i, numberOfInstructions)
           << i * 8;
     }
     (*state).generalPurpose[rt] = (uint32_t) val;
