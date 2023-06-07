@@ -48,7 +48,7 @@ static int getMemAddress(SystemState *state, bool bits[]) {
   } else {
     //Unsigned Offset
     int imm12 = getBitsSubsetSigned(bits, 21, 10);
-    return (*state).generalPurpose[xn] + imm12;
+    return (*state).generalPurpose[xn] + 8 * imm12;
   }
 }
 
@@ -844,12 +844,12 @@ static int executeSingleDataTransfer(SystemState *state,
       int base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
-        unsigned int mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
+        uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
             1;//mask of 1s with correct size
-        mask = mask << i;  //shift mask to correct pos
+        mask = mask << (i * 8);  //shift mask to correct pos
         storeByteUnifiedMemory(state,
                                base + i,
-                               (int8_t) ((val & mask) >> i),
+                               (int8_t) ((val & mask) >> (i * 8)),
                                numberOfInstructions);
       }
       /*storeByteUnifiedMemory(state,
