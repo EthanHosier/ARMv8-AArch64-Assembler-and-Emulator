@@ -456,8 +456,6 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 
           break;
         case 3://opc = 11 (movk)
-          //TODO: add when 11111 case (for entire instruction set)
-          //TESTTTTTTTTTTTTTTTTT
           assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
