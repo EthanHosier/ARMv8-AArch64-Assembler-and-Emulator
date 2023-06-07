@@ -3,9 +3,9 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <assert.h>
-#define zeroArray(array, size)\
-  for (int i = 0; i < (size); i++) {\
-    (array)[i] = 0;\
+#define zeroArray(array, size)       \
+  for (int i = 0; i < (size); i++) { \
+    (array)[i] = 0;                  \
   }
 
 static int invalidInstruction(void) {
@@ -201,28 +201,28 @@ static void beq(SystemState *state, const bool bits[]) {
   if ((*state).pState.zero) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void bne(SystemState *state, const bool bits[]) {
   if (!(*state).pState.zero) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void bge(SystemState *state, const bool bits[]) {
   if ((*state).pState.negative == (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void blt(SystemState *state, const bool bits[]) {
   if ((*state).pState.negative != (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void bgt(SystemState *state, const bool bits[]) {
@@ -230,7 +230,7 @@ static void bgt(SystemState *state, const bool bits[]) {
       (*state).pState.negative == (*state).pState.overflow) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void ble(SystemState *state, const bool bits[]) {
@@ -238,7 +238,7 @@ static void ble(SystemState *state, const bool bits[]) {
       (*state).pState.negative == (*state).pState.overflow)) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
-  }
+  } else (*state).programCounter++;
 }
 
 static void bal(SystemState *state, const bool bits[]) {
@@ -277,14 +277,18 @@ static void eor64_eon64(SystemState *state, uint64_t rd_reg, int64_t rn_dat,
   write64bitReg(state, rd_reg, rn_dat ^ rm_dat);
 }
 
-static void ands64_bics64(SystemState *state, uint64_t rd_reg, int64_t rn_dat,
-                          int64_t rm_dat) {
-  int64_t result = rn_dat & rm_dat;
-  write64bitReg(state, rd_reg, result);
+static void logicalFlagUpdate(SystemState *state, int64_t result) {
   (*state).pState.negative = result < 0;
   (*state).pState.zero = result == 0;
   (*state).pState.carry = 0;
   (*state).pState.overflow = 0;
+}
+
+static void ands64_bics64(SystemState *state, uint64_t rd_reg, int64_t rn_dat,
+                          int64_t rm_dat) {
+  int64_t result = rn_dat & rm_dat;
+  write64bitReg(state, rd_reg, result);
+  logicalFlagUpdate(state, result);
 }
 
 static void and32_bic32(SystemState *state, uint32_t rd_reg, int32_t rn_dat,
@@ -306,30 +310,34 @@ static void ands32_bics32(SystemState *state, uint64_t rd_reg, int32_t rn_dat,
                           int32_t rm_dat) {
   int64_t result = rn_dat & rm_dat;
   write32bitReg(state, rd_reg, result);
-  (*state).pState.negative = result < 0;
-  (*state).pState.zero = result == 0;
-  (*state).pState.carry = 0;
-  (*state).pState.overflow = 0;
+  logicalFlagUpdate(state, result);
 }
 
 static int executeImmediateDP(SystemState *state, const bool bits[]) {
+  fprintf(stdout, "Immediate DP Instruction\n\n");
   uint32_t opi = getBitsSubsetUnsigned(bits, 25, 23);
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
   bool sf = bits[31];
   uint32_t rd = getBitsSubsetUnsigned(bits, 4, 0);
-  assert(rd < 32);
+  if (rd
+      == 31); // if rd is 11111 in binary (rd thus codes for the zero register)
+  else if (rd > GENERAL_PURPOSE_REGISTERS) {
+    fprintf(stderr, "General Purpose Register %"PRId32" does not exist!", rd);
+    return 1;
+  }
   switch (opi) {
     case 2://opi = 010 (ARITHMETIC)
     {
       bool sh = bits[22];
       uint32_t rn = getBitsSubsetUnsigned(bits, 9, 5);
-      assert(rn < 32);
+      assert(rn < GENERAL_PURPOSE_REGISTERS);
       int32_t imm12 = getBitsSubsetSigned(bits, 21, 10);
       if (sh) {
         imm12 = imm12 << 12;
       }
       switch (opc) {
         case 0://opc = 00 (add)
+          assert(rd < 31);
           if (sf) {
             (*state).generalPurpose[rd] =
                 ((int64_t) (*state).generalPurpose[rn]) + imm12;
@@ -341,7 +349,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
         case 1://opc = 01 (adds)
           if (sf) {
             int64_t res = (int64_t) ((*state).generalPurpose[rn]) + imm12;
-            (*state).generalPurpose[rd] = res;
+            if (rd != 31) {
+              (*state).generalPurpose[rd] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -351,7 +361,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
                 (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
-            (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
+            if (rd != 31) {
+              (*state).generalPurpose[rd] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -361,6 +373,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           }
           break;
         case 2://opc = 10 (sub)
+          assert(rd < 31);
           if (sf) {
             (*state).generalPurpose[rd] =
                 ((int64_t) (*state).generalPurpose[rn]) - imm12;
@@ -371,18 +384,24 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc = 11 (subs)
           if (sf) {
-            int64_t res = (int64_t) ((*state).generalPurpose[rn]) - imm12;
-            (*state).generalPurpose[rd] = res;
+            int64_t minuend = (*state).generalPurpose[rn];
+            int64_t subtrahend = imm12;
+            int64_t res = (int64_t) (minuend - subtrahend);
+            if (rd != 31) {
+              (*state).generalPurpose[rd] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = minuend <= subtrahend;
             (*state).pState.overflow = checkOverUnderflow64(
                 (int64_t) (*state).generalPurpose[rn],
                 (int64_t) imm12);
           } else {
             int32_t res = (int32_t) ((*state).generalPurpose[rn]) - imm12;
-            (*state).generalPurpose[rd] = zeroPad32BitSigned(res);
+            if (rd != 31) {
+              (*state).generalPurpose[rd] = res;
+            }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
@@ -408,6 +427,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 
       switch (opc) {
         case 0://opc = 00 (movn)
+          assert(rd < 31);
           if (sf) //64 bit
           {
             (*state).generalPurpose[rd] = ~op64;
@@ -417,6 +437,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 
           break;
         case 2://opc = 10 (movz)
+          assert(rd < 31);
           if (sf) {
             (*state).generalPurpose[rd] = op64;
           } else {
@@ -427,6 +448,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
         case 3://opc = 11 (movk)
           //TODO: add when 11111 case (for entire instruction set)
           //TESTTTTTTTTTTTTTTTTT
+          assert(rd < 31);
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
             uint64_t top = val / (1 << (shift + 15)); //might be +14 idk
@@ -454,7 +476,6 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
     default:
       return invalidInstruction();
   }
-  fprintf(stdout, "Immediate DP Instruction\n");
   (*state).programCounter++;
   return 0;
 }
@@ -466,6 +487,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
    * incremented at the end of this function.
   */
   /* ^ Halt instruction now implemented! */
+  fprintf(stdout, "Register DP Instruction\n\n");
   uint32_t m_opr = (bits[28] << 4) | getBitsSubsetUnsigned(bits, 24, 21);
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
   uint32_t opc_n = (opc << 1) | bits[21];
@@ -624,16 +646,19 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         }
       } else {
         rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
-        int32_t rn_dat_32 = read32bitReg(state,
-                                         getBitsSubsetUnsigned(bits, 9, 5));
-        int32_t rm_dat_32 = read32bitReg(state,
-                                         getBitsSubsetUnsigned(bits, 20, 16));
+        uint32_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
+        uint32_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
+        int32_t rn_dat_32 = read32bitReg(state, rn_reg);
+        int32_t rm_dat_32 = read32bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat_32 = (int32_t) conditionalShiftForLogical32(shift, rm_dat_32,
                                                            operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
+            if (rm_reg == 0 && rd_reg == 0 && rn_reg == 0) {
+              return HALT;
+            }
             and32_bic32(state, rd_reg, rn_dat_32, rm_dat_32);
             break;
           case 1://opc = 00, N = 1 (bic)
@@ -711,12 +736,13 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
     default:
       return invalidInstruction();
   }
-  fprintf(stdout, "Register DP Instruction\n");
+
   (*state).programCounter++;
   return 0;
 }
 
 static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
+  fprintf(stdout, "Single Data Transfer Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   if (bits[30]) {//64bit
 
@@ -768,42 +794,54 @@ static int executeSingleDataTransfer(SystemState *state, bool bits[]) {
   }
 
 
-  fprintf(stdout, "Single Data Transfer Instruction\n");
   (*state).programCounter++;
   return 0;
 }
 
-static int executeLoadLiteral(SystemState *state, bool bits[]) {
+static uint8_t readByteUnifiedMemory(SystemState *state,
+                                     int32_t address,
+                                     int numberOfInstructions) {
+  if (address < numberOfInstructions * 4) { //fetch from instruction memory
+    uint32_t temp = (*state).instructionMemory[address / 4];
+    switch (address % 4) {
+      case 0:
+        return temp & 0xff;
+      case 1:
+        return temp & 0xff00;
+      case 2:
+        return temp & 0xff0000;
+      case 3:
+        return temp & 0xff000000;
+      default:
+        return 0; // Due to how mod works- this will never happen
+    }
+  } else { //fetch from data memory
+    return (*state).dataMemory[address - numberOfInstructions * 4];
+  }
+}
+
+static int
+executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
+  fprintf(stdout, "Load Literal Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
-  int32_t address = (int32_t) ((*state).programCounter + simm19);
+  int32_t address = (int32_t) (4 * ((*state).programCounter + simm19));
 
   if (bits[30]) {//64bit
-
-    uint64_t val = 0;
-    int base = address;
-    for (int i = 0; i < 8; i++) {
-      val = val | (*state).dataMemory[base + i] << i * 8;
-    }
-    (*state).generalPurpose[rt] = val;
-
+    uint8_t val = readByteUnifiedMemory(state, address, numberOfInstructions);
+    (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
-
-    uint64_t val = 0;
-    int base = getMemAddress(bits);
-    for (int i = 0; i < 4; i++) {
-      val = val | (*state).dataMemory[base + i] << i * 8;
-    }
-    (*state).generalPurpose[rt] = val;
-
+    uint8_t val = readByteUnifiedMemory(state, address, numberOfInstructions);
+    (*state).generalPurpose[rt] = (uint32_t) val;
   }
 
-  fprintf(stdout, "Load Literal Instruction\n");
+
   (*state).programCounter++;
   return 0;
 }
 
 static int executeBranch(SystemState *state, const bool bits[]) {
+  fprintf(stdout, "Branch Instruction\n\n");
   uint32_t valForReg31to10 = getBitsSubsetUnsigned(bits, 31, 10);
   uint32_t valForReg4to0 = getBitsSubsetUnsigned(bits, 4, 0);
   uint32_t valForCond = getBitsSubsetUnsigned(bits, 31, 24);
@@ -843,12 +881,13 @@ static int executeBranch(SystemState *state, const bool bits[]) {
     return invalidInstruction();
   }
 
-  fprintf(stdout, "Branch Instruction\n");
-  (*state).programCounter++;
+
   return 0;
 }
 
-int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
+int execute(SystemState *state,
+            bool bits[],
+            int numberOfInstructions) { // Don't forget about `nop` !!
   if (bits[28] && !bits[27] && !bits[26]) { // DP (Immediate)
     return executeImmediateDP(state, bits);
   } else if (bits[27] && !bits[26] && bits[25]) { // DP (Register)
@@ -858,7 +897,7 @@ int execute(SystemState *state, bool bits[]) { // Don't forget about `nop` !!
     return executeSingleDataTransfer(state, bits);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && !bits[24]) { // Load Literal
-    return executeLoadLiteral(state, bits);
+    return executeLoadLiteral(state, bits, numberOfInstructions);
   } else if (!bits[29] && bits[28] && !bits[27] && bits[26]) { // Branch
     return executeBranch(state, bits);
   }
@@ -912,7 +951,7 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
     uint8_t val = (*state).dataMemory[i];
     if (val != 0) {
       fprintf(file, "Data Memory: %#010"PRIx16" : %08"
-                    PRIx8"\n", (int16_t) ((i + numberOfInstructions) * 4), val);
+                    PRIx8"\n", (int16_t) (i + numberOfInstructions * 4), val);
     }
   }
   fclose(file);

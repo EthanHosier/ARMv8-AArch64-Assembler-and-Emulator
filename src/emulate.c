@@ -2,6 +2,7 @@
 #include "io/io.h"
 #include "system/system.h"
 #include <stdlib.h>
+#include <inttypes.h>
 
 static void getBits(uint32_t instruction, bool bits[]) {
   for (int i = 0; i < INSTRUCTION_SIZE_BITS; i++) {
@@ -24,11 +25,12 @@ int main(int argc, char **argv) {
   SystemState *state = malloc(sizeof(SystemState));
   initialiseSystemState(state, numberOfInstructions, instructions);
   while ((*state).programCounter < numberOfInstructions) {
+    fprintf(stdout, "PC: %"PRId64"\n", (*state).programCounter);
     bool bits[INSTRUCTION_SIZE_BITS];
     // Most significant bit has the highest index
     getBits(instructions[(*state).programCounter], bits);
     printInstruction(bits);
-    switch (execute(state, bits)) {
+    switch (execute(state, bits, numberOfInstructions)) {
       case 0:
         break;
       case 1: //Error message already printed
