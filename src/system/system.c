@@ -30,7 +30,12 @@ static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
 
 static int getMemAddress(SystemState *state, bool bits[]) {
   int xn = getBitsSubsetSigned(bits, 9, 5);
-  if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12] && bits[11] &&
+  if (bits[24]) {
+    //Unsigned Offset
+    int imm12 = getBitsSubsetSigned(bits, 21, 10);
+    return (*state).generalPurpose[xn] + 8 * imm12;
+  } else if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12]
+      && bits[11] &&
       !bits[10]) {
     //register offset
     int xm = getBitsSubsetSigned(bits, 20, 16);
@@ -46,9 +51,7 @@ static int getMemAddress(SystemState *state, bool bits[]) {
       return (*state).generalPurpose[xn];
     }
   } else {
-    //Unsigned Offset
-    int imm12 = getBitsSubsetSigned(bits, 21, 10);
-    return (*state).generalPurpose[xn] + 8 * imm12;
+    fprintf(stderr, "something fucky wucky happened!");
   }
 }
 
@@ -810,7 +813,7 @@ static void storeByteUnifiedMemory(SystemState *state,
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0xFF00FFFF)
                 ^ (((uint32_t) value) << (2 * 8));
-      break;
+        break;
       case 3:
         (*state).instructionMemory[address / 4] =
             (((*state).instructionMemory[address / 4]) & 0x00FFFFFF)
@@ -912,7 +915,9 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     uint64_t val = 0;
     int32_t base = address;
     for (int i = 0; i < 8; i++) {
-      val = val | (uint64_t) readByteUnifiedMemory(state, base + i, numberOfInstructions)
+      val = val | (uint64_t) readByteUnifiedMemory(state,
+                                                   base + i,
+                                                   numberOfInstructions)
           << i * 8;
     }
     (*state).generalPurpose[rt] = (uint64_t) val;
@@ -920,7 +925,9 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     uint32_t val = 0;
     int32_t base = getMemAddress(state, bits);
     for (int i = 0; i < 4; i++) {
-      val = val | (uint32_t) readByteUnifiedMemory(state, base + i, numberOfInstructions)
+      val = val | (uint32_t) readByteUnifiedMemory(state,
+                                                   base + i,
+                                                   numberOfInstructions)
           << i * 8;
     }
     (*state).generalPurpose[rt] = (uint32_t) val;
