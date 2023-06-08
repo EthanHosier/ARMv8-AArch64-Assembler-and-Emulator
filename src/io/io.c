@@ -1,4 +1,3 @@
-// goofy little io functions xx
 #include "io.h"
 #include <stdio.h>
 

@@ -155,8 +155,6 @@ static uint32_t asr32(uint32_t operand, int bitsToShift) {
   return operand;
 }
 
-
-//test
 static uint64_t ror64(uint64_t operand, int bitsToRotate) {
   assert(bitsToRotate < 64);
 
@@ -166,7 +164,6 @@ static uint64_t ror64(uint64_t operand, int bitsToRotate) {
   return operand;
 }
 
-//test
 //assume the number given is the 32 bit used portion of the operand
 static uint32_t ror32(uint32_t operand, int bitsToRotate) {
   assert(bitsToRotate < 32);
@@ -387,12 +384,6 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
 }
 
 static int executeRegisterDP(SystemState *state, const bool bits[]) {
-  /*
-   * "and x0 x0 x0" is the halt instruction - use premature `return` statement
-   * after overriding the value of the PC. This will avoid the PC being
-   * incremented at the end of this function.
-  */
-  /* ^ Halt instruction now implemented! */
   fprintf(stdout, "Register DP Instruction\n\n");
   uint32_t m_opr = (bits[28] << 4) | getBitsSubsetUnsigned(bits, 24, 21);
   uint32_t opc = getBitsSubsetUnsigned(bits, 30, 29);
@@ -446,7 +437,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
-            // Come back to this later
             (*state).pState.carry =
                 (uint64_t) rn_dat > UINT64_MAX - (uint64_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
@@ -459,7 +449,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
-            // Come back to this later
             (*state).pState.carry =
                 (uint32_t) rn_dat > UINT32_MAX - (uint32_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
@@ -493,7 +482,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
-            // Come back to this later
             (*state).pState.carry = (uint64_t) minuend >= (uint64_t) subtrahend;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
                                                             (int64_t) rm_dat);
@@ -508,7 +496,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             }
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
-            // Come back to this later
             (*state).pState.carry = (uint32_t) minuend >= (uint32_t) subtrahend;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
@@ -535,10 +522,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rn_dat = (rn_reg == 31) ? 0 : read64bitReg(state, rn_reg);
         rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
-        printf("%016"PRIx64"\n", rm_dat);
         rm_dat =
             (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
-        printf("%016"PRIx64"\n", rm_dat);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
@@ -814,18 +799,19 @@ static void getBits(uint32_t instruction, bool bits[]) {
 }
 
 int execute(SystemState *state,
-            uint32_t instruction) { // Don't forget about `nop` !!
+            uint32_t instruction) {
   bool bits[INSTRUCTION_SIZE_BITS];
   getBits(instruction, bits);
+  fprintf(stdout, "PC: %"PRId64"\n", (*state).programCounter);
   printInstruction(bits);
   if (instruction
       == 0xD503201F) {// nop
-    printf("Nop Instruction\n");
+    fprintf(stdout, "Nop Instruction\n\n");
     (*state).programCounter += 4;
     return 0;
   } else if (instruction
       == 0x8A000000) { // halt
-    printf("Halt Instruction\n");
+    fprintf(stdout, "Halt Instruction\n");
     return HALT;
   } else if (bits[28] && !bits[27] && !bits[26]) { // DP (Immediate)
     return executeImmediateDP(state, bits);
