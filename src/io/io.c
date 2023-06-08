@@ -1,7 +1,6 @@
 // goofy little io functions xx
 #include "io.h"
 #include <stdio.h>
-#include <inttypes.h>
 
 int readBinaryFile(char filename[], uint32_t output[], int *instructionCount) {
   int numWords = 0;
@@ -33,10 +32,4 @@ void printInstruction(bool bits[]) {
     }
   }
   fprintf(stdout, "\n");
-}
-
-void printInstructions(uint32_t instructions[], int numberOfInstructions) {
-  for (int i = 0; i < numberOfInstructions; i++) {
-    fprintf(stdout, "Instruction %i: %" PRIu32 "\n", i + 1, instructions[i]);
-  }
 }

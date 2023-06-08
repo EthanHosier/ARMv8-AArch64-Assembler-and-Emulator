@@ -72,13 +72,6 @@ static int invalidInstruction(void) {
   return 1;
 }
 
-static void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
-  for (int i = lsb; i <= msb; i++) {
-    bits[i] = newBits & 1;
-    newBits = newBits >> 1;
-  }
-}
-
 static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
   getBitsSubset
@@ -120,12 +113,6 @@ static uint32_t getMemAddress(SystemState *state, bool bits[]) {
   }
 }
 
-static int32_t
-convertFromUnsignedToSigned(const bool bits[], uint32_t number, int posOfMSB) {
-  int32_t signedNumber = (int32_t) number;
-  return (int32_t) (bits[posOfMSB]) ? -signedNumber : signedNumber;
-}
-
 static uint64_t zeroPad32BitSigned(int32_t num) {
   return (uint64_t) ((uint32_t) num);
 }
@@ -146,7 +133,6 @@ static int checkOverUnderflow64(int64_t a, int64_t b) {
   }
 }
 
-//TODO: add carry flag + pls test this
 //assume the number given is a 64 bit
 static uint64_t asr64(uint64_t operand, int bitsToShift) {
   assert(bitsToShift < 64);
@@ -157,7 +143,6 @@ static uint64_t asr64(uint64_t operand, int bitsToShift) {
   return operand;
 }
 
-//TODO: add carry flag + pls test this
 //assume the number given is 32 bit (the first 32 0s are removed already)
 static uint32_t asr32(uint32_t operand, int bitsToShift) {
   assert(bitsToShift < 32);
@@ -191,13 +176,13 @@ static uint32_t ror32(uint32_t operand, int bitsToRotate) {
 
 static uint32_t
 conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift,
-                             int shiftMagnitude) {
+                             uint32_t shiftMagnitude) {
   conditionalShift(32)
 }
 
 static uint64_t
 conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift,
-                             int shiftMagnitude) {
+                             uint64_t shiftMagnitude) {
   conditionalShift(64)
 }
 
@@ -498,7 +483,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = (uint64_t) rn_dat > UINT64_MAX - (uint64_t) rm_dat;
+            (*state).pState.carry =
+                (uint64_t) rn_dat > UINT64_MAX - (uint64_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
                                                             (int64_t) rm_dat);
           } else {
@@ -510,7 +496,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = (uint32_t) rn_dat > UINT32_MAX - (uint32_t) rm_dat;
+            (*state).pState.carry =
+                (uint32_t) rn_dat > UINT32_MAX - (uint32_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
           }
@@ -715,78 +702,38 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
 }
 
 static uint8_t readByteUnifiedMemory(SystemState *state,
-                                     uint32_t address,
-                                     int numberOfInstructions) {
-  if (address < numberOfInstructions * 4) { //fetch from instruction memory
-    uint32_t temp = (*state).instructionMemory[address / 4];
-    switch (address % 4) {
-      case 0:
-        return temp & 0xff;
-      case 1:
-        return (temp & 0xff00) >> 8;
-      case 2:
-        return (temp & 0xff0000) >> (2 * 8);
-      case 3:
-        return (temp & 0xff000000) >> (3 * 8);
-      default:
-        return 0; // Due to how mod works- this will never happen
-    }
-  } else { //fetch from data memory
-    return (*state).dataMemory[address - numberOfInstructions * 4];
-  }
+                                     uint32_t address) {
+  return (*state).primaryMemory[address];
 }
 
 static void storeByteUnifiedMemory(SystemState *state,
                                    uint32_t address,
-                                   int8_t value,
-                                   int numberOfInstructions) {
-  if (address < numberOfInstructions * 4) { //store to instruction memory
-    switch (address % 4) {
-      case 0:
-        (*state).instructionMemory[address / 4] =
-            (((*state).instructionMemory[address / 4]) & 0xFFFFFF00)
-                ^ ((uint32_t) value);
-        break;
-      case 1:
-        (*state).instructionMemory[address / 4] =
-            (((*state).instructionMemory[address / 4]) & 0xFFFF00FF)
-                ^ (((uint32_t) value) << 8);
-        break;
-      case 2:
-        (*state).instructionMemory[address / 4] =
-            (((*state).instructionMemory[address / 4]) & 0xFF00FFFF)
-                ^ (((uint32_t) value) << (2 * 8));
-        break;
-      case 3:
-        (*state).instructionMemory[address / 4] =
-            (((*state).instructionMemory[address / 4]) & 0x00FFFFFF)
-                ^ (((uint32_t) value) << (3 * 8));
-        break;
-      default:
-        return; // Due to how mod works- this will never happen
-    }
-  } else { //store to data memory
-    (*state).dataMemory[address - numberOfInstructions * 4] = value;
+                                   int8_t value) {
+  (*state).primaryMemory[address] = value;
+}
+
+extern uint64_t readNBytes(SystemState *state,
+                           uint32_t address, int bytes) {
+  assert(bytes <= 8);
+  uint64_t val = 0;
+  for (int i = 0; i < bytes; i++) {
+    val = val | (uint64_t) readByteUnifiedMemory(state,
+                                                 address + i)
+        << i * 8;
   }
+  return val;
 }
 
 static int executeSingleDataTransfer(SystemState *state,
-                                     bool bits[],
-                                     int numberOfInstructions) {
+                                     bool bits[]) {
   fprintf(stdout, "Single Data Transfer Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   if (bits[30]) {//64bit
 
     if (bits[22]) {//load
 
-      uint64_t val = 0;
       uint32_t base = getMemAddress(state, bits);
-      for (int i = 0; i < 8; i++) {
-        val = val | (uint64_t) readByteUnifiedMemory(state,
-                                                     base + i,
-                                                     numberOfInstructions)
-            << i * 8;
-      }
+      uint64_t val = readNBytes(state, base, 8);
       (*state).generalPurpose[rt] = val;
 
     } else {//store
@@ -799,27 +746,16 @@ static int executeSingleDataTransfer(SystemState *state,
         mask = mask << (i * 8);  //shift mask to correct pos
         storeByteUnifiedMemory(state,
                                base + i,
-                               (int8_t) ((val & mask) >> (i * 8)),
-                               numberOfInstructions);
+                               (int8_t) ((val & mask) >> (i * 8)));
       }
-      /*storeByteUnifiedMemory(state,
-                             getMemAddress(bits),
-                             (*state).generalPurpose[rt],
-                             numberOfInstructions);*/
     }
 
   } else {//32bit
 
     if (bits[22]) {//load
-      uint64_t val = 0;
       uint32_t base = getMemAddress(state, bits);
-      for (int i = 0; i < 4; i++) {
-        val = val | (uint32_t) readByteUnifiedMemory(state,
-                                                     base + i,
-                                                     numberOfInstructions)
-            << i * 8;
-      }
-      (*state).generalPurpose[rt] = val;
+      uint32_t val = (uint32_t) readNBytes(state, base, 4);
+      (*state).generalPurpose[rt] = (uint64_t) val;
 
     } else {//store
 
@@ -831,13 +767,8 @@ static int executeSingleDataTransfer(SystemState *state,
         mask = mask << i * 8;  //shift mask to correct pos
         storeByteUnifiedMemory(state,
                                base + i,
-                               (int8_t) ((val & mask) >> i * 8),
-                               numberOfInstructions);
+                               (int8_t) ((val & mask) >> i * 8));
       }
-      /*storeByteUnifiedMemory(state,
-                             getMemAddress(bits),
-                             (*state).generalPurpose[rt],
-                             numberOfInstructions);*/
     }
 
   }
@@ -849,32 +780,17 @@ static int executeSingleDataTransfer(SystemState *state,
 
 static int
 executeLoadLiteral(SystemState *state,
-                   bool bits[],
-                   int numberOfInstructions) {
+                   bool bits[]) {
   fprintf(stdout, "Load Literal Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
-  int32_t address = (int32_t) ((*state).programCounter + 4 * simm19);
+  uint32_t address = (uint32_t) ((*state).programCounter + 4 * simm19);
 
   if (bits[30]) {//64bit
-    uint64_t val = 0;
-    int32_t base = address;
-    for (int i = 0; i < 8; i++) {
-      val = val | (uint64_t) readByteUnifiedMemory(state,
-                                                   base + i,
-                                                   numberOfInstructions)
-          << i * 8;
-    }
+    uint64_t val = readNBytes(state, address, 8);
     (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
-    uint32_t val = 0;
-    uint32_t base = getMemAddress(state, bits);
-    for (int i = 0; i < 4; i++) {
-      val = val | (uint32_t) readByteUnifiedMemory(state,
-                                                   base + i,
-                                                   numberOfInstructions)
-          << i * 8;
-    }
+    uint32_t val = readNBytes(state, address, 4);
     (*state).generalPurpose[rt] = (uint32_t) val;
   }
 
@@ -884,7 +800,7 @@ executeLoadLiteral(SystemState *state,
 }
 
 static int
-executeBranch(SystemState *state, const bool bits[], int numberOfInstructions) {
+executeBranch(SystemState *state, const bool bits[]) {
   fprintf(stdout, "Branch Instruction\n\n");
   uint32_t valForReg31to10 = getBitsSubsetUnsigned(bits, 31, 10);
   uint32_t valForReg4to0 = getBitsSubsetUnsigned(bits, 4, 0);
@@ -931,22 +847,13 @@ executeBranch(SystemState *state, const bool bits[], int numberOfInstructions) {
   return 0;
 }
 
-uint32_t readInstruction(SystemState *state, int numberOfInstructions) {
-  uint32_t base = (uint32_t) (*state).programCounter;
-  uint32_t val = 0;
-  for (int i = 0; i < 4; i++) {
-    val = val | (uint32_t) readByteUnifiedMemory(state,
-                                                 base + i,
-                                                 numberOfInstructions)
-        << i * 8;
-  }
-  return val;
+uint32_t readInstruction(SystemState *state, uint32_t address) {
+  return (uint32_t) readNBytes(state, address, INSTRUCTION_SIZE_BITS / 8);
 }
 
 int execute(SystemState *state,
             bool bits[],
-            uint32_t instruction,
-            int numberOfInstructions) { // Don't forget about `nop` !!
+            uint32_t instruction) { // Don't forget about `nop` !!
   if (instruction
       == 0xD503201F) {// nop
     printf("Nop Instruction\n");
@@ -962,12 +869,12 @@ int execute(SystemState *state,
     return executeRegisterDP(state, bits);
   } else if (bits[31] && bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && !bits[23]) { // Single Data Transfer
-    return executeSingleDataTransfer(state, bits, numberOfInstructions);
+    return executeSingleDataTransfer(state, bits);
   } else if (!bits[31] && !bits[29] && bits[28] && bits[27] && !bits[26]
       && !bits[25] && !bits[24]) { // Load Literal
-    return executeLoadLiteral(state, bits, numberOfInstructions);
+    return executeLoadLiteral(state, bits);
   } else if (!bits[29] && bits[28] && !bits[27] && bits[26]) { // Branch
-    return executeBranch(state, bits, numberOfInstructions);
+    return executeBranch(state, bits);
   }
   fprintf(stderr, "Invalid instruction type!");
   return 1;
@@ -976,58 +883,58 @@ int execute(SystemState *state,
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
   zeroArray((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
-  zeroArray((*state).instructionMemory, MAX_INSTRUCTIONS)
-  for (int i = 0; i < numberOfInstructions; i++) {
-    (*state).instructionMemory[i] = instructions[i];
-  }
   zeroArray(&(*state).programCounter, 1)
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
-  zeroArray((*state).dataMemory, MEMORY_SIZE_BYTES)
+  zeroArray((*state).primaryMemory, MEMORY_SIZE_BYTES)
+  for (int i = 0; i < numberOfInstructions; i++) {
+    storeByteUnifiedMemory(state,
+                           i * 4 + 0,
+                           (int8_t) ((instructions[i] & 0x000000FF)
+                               >> (8 * 0)));
+    storeByteUnifiedMemory(state,
+                           i * 4 + 1,
+                           (int8_t) ((instructions[i] & 0x0000FF00)
+                               >> (8 * 1)));
+    storeByteUnifiedMemory(state,
+                           i * 4 + 2,
+                           (int8_t) ((instructions[i] & 0x00FF0000)
+                               >> (8 * 2)));
+    storeByteUnifiedMemory(state,
+                           i * 4 + 3,
+                           (int8_t) ((instructions[i] & 0xFF000000)
+                               >> (8 * 3)));
+  }
 }
 
-static void outputInstruction(FILE *file, uint32_t val) {
-  fprintf(file, " : %08"PRIx32"\n", val);
+static void
+outputInstruction(FILE *file, uint32_t instruction) {
+  fprintf(file, " : %08"PRIx32"\n", instruction);
 }
 
 void
-outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
+outputToFile(SystemState *state, char *filename) {
   FILE *file;
   file = fopen(filename, "w");
   fprintf(file, "Registers:\n");
   for (int i = 0; i < GENERAL_PURPOSE_REGISTERS; i++) {
     fprintf(file, "X%02d    = %016"PRIx64"\n", i, (*state).generalPurpose[i]);
   }
-  fprintf(file, "PC     = %016"PRIx64"\nPSTATE : ",
-          (*state).programCounter);
+  fprintf(file, "PC     = %016"PRIx64"\nPSTATE : ", (*state).programCounter);
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
   (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");
   (*state).pState.overflow ? fprintf(file, "V") : fprintf(file, "-");
   fprintf(file, "\nNon-Zero Memory:\n0x00000000");
-  outputInstruction(file, (*state).instructionMemory[0]);
-  for (int i = 1; i < numberOfInstructions; i++) {
-    uint32_t val = (*state).instructionMemory[i];
+  uint32_t firstInstruction = readInstruction(state, 0);
+  outputInstruction(file, firstInstruction);
+  for (uint32_t i = 4; i < MEMORY_SIZE_BYTES; i += 4) {
+    uint32_t val = readInstruction(state, i);
     if (val != 0) {
-      fprintf(file, "%#010"PRIx16, (int16_t) (i * 4));
+      fprintf(file, "%#010"PRIx32, i);
       outputInstruction(file, val);
-    }
-  }
-  for (int i = 0; i < MEMORY_SIZE_BYTES; i += 4) {
-    uint32_t absoluteAddress = i + numberOfInstructions * 4;
-    uint32_t val = 0;
-    for (int j = 0; j < 4; j++) {
-      val = val | (uint32_t) readByteUnifiedMemory(state,
-                                                   absoluteAddress + j,
-                                                   numberOfInstructions)
-          << j * 8;
-    }
-    if (val != 0) {
-      //fprintf(file, "Data Memory: ");
-      fprintf(file, "%#010"PRIx32" : %08"
-                    PRIx32"\n", (uint32_t) absoluteAddress, val);
     }
   }
   fclose(file);

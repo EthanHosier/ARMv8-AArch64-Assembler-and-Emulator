@@ -28,10 +28,11 @@ int main(int argc, char **argv) {
     fprintf(stdout, "PC: %"PRId64"\n", (*state).programCounter / 4);
     bool bits[INSTRUCTION_SIZE_BITS];
     // Most significant bit has the highest index
-    uint32_t instruction = readInstruction(state, numberOfInstructions);
+    uint32_t instruction =
+        readInstruction(state, (*state).programCounter);
     getBits(instruction, bits);
     printInstruction(bits);
-    switch (execute(state, bits, instruction, numberOfInstructions)) {
+    switch (execute(state, bits, instruction)) {
       case 0:
         break;
       case 1: //Error message already printed
@@ -44,7 +45,7 @@ int main(int argc, char **argv) {
     }
   }
   END_FDE_CYCLE:
-  outputToFile(state, argv[2], numberOfInstructions);
+  outputToFile(state, argv[2]);
   free(state);
   return 0;
 }
