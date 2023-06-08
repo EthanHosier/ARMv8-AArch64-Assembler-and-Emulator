@@ -36,7 +36,7 @@ static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   return (int32_t) subset;
 }
 
-static int getMemAddress(SystemState *state, bool bits[]) {
+static uint32_t getMemAddress(SystemState *state, bool bits[]) {
   uint32_t xn = getBitsSubsetUnsigned(bits, 9, 5);
   if (bits[24]) {
     //Unsigned Offset
@@ -328,7 +328,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
       bool sh = bits[22];
       uint32_t rn = getBitsSubsetUnsigned(bits, 9, 5);
       assert(rn < GENERAL_PURPOSE_REGISTERS);
-      int32_t imm12 = getBitsSubsetUnsigned(bits, 21, 10);
+      int32_t imm12 = (int32_t) getBitsSubsetUnsigned(bits, 21, 10);
       if (sh) {
         imm12 = imm12 << 12;
       }
@@ -616,7 +616,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
-        rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
+        rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
@@ -745,7 +745,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
 }
 
 static uint8_t readByteUnifiedMemory(SystemState *state,
-                                     int32_t address,
+                                     uint32_t address,
                                      int numberOfInstructions) {
   if (address < numberOfInstructions * 4) { //fetch from instruction memory
     uint32_t temp = (*state).instructionMemory[address / 4];
@@ -767,7 +767,7 @@ static uint8_t readByteUnifiedMemory(SystemState *state,
 }
 
 static void storeByteUnifiedMemory(SystemState *state,
-                                   int32_t address,
+                                   uint32_t address,
                                    int8_t value,
                                    int numberOfInstructions) {
   if (address < numberOfInstructions * 4) { //store to instruction memory
@@ -810,7 +810,7 @@ static int executeSingleDataTransfer(SystemState *state,
     if (bits[22]) {//load
 
       uint64_t val = 0;
-      int base = getMemAddress(state, bits);
+      uint32_t base = getMemAddress(state, bits);
       for (int i = 0; i < 8; i++) {
         val = val | (uint64_t) readByteUnifiedMemory(state,
                                                      base + i,
@@ -821,7 +821,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     } else {//store
 
-      int base = getMemAddress(state, bits);
+      uint32_t base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
@@ -842,7 +842,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     if (bits[22]) {//load
       uint64_t val = 0;
-      int base = getMemAddress(state, bits);
+      uint32_t base = getMemAddress(state, bits);
       for (int i = 0; i < 4; i++) {
         val = val | (uint32_t) readByteUnifiedMemory(state,
                                                      base + i,
@@ -853,7 +853,7 @@ static int executeSingleDataTransfer(SystemState *state,
 
     } else {//store
 
-      int base = getMemAddress(state, bits);
+      uint32_t base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
         uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
@@ -896,7 +896,7 @@ executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
     (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
     uint32_t val = 0;
-    int32_t base = getMemAddress(state, bits);
+    uint32_t base = getMemAddress(state, bits);
     for (int i = 0; i < 4; i++) {
       val = val | (uint32_t) readByteUnifiedMemory(state,
                                                    base + i,
