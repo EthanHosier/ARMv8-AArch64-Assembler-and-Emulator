@@ -59,7 +59,7 @@
   int##bits##_t subtrahend = (int##bits##_t) imm12;                      \
   int##bits##_t res = minuend - subtrahend;                              \
   if (rd != 31) {                                                        \
-    (*state).generalPurpose[rd] = res;                                   \
+    (*state).generalPurpose[rd] = (uint##bits##_t) res;                                    \
   }                                                                      \
   (*state).pState.negative = res < 0;                                    \
   (*state).pState.zero = res == 0;                                       \
