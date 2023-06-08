@@ -23,6 +23,8 @@ extern void initialiseSystemState(SystemState *state, int, const uint32_t *);
 
 extern void outputToFile(SystemState *state, char *, int);
 
-extern int execute(SystemState *state, bool bits[], int);
+extern int execute(SystemState *state, bool bits[], uint32_t instruction, int);
+
+uint32_t readInstruction(SystemState *state, int numberOfInstructions);
 
 #endif

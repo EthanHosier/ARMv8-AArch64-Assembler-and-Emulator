@@ -931,15 +931,28 @@ executeBranch(SystemState *state, const bool bits[], int numberOfInstructions) {
   return 0;
 }
 
+uint32_t readInstruction(SystemState *state, int numberOfInstructions) {
+  uint32_t base = (uint32_t) (*state).programCounter;
+  uint32_t val = 0;
+  for (int i = 0; i < 4; i++) {
+    val = val | (uint32_t) readByteUnifiedMemory(state,
+                                                 base + i,
+                                                 numberOfInstructions)
+        << i * 8;
+  }
+  return val;
+}
+
 int execute(SystemState *state,
             bool bits[],
+            uint32_t instruction,
             int numberOfInstructions) { // Don't forget about `nop` !!
-  if (((*state).instructionMemory[(*state).programCounter / 4])
+  if (instruction
       == 0xD503201F) {// nop
     printf("Nop Instruction\n");
     (*state).programCounter += 4;
     return 0;
-  } else if ((*state).instructionMemory[(*state).programCounter / 4]
+  } else if (instruction
       == 0x8A000000) { // halt
     printf("Halt Instruction\n");
     return HALT;
