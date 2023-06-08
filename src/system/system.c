@@ -42,6 +42,30 @@
       return ror##bits(valToShift, shiftMagnitude);  \
   }
 
+#define addsImmediateDP(bits)                                                \
+  int##bits##_t res = (int##bits##_t) ((*state).generalPurpose[rn]) + imm12; \
+    if (rd != 31) {                                                          \
+      (*state).generalPurpose[rd] = res;                                     \
+    }                                                                        \
+  (*state).pState.negative = res < 0;                                        \
+  (*state).pState.zero = res == 0;                                           \
+  (*state).pState.carry = 0;                                                 \
+  (*state).pState.overflow = checkOverUnderflow##bits(                       \
+      (int##bits##_t) (*state).generalPurpose[rn],                           \
+      (int##bits##_t) imm12);
+
+#define subsImmediateDP(bits) \
+  int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]);\
+  int##bits##_t subtrahend = (int##bits##_t) imm12;\
+  int##bits##_t res = minuend - subtrahend;\
+  if (rd != 31) {\
+    (*state).generalPurpose[rd] = res;\
+  }\
+  (*state).pState.negative = res < 0;\
+  (*state).pState.zero = res == 0;\
+  (*state).pState.carry = minuend >= subtrahend;\
+  (*state).pState.overflow = checkOverUnderflow##bits(\
+      (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
@@ -332,28 +356,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 1://opc = 01 (adds)
           if (sf) {
-            int64_t res = (int64_t) ((*state).generalPurpose[rn]) + imm12;
-            if (rd != 31) {
-              (*state).generalPurpose[rd] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow64(
-                (int64_t) (*state).generalPurpose[rn],
-                (int64_t) imm12);
+            addsImmediateDP(64)
           } else {
-            int32_t res = (int32_t) ((*state).generalPurpose[rn]) + imm12;
-            if (rd != 31) {
-              (*state).generalPurpose[rd] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow32(
-                (int32_t) ((*state).generalPurpose[rn]), imm12);
+            addsImmediateDP(32)
           }
           break;
         case 2://opc = 10 (sub)
@@ -368,32 +373,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc = 11 (subs)
           if (sf) {
-            int64_t minuend = (int64_t) ((*state).generalPurpose[rn]);
-            int64_t subtrahend = imm12;
-            int64_t res = (int64_t) (minuend - subtrahend);
-            if (rd != 31) {
-              (*state).generalPurpose[rd] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
-            (*state).pState.overflow = checkOverUnderflow64(
-                (int64_t) (*state).generalPurpose[rn],
-                (int64_t) imm12);
+            subsImmediateDP(64)
           } else {
-            int32_t minuend = (int32_t) ((*state).generalPurpose[rn]);
-            int32_t subtrahend = (int32_t) imm12;
-            int32_t res = minuend - subtrahend;
-            if (rd != 31) {
-              (*state).generalPurpose[rd] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
-            (*state).pState.overflow = checkOverUnderflow32(
-                (int32_t) ((*state).generalPurpose[rn]), imm12);
+            subsImmediateDP(32)
           }
           break;
         default:
@@ -442,7 +424,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
 
             (*state).generalPurpose[rd] =
-                (uint64_t) (val & ~(0xFFFF << shift))
+                (val & ~(0xFFFF << shift))
                     | ((uint32_t) (uint16_t) imm16 << shift);
           }
           break;
