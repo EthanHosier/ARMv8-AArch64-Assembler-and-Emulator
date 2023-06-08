@@ -1,2 +1,22 @@
-* Branching doesn't work as expected- loop01 does not terminate.
-* Flags are not always set
+general:
+    ldr11
+    loop01
+    loop02
+    loop03
+    example
+    factorial
+    ldr10
+    str03
+
+wide_moves:
+    movn
+    movz
+
+shifts:
+    asr1
+    asr2
+    ror1
+    ror2
+
+generated:
+    145 other incorrects
