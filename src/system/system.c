@@ -49,10 +49,10 @@
     }                                                                        \
   (*state).pState.negative = res < 0;                                        \
   (*state).pState.zero = res == 0;                                           \
-  (*state).pState.carry = 0;                                                 \
+  (*state).pState.carry = (uint##bits##_t) (*state).generalPurpose[rn] > UINT##bits##_MAX - (uint##bits##_t) imm12;\
   (*state).pState.overflow = checkOverUnderflow##bits(                       \
       (int##bits##_t) (*state).generalPurpose[rn],                           \
-      (int##bits##_t) imm12);
+      (int##bits##_t) imm12);                                                \
 
 #define subsImmediateDP(bits)                                            \
   int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]); \
@@ -498,7 +498,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = (uint64_t) rn_dat > UINT64_MAX - (uint64_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
                                                             (int64_t) rm_dat);
           } else {
@@ -510,7 +510,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = 0;
+            (*state).pState.carry = (uint32_t) rn_dat > UINT32_MAX - (uint32_t) rm_dat;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
           }
