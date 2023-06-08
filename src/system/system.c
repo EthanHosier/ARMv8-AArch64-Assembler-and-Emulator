@@ -3,27 +3,45 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <assert.h>
+
 #define zeroArray(array, size)       \
   for (int i = 0; i < (size); i++)   \
     (array)[i] = 0;
-#define getBitsSubset                \
-for (int i = msb; i >= lsb; i--)     \
-  subset = (subset << 1) | bits[i];
-#define asr \
-if (ones != 0) {                          \
-  for (int i = 0; i < bitsToShift; i++) { \
-    operand = operand | ones;             \
-    ones = ones >> 1;                     \
-  }                                       \
-}
-#define ror(bits)                           \
-operand = operand >> bitsToRotate;          \
-operand += (toAdd << (bits - bitsToRotate));
-#define checkOverflow(bits)          \
-(b > 0 && a > INT##bits##_MAX - b) ||\
-(b < 0 && a < INT##bits##_MIN - b) ||\
-(b > 0 && a < INT##bits##_MIN + b) ||\
-(b < 0 && a > INT##bits##_MAX - b)
+
+#define getBitsSubset                  \
+  for (int i = msb; i >= lsb; i--)     \
+    subset = (subset << 1) | bits[i];
+
+#define asr_general                         \
+  if (ones != 0) {                          \
+    for (int i = 0; i < bitsToShift; i++) { \
+      operand = operand | ones;             \
+      ones = ones >> 1;                     \
+    }                                       \
+  }
+
+#define ror_general(bits)                      \
+  operand = operand >> bitsToRotate;           \
+  operand += (toAdd << ((bits) - bitsToRotate));
+
+#define checkOverflow(bits)             \
+  (b > 0 && a > INT##bits##_MAX - b) || \
+  (b < 0 && a < INT##bits##_MIN - b) || \
+  (b > 0 && a < INT##bits##_MIN + b) || \
+  (b < 0 && a > INT##bits##_MAX - b)
+
+#define conditionalShift(bits)                       \
+  switch (shiftCond) {                               \
+    case 0:                                          \
+      return valToShift << shiftMagnitude;           \
+    case 1:                                          \
+      return valToShift >> shiftMagnitude;           \
+    case 2:                                          \
+      return asr##bits(valToShift, shiftMagnitude);  \
+    default:                                         \
+      return ror##bits(valToShift, shiftMagnitude);  \
+  }
+
 
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
@@ -112,7 +130,7 @@ static uint64_t asr64(uint64_t operand, int bitsToShift) {
   if (bitsToShift == 0) return operand;
   uint64_t ones = (UINT64_C(1) << 63) & operand; //1000000000000000;
   operand = operand >> bitsToShift;
-  asr
+  asr_general
   return operand;
 }
 
@@ -123,7 +141,7 @@ static uint32_t asr32(uint32_t operand, int bitsToShift) {
   if (bitsToShift == 0) return operand;
   uint32_t ones = (UINT32_C(1) << 31) & operand;
   operand = operand >> bitsToShift;
-  asr
+  asr_general
   return operand;
 }
 
@@ -134,7 +152,7 @@ static uint64_t ror64(uint64_t operand, int bitsToRotate) {
 
   uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
   uint64_t toAdd = ones & operand;
-  ror(64)
+  ror_general(64)
   return operand;
 }
 
@@ -144,38 +162,20 @@ static uint32_t ror32(uint32_t operand, int bitsToRotate) {
   assert(bitsToRotate < 32);
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
-  ror(32)
+  ror_general(32)
   return operand;
 }
 
 static uint32_t
 conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift,
                              int shiftMagnitude) {
-  switch (shiftCond) {
-    case 0://shift = 00
-      return valToShift << shiftMagnitude;
-    case 1://shift = 01
-      return valToShift >> shiftMagnitude;
-    case 2://shift = 10
-      return asr32(valToShift, shiftMagnitude);
-    default://shift = 11
-      return ror32(valToShift, shiftMagnitude);
-  }
+  conditionalShift(32)
 }
 
 static uint64_t
 conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift,
                              int shiftMagnitude) {
-  switch (shiftCond) {
-    case 0://shift = 00
-      return valToShift << shiftMagnitude;
-    case 1://shift = 01
-      return valToShift >> shiftMagnitude;
-    case 2://shift = 10
-      return asr64(valToShift, shiftMagnitude);
-    default://shift = 11
-      return ror64(valToShift, shiftMagnitude);
-  }
+  conditionalShift(64)
 }
 
 static void b(SystemState *state, const bool bits[]) {
@@ -184,9 +184,10 @@ static void b(SystemState *state, const bool bits[]) {
 }
 
 static void br(SystemState *state, const bool bits[]) {
-  (*state).programCounter = (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                                          9,
-                                                                          5)];
+  (*state).programCounter =
+      (*state).generalPurpose[getBitsSubsetUnsigned(bits,
+                                                    9,
+                                                    5)];
 }
 
 static void
@@ -440,8 +441,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
 
-            (*state).generalPurpose[rd] = (uint64_t) (val & ~(0xFFFF << shift))
-                | ((uint32_t) (uint16_t) imm16 << shift);
+            (*state).generalPurpose[rd] =
+                (uint64_t) (val & ~(0xFFFF << shift))
+                    | ((uint32_t) (uint16_t) imm16 << shift);
           }
           break;
         default:
@@ -478,12 +480,14 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   }
   uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
   int32_t operand = getBitsSubsetSigned(bits, 15, 10);
-  int64_t rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                                           9,
-                                                                           5)];
-  int64_t rm_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                                           20,
-                                                                           16)];
+  int64_t
+      rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
+                                                                       9,
+                                                                       5)];
+  int64_t
+      rm_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
+                                                                       20,
+                                                                       16)];
   switch (m_opr) {
     case 8:
     case 10:
@@ -602,7 +606,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
-        rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
+        rm_dat =
+            (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
@@ -864,7 +869,9 @@ static int executeSingleDataTransfer(SystemState *state,
 }
 
 static int
-executeLoadLiteral(SystemState *state, bool bits[], int numberOfInstructions) {
+executeLoadLiteral(SystemState *state,
+                   bool bits[],
+                   int numberOfInstructions) {
   fprintf(stdout, "Load Literal Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
@@ -947,7 +954,8 @@ static int executeBranch(SystemState *state, const bool bits[]) {
 int execute(SystemState *state,
             bool bits[],
             int numberOfInstructions) { // Don't forget about `nop` !!
-  if ((*state).instructionMemory[(*state).programCounter] == 0xD503201F) {// nop
+  if ((*state).instructionMemory[(*state).programCounter]
+      == 0xD503201F) {// nop
     printf("Nop Instruction\n");
     (*state).programCounter++;
     return 0;
