@@ -22,7 +22,7 @@ extern void initialiseSystemState(SystemState *state, int, const uint32_t *);
 
 extern void outputToFile(SystemState *state, char *);
 
-extern int execute(SystemState *state, bool bits[], uint32_t instruction);
+extern int execute(SystemState *state, uint32_t instruction);
 
 extern uint32_t readInstruction(SystemState *state, uint32_t);
 

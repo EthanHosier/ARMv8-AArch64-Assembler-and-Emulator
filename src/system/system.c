@@ -67,6 +67,11 @@
   (*state).pState.overflow = checkOverUnderflow##bits(                   \
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
+#define store_general(bits) \
+  uint##bits##_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;\
+  mask = mask << i * 8;\
+  storeByteUnifiedMemory(state,base + i, (int8_t) ((val & mask) >> i * 8));
+
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
   return 1;
@@ -96,7 +101,7 @@ static uint32_t getMemAddress(SystemState *state, bool bits[]) {
     //register offset
     uint32_t xm = getBitsSubsetUnsigned(bits, 20, 16);
     return (*state).generalPurpose[xn] + (*state).generalPurpose[xm];
-  } else if (!bits[21] && bits[10]) {
+  } else { //if (!bits[21] && bits[10])
     //Pre/Post Index
     int32_t simm9 = getBitsSubsetSigned(bits, 20, 12);
     uint32_t oldVal = (*state).generalPurpose[xn];
@@ -107,9 +112,6 @@ static uint32_t getMemAddress(SystemState *state, bool bits[]) {
     } else {
       return oldVal;
     }
-  } else {
-    fprintf(stderr, "something fucky wucky happened!");
-    return 69420;
   }
 }
 
@@ -186,50 +188,12 @@ conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift,
   conditionalShift(64)
 }
 
-static void b(SystemState *state, const bool bits[]) {
-  int64_t simm26 = (int64_t) getBitsSubsetSigned(bits, 25, 0);
-  (*state).programCounter += simm26 * 4;
-}
-
-static void br(SystemState *state, const bool bits[]) {
-  (*state).programCounter =
-      (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
-}
-
 static void
 conditionalBranch(SystemState *state, const bool bits[], bool cond) {
   if (cond) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19 * 4;
   } else (*state).programCounter += 4;
-}
-
-static bool beq(SystemState *state) {
-  return (*state).pState.zero;
-}
-
-static bool bne(SystemState *state) {
-  return !beq(state);
-}
-
-static bool bge(SystemState *state) {
-  return (*state).pState.negative == (*state).pState.overflow;
-}
-
-static bool blt(SystemState *state) {
-  return !bge(state);
-}
-
-static bool bgt(SystemState *state) {
-  return bge(state) && !(beq(state));
-}
-
-static bool ble(SystemState *state) {
-  return blt(state) || beq(state);
-}
-
-static bool bal(void) {
-  return true;
 }
 
 static int32_t read32bitReg(SystemState *state, uint32_t reg) {
@@ -346,8 +310,8 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
         case 2://opc = 10 (sub)
           assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
-            (*state).generalPurpose[rd] =
-                ((int64_t) (*state).generalPurpose[rn]) - imm12;
+            (*state).generalPurpose[rd] = (
+                ((int64_t) (*state).generalPurpose[rn]) - imm12);
           } else {
             (*state).generalPurpose[rd] = zeroPad32BitSigned(
                 ((int32_t) (*state).generalPurpose[rn]) - imm12);
@@ -741,12 +705,7 @@ static int executeSingleDataTransfer(SystemState *state,
       uint32_t base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
       for (int i = 0; i < 8; i++) {
-        uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
-            1;//mask of 1s with correct size
-        mask = mask << (i * 8);  //shift mask to correct pos
-        storeByteUnifiedMemory(state,
-                               base + i,
-                               (int8_t) ((val & mask) >> (i * 8)));
+        store_general(64)
       }
     }
 
@@ -762,18 +721,10 @@ static int executeSingleDataTransfer(SystemState *state,
       uint32_t base = getMemAddress(state, bits);
       uint32_t val = (uint32_t) (*state).generalPurpose[rt];
       for (int i = 0; i < 4; i++) {
-        uint32_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
-            1;//mask of 1s with correct size
-        mask = mask << i * 8;  //shift mask to correct pos
-        storeByteUnifiedMemory(state,
-                               base + i,
-                               (int8_t) ((val & mask) >> i * 8));
+        store_general(32)
       }
     }
-
   }
-
-
   (*state).programCounter += 4;
   return 0;
 }
@@ -807,33 +758,37 @@ executeBranch(SystemState *state, const bool bits[]) {
   uint32_t valForCond = getBitsSubsetUnsigned(bits, 31, 24);
 
   if (!bits[31] && !bits[30]) {//b
-    b(state, bits);
+    int64_t simm26 = (int64_t) getBitsSubsetSigned(bits, 25, 0);
+    (*state).programCounter += simm26 * 4;
   } else if (valForReg31to10 == 3508160 && valForReg4to0 == 0) {//br
-    br(state, bits);
+    (*state).programCounter =
+        (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
   } else if (valForCond == 84 && !bits[4]) {//b.cond
     uint32_t cond = getBitsSubsetUnsigned(bits, 3, 0);
     bool branchCondition;
     switch (cond) {
       case 0://cond = 0000 (beq)
-        branchCondition = beq(state);
+        branchCondition = (*state).pState.zero;
         break;
       case 1://cond = 0001 (bne)
-        branchCondition = bne(state);
+        branchCondition = !(*state).pState.zero;
         break;
       case 10://cond = 1010 (bge)
-        branchCondition = bge(state);
+        branchCondition = (*state).pState.negative == (*state).pState.overflow;
         break;
       case 11://cond = 1011 (blt)
-        branchCondition = blt(state);
+        branchCondition = (*state).pState.negative != (*state).pState.overflow;
         break;
       case 12://cond = 1100 (bgt)
-        branchCondition = bgt(state);
+        branchCondition = (*state).pState.negative == (*state).pState.overflow
+            && !((*state).pState.zero);
         break;
       case 13://cond = 1101 (ble)
-        branchCondition = ble(state);
+        branchCondition = (*state).pState.negative != (*state).pState.overflow
+            || (*state).pState.zero;
         break;
       case 14://cond = 1110 (bal)
-        branchCondition = bal();
+        branchCondition = true;
         break;
       default:
         return invalidInstruction();
@@ -851,9 +806,18 @@ uint32_t readInstruction(SystemState *state, uint32_t address) {
   return (uint32_t) readNBytes(state, address, INSTRUCTION_SIZE_BITS / 8);
 }
 
+static void getBits(uint32_t instruction, bool bits[]) {
+  for (int i = 0; i < INSTRUCTION_SIZE_BITS; i++) {
+    bits[i] = instruction & 1;
+    instruction = instruction >> 1;
+  }
+}
+
 int execute(SystemState *state,
-            bool bits[],
             uint32_t instruction) { // Don't forget about `nop` !!
+  bool bits[INSTRUCTION_SIZE_BITS];
+  getBits(instruction, bits);
+  printInstruction(bits);
   if (instruction
       == 0xD503201F) {// nop
     printf("Nop Instruction\n");
