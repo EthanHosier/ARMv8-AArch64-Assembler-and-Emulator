@@ -386,12 +386,12 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
     case 5://opi = 101
     {
       uint32_t hw = getBitsSubsetUnsigned(bits, 22, 21);
-      int16_t imm16 = (int16_t) getBitsSubsetSigned(bits, 20,
+      uint16_t imm16 = getBitsSubsetUnsigned(bits, 20,
                                                     5); //assuming this number is meant to be signed
 
       int32_t shift = (int32_t) (hw * 16);
-      uint64_t op64 = (uint32_t) (imm16 << shift);
-      uint32_t op32 = imm16 << shift;
+      uint64_t op64 = ((uint64_t) imm16) << shift;
+      uint32_t op32 = ((uint32_t) imm16) << shift;
 
       switch (opc) {
         case 0://opc = 00 (movn)

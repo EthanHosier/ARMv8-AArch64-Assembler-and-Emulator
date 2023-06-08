@@ -10,3 +10,7 @@ shifts:
 
 generated:
     145 other incorrects
+
+flag for adds incorrect (e.g. cmn15)
+flags for subs incorrect (e.g. cmp17)
+movk potentially incorrect (might not be the error) (e.g. br13, br6)
