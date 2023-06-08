@@ -68,7 +68,7 @@
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
 #define addsRegisterDP(bits) \
-  rm_dat = conditionalShiftForLogical##bits(shift, rm_dat, operand);\
+  rm_dat = (int##bits##_t)conditionalShiftForLogical##bits(shift, rm_dat, operand);\
   int##bits##_t res = (int##bits##_t) rn_dat + (int##bits##_t) rm_dat;\
   if (rd_reg != 31) {\
     (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);\
