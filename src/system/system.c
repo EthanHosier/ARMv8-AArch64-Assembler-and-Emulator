@@ -62,7 +62,7 @@ static int getMemAddress(SystemState *state, bool bits[]) {
     }
   } else {
     fprintf(stderr, "something fucky wucky happened!");
-    return 78645873465897345;
+    return 69420;
   }
 }
 
@@ -203,7 +203,8 @@ static void br(SystemState *state, const bool bits[]) {
                                                                           5)];
 }
 
-static void conditionalBranch(SystemState *state, const bool bits[], bool cond) {
+static void
+conditionalBranch(SystemState *state, const bool bits[], bool cond) {
   if (cond) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
@@ -234,7 +235,7 @@ static bool ble(SystemState *state) {
   return blt(state) || beq(state);
 }
 
-static bool bal(SystemState *state) {
+static bool bal() {
   return true;
 }
 
@@ -703,7 +704,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       uint32_t ra_reg = getBitsSubsetUnsigned(bits, 14, 10);
       if (bits[31]) {
         rn_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int64_t ra_dat = (ra_reg = 31) ? 0 : read64bitReg(state, ra_reg);
+        int64_t ra_dat = (ra_reg == 31) ? 0 : read64bitReg(state, ra_reg);
         rm_dat = read64bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
@@ -719,7 +720,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         }
       } else {
         rn_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 9, 5));
-        int32_t ra_dat = (ra_reg = 31) ? 0 : read32bitReg(state, ra_reg);
+        int32_t ra_dat = (ra_reg == 31) ? 0 : read32bitReg(state, ra_reg);
         rm_dat = read32bitReg(state, getBitsSubsetUnsigned(bits, 20, 16));
         switch (opc_x) {
           case 0://opc = 00, x = 0 (madd)
