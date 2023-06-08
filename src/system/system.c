@@ -4,70 +4,70 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#define zeroArray(array, size)     \
-  for (int i = 0; i < (size); i++) \
+#define zeroArray(array, size)\
+  for (int i = 0; i < (size); i++)\
     (array)[i] = 0;
 
-#define getBitsSubset                 \
-  for (int i = msb; i >= lsb; i--)    \
+#define getBitsSubset\
+  for (int i = msb; i >= lsb; i--)\
     subset = (subset << 1) | bits[i];
 
-#define asr_general                         \
-  if (ones != 0) {                          \
-    for (int i = 0; i < bitsToShift; i++) { \
-      operand = operand | ones;             \
-      ones = ones >> 1;                     \
-    }                                       \
+#define asr_general\
+  if (ones != 0) {\
+    for (int i = 0; i < bitsToShift; i++) {\
+      operand = operand | ones;\
+      ones = ones >> 1;\
+    }\
   }
 
-#define ror_general(bits)                        \
-  operand = operand >> bitsToRotate;             \
+#define ror_general(bits)\
+  operand = operand >> bitsToRotate;\
   operand += (toAdd << ((bits) - bitsToRotate));
 
-#define checkOverflow(bits)             \
-  (b > 0 && a > INT##bits##_MAX - b) || \
-  (b < 0 && a < INT##bits##_MIN - b) || \
-  (b > 0 && a < INT##bits##_MIN + b) || \
-  (b < 0 && a > INT##bits##_MAX + b)    \
+#define checkOverflow(bits)\
+  (b > 0 && a > INT##bits##_MAX - b) ||\
+  (b < 0 && a < INT##bits##_MIN - b) ||\
+  (b > 0 && a < INT##bits##_MIN + b) ||\
+  (b < 0 && a > INT##bits##_MAX + b)\
 
-#define conditionalShift(bits)                       \
-  switch (shiftCond) {                               \
-    case 0:                                          \
-      return valToShift << shiftMagnitude;           \
-    case 1:                                          \
-      return valToShift >> shiftMagnitude;           \
-    case 2:                                          \
-      return asr##bits(valToShift, shiftMagnitude);  \
-    default:                                         \
-      return ror##bits(valToShift, shiftMagnitude);  \
+#define conditionalShift(bits)\
+  switch (shiftCond) {\
+    case 0:\
+      return valToShift << shiftMagnitude;\
+    case 1:\
+      return valToShift >> shiftMagnitude;\
+    case 2:\
+      return asr##bits(valToShift, shiftMagnitude);\
+    default:\
+      return ror##bits(valToShift, shiftMagnitude);\
   }
 
-#define addsImmediateDP(bits)                                                \
-  int##bits##_t res = (int##bits##_t) ((*state).generalPurpose[rn]) + imm12; \
-    if (rd != 31) {                                                          \
-      (*state).generalPurpose[rd] = res;                                     \
-    }                                                                        \
-  (*state).pState.negative = res < 0;                                        \
-  (*state).pState.zero = res == 0;                                           \
+#define addsImmediateDP(bits)\
+  int##bits##_t res = (int##bits##_t) ((*state).generalPurpose[rn]) + imm12;\
+    if (rd != 31) {\
+      (*state).generalPurpose[rd] = res;\
+    }\
+  (*state).pState.negative = res < 0;\
+  (*state).pState.zero = res == 0;\
   (*state).pState.carry = (uint##bits##_t) (*state).generalPurpose[rn] > UINT##bits##_MAX - (uint##bits##_t) imm12;\
-  (*state).pState.overflow = checkOverUnderflow##bits(                       \
-      (int##bits##_t) (*state).generalPurpose[rn],                           \
-      (int##bits##_t) imm12);                                                \
+  (*state).pState.overflow = checkOverUnderflow##bits(\
+      (int##bits##_t) (*state).generalPurpose[rn],\
+      (int##bits##_t) imm12);\
 
-#define subsImmediateDP(bits)                                            \
-  int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]); \
-  int##bits##_t subtrahend = (int##bits##_t) imm12;                      \
-  int##bits##_t res = minuend - subtrahend;                              \
-  if (rd != 31) {                                                        \
-    (*state).generalPurpose[rd] = (uint##bits##_t) res;                                    \
-  }                                                                      \
-  (*state).pState.negative = res < 0;                                    \
-  (*state).pState.zero = res == 0;                                       \
-  (*state).pState.carry = (uint##bits##_t) minuend >= (uint##bits##_t) subtrahend;                         \
-  (*state).pState.overflow = checkOverUnderflow##bits(                   \
+#define subsImmediateDP(bits)\
+  int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]);\
+  int##bits##_t subtrahend = (int##bits##_t) imm12;\
+  int##bits##_t res = minuend - subtrahend;\
+  if (rd != 31) {\
+    (*state).generalPurpose[rd] = (uint##bits##_t) res;\
+  }\
+  (*state).pState.negative = res < 0;\
+  (*state).pState.zero = res == 0;\
+  (*state).pState.carry = (uint##bits##_t) minuend >= (uint##bits##_t) subtrahend;\
+  (*state).pState.overflow = checkOverUnderflow##bits(\
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
-#define store_general(bits) \
+#define store_general(bits)\
   uint##bits##_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;\
   mask = mask << i * 8;\
   storeByteUnifiedMemory(state,base + i, (int8_t) ((val & mask) >> i * 8));
