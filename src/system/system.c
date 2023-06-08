@@ -235,7 +235,7 @@ static bool ble(SystemState *state) {
   return blt(state) || beq(state);
 }
 
-static bool bal() {
+static bool bal(void) {
   return true;
 }
 
