@@ -203,53 +203,39 @@ static void br(SystemState *state, const bool bits[]) {
                                                                           5)];
 }
 
-static void beq(SystemState *state, const bool bits[]) {
-  if ((*state).pState.zero) {
+static void conditionalBranch(SystemState *state, bool bits[], bool cond) {
+  if (cond) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   } else (*state).programCounter++;
 }
 
-static void bne(SystemState *state, const bool bits[]) {
-  if (!(*state).pState.zero) {
-    int64_t simm19 = (uint64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+static bool beq(SystemState *state) {
+  return (*state).pState.zero;
 }
 
-static void bge(SystemState *state, const bool bits[]) {
-  if ((*state).pState.negative == (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+static bool bne(SystemState *state) {
+  return !beq(state);
 }
 
-static void blt(SystemState *state, const bool bits[]) {
-  if ((*state).pState.negative != (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+static bool bge(SystemState *state) {
+  return (*state).pState.negative == (*state).pState.overflow;
 }
 
-static void bgt(SystemState *state, const bool bits[]) {
-  if (!(*state).pState.zero &&
-      (*state).pState.negative == (*state).pState.overflow) {
-    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+static bool blt(SystemState *state) {
+  return !bge(state);
 }
 
-static void ble(SystemState *state, const bool bits[]) {
-  if (!(!(*state).pState.zero &&
-      (*state).pState.negative == (*state).pState.overflow)) {
-    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+static bool bgt(SystemState *state) {
+  return bge(state) && !(beq(state));
 }
 
-static void bal(SystemState *state, const bool bits[]) {
-  int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-  (*state).programCounter += simm19;
+static bool ble(SystemState *state) {
+  return blt(state) || beq(state);
+}
+
+static bool bal(SystemState *state) {
+  return true;
 }
 
 static int32_t read32bitReg(SystemState *state, uint32_t reg) {
@@ -936,31 +922,33 @@ static int executeBranch(SystemState *state, const bool bits[]) {
     br(state, bits);
   } else if (valForCond == 84 && !bits[4]) {//b.cond
     uint32_t cond = getBitsSubsetUnsigned(bits, 3, 0);
+    bool (*branchCondition)(SystemState *);
     switch (cond) {
       case 0://cond = 0000 (beq)
-        beq(state, bits);
+        branchCondition = &beq;
         break;
       case 1://cond = 0001 (bne)
-        bne(state, bits);
+        branchCondition = &bne;
         break;
       case 10://cond = 1010 (bge)
-        bge(state, bits);
+        branchCondition = &bge;
         break;
       case 11://cond = 1011 (blt)
-        blt(state, bits);
+        branchCondition = &blt;
         break;
       case 12://cond = 1100 (bgt)
-        bgt(state, bits);
+        branchCondition = &bgt;
         break;
       case 13://cond = 1101 (ble)
-        ble(state, bits);
+        branchCondition = &ble;
         break;
       case 14://cond = 1110 (bal)
-        bal(state, bits);
+        branchCondition = &bal;
         break;
       default:
         return invalidInstruction();
     }
+    conditionalBranch(state, bits, branchCondition(state));
   } else {
     return invalidInstruction();
   }
