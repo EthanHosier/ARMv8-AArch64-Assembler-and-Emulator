@@ -558,7 +558,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = (uint32_t) minuend >= (uint32_t)subtrahend;
+            (*state).pState.carry = (uint32_t) minuend >= (uint32_t) subtrahend;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
           }
@@ -1016,7 +1016,7 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
     }
   }
   for (int i = 0; i < MEMORY_SIZE_BYTES; i += 4) {
-    int absoluteAddress = i + numberOfInstructions * 4;
+    uint32_t absoluteAddress = i + numberOfInstructions * 4;
     uint32_t val = 0;
     for (int j = 0; j < 4; j++) {
       val = val | (uint32_t) readByteUnifiedMemory(state,
@@ -1026,8 +1026,8 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
     }
     if (val != 0) {
       //fprintf(file, "Data Memory: ");
-      fprintf(file, "%#010"PRIx16" : %08"
-                    PRIx32"\n", (int16_t) absoluteAddress, val);
+      fprintf(file, "%#010"PRIx32" : %08"
+                    PRIx32"\n", (uint32_t) absoluteAddress, val);
     }
   }
   fclose(file);
