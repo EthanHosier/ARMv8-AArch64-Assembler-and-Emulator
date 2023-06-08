@@ -28,40 +28,42 @@ static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   return (int32_t) subset;
 }
 
-static int getMemAddress(SystemState *state, bool bits[]) {
-  int xn = getBitsSubsetSigned(bits, 9, 5);
-  if (bits[24]) {
-    //Unsigned Offset
-    int imm12 = getBitsSubsetSigned(bits, 21, 10);
-    return (*state).generalPurpose[xn] + 8 * imm12;
-  } else if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12]
-      && bits[11] &&
-      !bits[10]) {
-    //register offset
-    int xm = getBitsSubsetSigned(bits, 20, 16);
-    return (*state).generalPurpose[xn] + (*state).generalPurpose[xm];
-  } else if (!bits[21] && bits[10]) {
-    //Pre/Post Index
-    //INCORRECT IMPLEMENTATION (don't understand)
-    int simm9 = getBitsSubsetSigned(bits, 20, 12);
-    updateBitsSubset(bits, xn + simm9, 9, 5);
-    if (bits[11]) {
-      return (*state).generalPurpose[xn] + simm9;
-    } else {
-      return (*state).generalPurpose[xn];
-    }
-  } else {
-    fprintf(stderr, "something fucky wucky happened!");
-    return 78645873465897345;
-  }
-}
-
 static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
   for (int i = msb; i >= lsb; i--) {
     subset = (subset << 1) | bits[i];
   }
   return subset;
+}
+
+static int getMemAddress(SystemState *state, bool bits[]) {
+  uint32_t xn = getBitsSubsetUnsigned(bits, 9, 5);
+  if (bits[24]) {
+    //Unsigned Offset
+    uint32_t imm12 = getBitsSubsetUnsigned(bits, 21, 10);
+    return (*state).generalPurpose[xn] + ((bits[30]) ? 8 : 4) * imm12;
+  } else if (bits[21] && !bits[15] && bits[14] && bits[13] && !bits[12]
+      && bits[11] &&
+      !bits[10]) {
+    //register offset
+    uint32_t xm = getBitsSubsetUnsigned(bits, 20, 16);
+    return (*state).generalPurpose[xn] + (*state).generalPurpose[xm];
+  } else if (!bits[21] && bits[10]) {
+    //Pre/Post Index
+    //INCORRECT IMPLEMENTATION (don't understand)
+    int32_t simm9 = getBitsSubsetSigned(bits, 20, 12);
+    uint32_t oldVal = (*state).generalPurpose[xn];
+    uint32_t newVal = oldVal + simm9;
+    (*state).generalPurpose[xn] = newVal;
+    if (bits[11]) {
+      return newVal;
+    } else {
+      return oldVal;
+    }
+  } else {
+    fprintf(stderr, "something fucky wucky happened!");
+    return 78645873465897345;
+  }
 }
 
 static int32_t
