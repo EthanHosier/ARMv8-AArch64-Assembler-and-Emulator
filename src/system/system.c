@@ -171,9 +171,9 @@ conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift,
     case 1://shift = 01
       return valToShift >> shiftMagnitude;
     case 2://shift = 10
-      return asr64(valToShift, shiftMagnitude);
+      return asr32(valToShift, shiftMagnitude);
     default://shift = 11
-      return ror64(valToShift, shiftMagnitude);
+      return ror32(valToShift, shiftMagnitude);
   }
 }
 
