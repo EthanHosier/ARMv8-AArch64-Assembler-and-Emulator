@@ -20,20 +20,16 @@ static void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
   }
 }
 
-static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
-  uint32_t subset = bits[msb] ? -1 : 0;
-  for (int i = msb; i >= lsb; i--) {
-    subset = (subset << 1) | bits[i];
-  }
-  return (int32_t) subset;
-}
-
 static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
   for (int i = msb; i >= lsb; i--) {
     subset = (subset << 1) | bits[i];
   }
   return subset;
+}
+
+static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
+  return (int32_t) getBitsSubsetUnsigned(bits, msb, lsb);
 }
 
 static int getMemAddress(SystemState *state, bool bits[]) {
@@ -461,14 +457,14 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           assert(rd < GENERAL_PURPOSE_REGISTERS);
           if (sf) {//64 bit
             uint64_t val = (*state).generalPurpose[rd];
-            
+
             (*state).generalPurpose[rd] = (val & ~(0xFFFFULL << shift))
-              | ((uint64_t)(uint16_t)imm16 << shift);
+                | ((uint64_t) (uint16_t) imm16 << shift);
           } else {
             uint32_t val = (uint32_t) (*state).generalPurpose[rd];
 
             (*state).generalPurpose[rd] = (uint64_t) (val & ~(0xFFFF << shift))
-              | ((uint32_t)(uint16_t)imm16 << shift);
+                | ((uint32_t) (uint16_t) imm16 << shift);
           }
           break;
         default:
@@ -973,10 +969,12 @@ int execute(SystemState *state,
             bool bits[],
             int numberOfInstructions) { // Don't forget about `nop` !!
   if ((*state).instructionMemory[(*state).programCounter] == 0xD503201F) {// nop
+    printf("Nop Instruction\n");
     (*state).programCounter++;
     return 0;
   } else if ((*state).instructionMemory[(*state).programCounter]
       == 0x8A000000) { // halt
+    printf("Halt Instruction\n");
     return HALT;
   } else if (bits[28] && !bits[27] && !bits[26]) { // DP (Immediate)
     return executeImmediateDP(state, bits);
