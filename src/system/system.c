@@ -629,7 +629,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
         operand = getBitsSubsetSigned(bits, 15, 10);
-        rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
+        rm_dat = conditionalShiftForLogical64(shift, rm_dat, operand);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
@@ -1030,7 +1030,7 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
   (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");
   (*state).pState.overflow ? fprintf(file, "V") : fprintf(file, "-");
-  fprintf(file, "\nNon-zero memory:\n0x00000000");
+  fprintf(file, "\nNon-Zero Memory:\n0x00000000");
   outputInstruction(file, (*state).instructionMemory[0]);
   for (int i = 1; i < numberOfInstructions; i++) {
     uint32_t val = (*state).instructionMemory[i];
