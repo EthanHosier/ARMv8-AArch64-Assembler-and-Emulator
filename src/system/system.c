@@ -923,33 +923,33 @@ static int executeBranch(SystemState *state, const bool bits[]) {
     br(state, bits);
   } else if (valForCond == 84 && !bits[4]) {//b.cond
     uint32_t cond = getBitsSubsetUnsigned(bits, 3, 0);
-    bool (*branchCondition)(SystemState *);
+    bool branchCondition;
     switch (cond) {
       case 0://cond = 0000 (beq)
-        branchCondition = &beq;
+        branchCondition = beq(state);
         break;
       case 1://cond = 0001 (bne)
-        branchCondition = &bne;
+        branchCondition = bne(state);
         break;
       case 10://cond = 1010 (bge)
-        branchCondition = &bge;
+        branchCondition = bge(state);
         break;
       case 11://cond = 1011 (blt)
-        branchCondition = &blt;
+        branchCondition = blt(state);
         break;
       case 12://cond = 1100 (bgt)
-        branchCondition = &bgt;
+        branchCondition = bgt(state);
         break;
       case 13://cond = 1101 (ble)
-        branchCondition = &ble;
+        branchCondition = ble(state);
         break;
       case 14://cond = 1110 (bal)
-        branchCondition = &bal;
+        branchCondition = bal();
         break;
       default:
         return invalidInstruction();
     }
-    conditionalBranch(state, bits, branchCondition(state));
+    conditionalBranch(state, bits, branchCondition);
   } else {
     return invalidInstruction();
   }
