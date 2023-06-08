@@ -4,12 +4,12 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#define zeroArray(array, size)       \
-  for (int i = 0; i < (size); i++)   \
+#define zeroArray(array, size)     \
+  for (int i = 0; i < (size); i++) \
     (array)[i] = 0;
 
-#define getBitsSubset                  \
-  for (int i = msb; i >= lsb; i--)     \
+#define getBitsSubset                 \
+  for (int i = msb; i >= lsb; i--)    \
     subset = (subset << 1) | bits[i];
 
 #define asr_general                         \
@@ -20,8 +20,8 @@
     }                                       \
   }
 
-#define ror_general(bits)                      \
-  operand = operand >> bitsToRotate;           \
+#define ror_general(bits)                        \
+  operand = operand >> bitsToRotate;             \
   operand += (toAdd << ((bits) - bitsToRotate));
 
 #define checkOverflow(bits)             \
@@ -54,17 +54,17 @@
       (int##bits##_t) (*state).generalPurpose[rn],                           \
       (int##bits##_t) imm12);
 
-#define subsImmediateDP(bits) \
-  int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]);\
-  int##bits##_t subtrahend = (int##bits##_t) imm12;\
-  int##bits##_t res = minuend - subtrahend;\
-  if (rd != 31) {\
-    (*state).generalPurpose[rd] = res;\
-  }\
-  (*state).pState.negative = res < 0;\
-  (*state).pState.zero = res == 0;\
-  (*state).pState.carry = minuend >= subtrahend;\
-  (*state).pState.overflow = checkOverUnderflow##bits(\
+#define subsImmediateDP(bits)                                            \
+  int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]); \
+  int##bits##_t subtrahend = (int##bits##_t) imm12;                      \
+  int##bits##_t res = minuend - subtrahend;                              \
+  if (rd != 31) {                                                        \
+    (*state).generalPurpose[rd] = res;                                   \
+  }                                                                      \
+  (*state).pState.negative = res < 0;                                    \
+  (*state).pState.zero = res == 0;                                       \
+  (*state).pState.carry = minuend >= subtrahend;                         \
+  (*state).pState.overflow = checkOverUnderflow##bits(                   \
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
 static int invalidInstruction(void) {
