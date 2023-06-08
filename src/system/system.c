@@ -203,7 +203,7 @@ static void br(SystemState *state, const bool bits[]) {
                                                                           5)];
 }
 
-static void conditionalBranch(SystemState *state, bool bits[], bool cond) {
+static void conditionalBranch(SystemState *state, const bool bits[], bool cond) {
   if (cond) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
