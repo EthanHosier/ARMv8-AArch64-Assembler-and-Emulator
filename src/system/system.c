@@ -67,6 +67,32 @@
   (*state).pState.overflow = checkOverUnderflow##bits(\
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
+#define addsRegisterDP(bits) \
+  rm_dat = conditionalShiftForLogical##bits(shift, rm_dat, operand);\
+  int##bits##_t res = (int##bits##_t) rn_dat + (int##bits##_t) rm_dat;\
+  if (rd_reg != 31) {\
+    (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);\
+  }\
+  (*state).pState.negative = res < 0;\
+  (*state).pState.zero = res == 0;\
+  (*state).pState.carry = 0;\
+  (*state).pState.overflow = checkOverUnderflow##bits((int##bits##_t) rn_dat,\
+                                                (int##bits##_t) rm_dat);
+
+#define subsRegisterDP(bits) \
+  rm_dat = (int##bits##_t)conditionalShiftForLogical##bits(shift, rm_dat, operand);\
+  int##bits##_t minuend = (int##bits##_t) rn_dat;\
+  int##bits##_t subtrahend = (int##bits##_t) rm_dat;\
+  int##bits##_t res = minuend - subtrahend;\
+  if (rd_reg != 31) {\
+    (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);\
+  }\
+  (*state).pState.negative = res < 0;\
+  (*state).pState.zero = res == 0;\
+  (*state).pState.carry = minuend >= subtrahend;\
+  (*state).pState.overflow = checkOverUnderflow##bits((int##bits##_t) rn_dat,\
+                                                (int##bits##_t) rm_dat);\
+
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
   return 1;
@@ -479,8 +505,8 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         case 0://opc = 00 (add)
           assert(rd_reg < GENERAL_PURPOSE_REGISTERS);
           if (sf) {
-            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
-                                                            operand);
+            rm_dat = conditionalShiftForLogical64(shift, rm_dat,
+                                                  operand);
             (*state).generalPurpose[rd_reg] =
                 (int64_t) rn_dat + (int64_t) rm_dat;
           } else {
@@ -492,30 +518,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           break;
         case 1://opc = 01 (adds)
           if (sf) {
-            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
-                                                            operand);
-            int64_t res = (int64_t) rn_dat + (int64_t) rm_dat;
-            if (rd_reg != 31) {
-              (*state).generalPurpose[rd_reg] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
-                                                            (int64_t) rm_dat);
+            addsRegisterDP(64)
           } else {
-            rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
-            int32_t res = (int32_t) rn_dat + (int32_t) rm_dat;
-            if (rd_reg != 31) {
-              (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = 0;
-            (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
-                                                            (int32_t) rm_dat);
+            addsRegisterDP(32)
           }
           break;
         case 2://opc = 10 (sub)
@@ -534,36 +539,9 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc  = 11 (subs)
           if (sf) {
-            rm_dat = (int64_t) conditionalShiftForLogical64(shift, rm_dat,
-                                                            operand);
-            int64_t minuend = rn_dat;
-            int64_t subtrahend = rm_dat;
-
-            int64_t res = minuend - subtrahend;
-            if (rd_reg != 31) {
-              (*state).generalPurpose[rd_reg] = res;
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
-            (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
-                                                            (int64_t) rm_dat);
+            subsRegisterDP(64)
           } else {
-
-            rm_dat = conditionalShiftForLogical32(shift, rm_dat, operand);
-            int32_t minuend = (int32_t) rn_dat;
-            int32_t subtrahend = (int32_t) rm_dat;
-            int32_t res = minuend - subtrahend;
-            if (rd_reg != 31) {
-              (*state).generalPurpose[rd_reg] = zeroPad32BitSigned(res);
-            }
-            (*state).pState.negative = res < 0;
-            (*state).pState.zero = res == 0;
-            // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
-            (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
-                                                            (int32_t) rm_dat);
+            subsRegisterDP(32)
           }
           break;
         default:
