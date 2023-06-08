@@ -29,7 +29,11 @@ static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
 }
 
 static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
-  return (int32_t) getBitsSubsetUnsigned(bits, msb, lsb);
+  uint32_t subset = bits[msb] ? -1 : 0;
+  for (int i = msb; i >= lsb; i--) {
+    subset = (subset << 1) | bits[i];
+  }
+  return (int32_t) subset;
 }
 
 static int getMemAddress(SystemState *state, bool bits[]) {
@@ -208,7 +212,7 @@ static void beq(SystemState *state, const bool bits[]) {
 
 static void bne(SystemState *state, const bool bits[]) {
   if (!(*state).pState.zero) {
-    int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
+    int64_t simm19 = (uint64_t) getBitsSubsetSigned(bits, 23, 5);
     (*state).programCounter += simm19;
   } else (*state).programCounter++;
 }
@@ -337,7 +341,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
       bool sh = bits[22];
       uint32_t rn = getBitsSubsetUnsigned(bits, 9, 5);
       assert(rn < GENERAL_PURPOSE_REGISTERS);
-      int32_t imm12 = getBitsSubsetSigned(bits, 21, 10);
+      int32_t imm12 = getBitsSubsetUnsigned(bits, 21, 10);
       if (sh) {
         imm12 = imm12 << 12;
       }

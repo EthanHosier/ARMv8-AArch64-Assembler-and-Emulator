@@ -1,0 +1,14 @@
+
+test/expected/test/test_cases/general/loop01_exp.bin:     file format binary
+
+
+Disassembly of section .data:
+
+0000000000000000 <.data>:
+   0:	580000a2 	ldr	x2, 0x14
+   4:	d1000442 	sub	x2, x2, #0x1
+   8:	f100005f 	cmp	x2, #0x0
+   c:	54ffffc1 	b.ne	0x4  // b.any
+  10:	8a000000 	and	x0, x0, x0
+  14:	00000011 	udf	#17
+  18:	00000000 	udf	#0
