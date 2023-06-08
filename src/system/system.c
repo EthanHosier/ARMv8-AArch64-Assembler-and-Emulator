@@ -203,22 +203,20 @@ conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift,
 
 static void b(SystemState *state, const bool bits[]) {
   int64_t simm26 = (int64_t) getBitsSubsetSigned(bits, 25, 0);
-  (*state).programCounter += simm26;
+  (*state).programCounter += simm26 * 4;
 }
 
 static void br(SystemState *state, const bool bits[]) {
   (*state).programCounter =
-      (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                    9,
-                                                    5)];
+      (*state).generalPurpose[getBitsSubsetUnsigned(bits, 9, 5)];
 }
 
 static void
 conditionalBranch(SystemState *state, const bool bits[], bool cond) {
   if (cond) {
     int64_t simm19 = (int64_t) getBitsSubsetSigned(bits, 23, 5);
-    (*state).programCounter += simm19;
-  } else (*state).programCounter++;
+    (*state).programCounter += simm19 * 4;
+  } else (*state).programCounter += 4;
 }
 
 static bool beq(SystemState *state) {
@@ -386,7 +384,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
     {
       uint32_t hw = getBitsSubsetUnsigned(bits, 22, 21);
       uint16_t imm16 = getBitsSubsetUnsigned(bits, 20,
-                                                    5); //assuming this number is meant to be signed
+                                             5); //assuming this number is meant to be signed
 
       int32_t shift = (int32_t) (hw * 16);
       uint64_t op64 = ((uint64_t) imm16) << shift;
@@ -435,7 +433,7 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
     default:
       return invalidInstruction();
   }
-  (*state).programCounter++;
+  (*state).programCounter += 4;
   return 0;
 }
 
@@ -712,7 +710,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
       return invalidInstruction();
   }
 
-  (*state).programCounter++;
+  (*state).programCounter += 4;
   return 0;
 }
 
@@ -826,9 +824,9 @@ static int executeSingleDataTransfer(SystemState *state,
     } else {//store
 
       uint32_t base = getMemAddress(state, bits);
-      uint64_t val = (*state).generalPurpose[rt];
-      for (int i = 0; i < 8; i++) {
-        uint64_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
+      uint32_t val = (uint32_t) (*state).generalPurpose[rt];
+      for (int i = 0; i < 4; i++) {
+        uint32_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) -
             1;//mask of 1s with correct size
         mask = mask << i * 8;  //shift mask to correct pos
         storeByteUnifiedMemory(state,
@@ -845,7 +843,7 @@ static int executeSingleDataTransfer(SystemState *state,
   }
 
 
-  (*state).programCounter++;
+  (*state).programCounter += 4;
   return 0;
 }
 
@@ -856,7 +854,7 @@ executeLoadLiteral(SystemState *state,
   fprintf(stdout, "Load Literal Instruction\n\n");
   uint32_t rt = getBitsSubsetUnsigned(bits, 4, 0);
   int32_t simm19 = getBitsSubsetSigned(bits, 23, 5);
-  int32_t address = (int32_t) (4 * ((*state).programCounter + simm19));
+  int32_t address = (int32_t) ((*state).programCounter + 4 * simm19);
 
   if (bits[30]) {//64bit
     uint64_t val = 0;
@@ -881,11 +879,12 @@ executeLoadLiteral(SystemState *state,
   }
 
 
-  (*state).programCounter++;
+  (*state).programCounter += 4;
   return 0;
 }
 
-static int executeBranch(SystemState *state, const bool bits[]) {
+static int
+executeBranch(SystemState *state, const bool bits[], int numberOfInstructions) {
   fprintf(stdout, "Branch Instruction\n\n");
   uint32_t valForReg31to10 = getBitsSubsetUnsigned(bits, 31, 10);
   uint32_t valForReg4to0 = getBitsSubsetUnsigned(bits, 4, 0);
@@ -935,12 +934,12 @@ static int executeBranch(SystemState *state, const bool bits[]) {
 int execute(SystemState *state,
             bool bits[],
             int numberOfInstructions) { // Don't forget about `nop` !!
-  if ((*state).instructionMemory[(*state).programCounter]
+  if (((*state).instructionMemory[(*state).programCounter / 4])
       == 0xD503201F) {// nop
     printf("Nop Instruction\n");
-    (*state).programCounter++;
+    (*state).programCounter += 4;
     return 0;
-  } else if ((*state).instructionMemory[(*state).programCounter]
+  } else if ((*state).instructionMemory[(*state).programCounter / 4]
       == 0x8A000000) { // halt
     printf("Halt Instruction\n");
     return HALT;
@@ -955,7 +954,7 @@ int execute(SystemState *state,
       && !bits[25] && !bits[24]) { // Load Literal
     return executeLoadLiteral(state, bits, numberOfInstructions);
   } else if (!bits[29] && bits[28] && !bits[27] && bits[26]) { // Branch
-    return executeBranch(state, bits);
+    return executeBranch(state, bits, numberOfInstructions);
   }
   fprintf(stderr, "Invalid instruction type!");
   return 1;
@@ -989,7 +988,7 @@ outputToFile(SystemState *state, char *filename, int numberOfInstructions) {
     fprintf(file, "X%02d    = %016"PRIx64"\n", i, (*state).generalPurpose[i]);
   }
   fprintf(file, "PC     = %016"PRIx64"\nPSTATE : ",
-          (*state).programCounter * 4);
+          (*state).programCounter);
   (*state).pState.negative ? fprintf(file, "N") : fprintf(file, "-");
   (*state).pState.zero ? fprintf(file, "Z") : fprintf(file, "-");
   (*state).pState.carry ? fprintf(file, "C") : fprintf(file, "-");

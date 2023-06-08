@@ -24,11 +24,11 @@ int main(int argc, char **argv) {
   // printInstructions(instructions, numberOfInstructions);
   SystemState *state = malloc(sizeof(SystemState));
   initialiseSystemState(state, numberOfInstructions, instructions);
-  while ((*state).programCounter < numberOfInstructions) {
-    fprintf(stdout, "PC: %"PRId64"\n", (*state).programCounter);
+  while ((*state).programCounter / 4 < numberOfInstructions) {
+    fprintf(stdout, "PC: %"PRId64"\n", (*state).programCounter / 4);
     bool bits[INSTRUCTION_SIZE_BITS];
     // Most significant bit has the highest index
-    getBits(instructions[(*state).programCounter], bits);
+    getBits(instructions[(*state).programCounter / 4], bits);
     printInstruction(bits);
     switch (execute(state, bits, numberOfInstructions)) {
       case 0:
