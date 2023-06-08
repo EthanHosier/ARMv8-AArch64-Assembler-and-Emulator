@@ -63,7 +63,7 @@
   }                                                                      \
   (*state).pState.negative = res < 0;                                    \
   (*state).pState.zero = res == 0;                                       \
-  (*state).pState.carry = minuend >= subtrahend;                         \
+  (*state).pState.carry = (uint##bits##_t) minuend >= (uint##bits##_t) subtrahend;                         \
   (*state).pState.overflow = checkOverUnderflow##bits(                   \
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
@@ -543,7 +543,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
+            (*state).pState.carry = (uint64_t) minuend >= (uint64_t) subtrahend;
             (*state).pState.overflow = checkOverUnderflow64((int64_t) rn_dat,
                                                             (int64_t) rm_dat);
           } else {
@@ -558,7 +558,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
             (*state).pState.negative = res < 0;
             (*state).pState.zero = res == 0;
             // Come back to this later
-            (*state).pState.carry = minuend >= subtrahend;
+            (*state).pState.carry = (uint32_t) minuend >= (uint32_t)subtrahend;
             (*state).pState.overflow = checkOverUnderflow32((int32_t) rn_dat,
                                                             (int32_t) rm_dat);
           }
