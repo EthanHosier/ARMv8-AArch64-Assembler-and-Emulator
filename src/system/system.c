@@ -4,9 +4,26 @@
 #include <inttypes.h>
 #include <assert.h>
 #define zeroArray(array, size)       \
-  for (int i = 0; i < (size); i++) { \
-    (array)[i] = 0;                  \
-  }
+  for (int i = 0; i < (size); i++)   \
+    (array)[i] = 0;
+#define getBitsSubset                \
+for (int i = msb; i >= lsb; i--)     \
+  subset = (subset << 1) | bits[i];
+#define asr \
+if (ones != 0) {                          \
+  for (int i = 0; i < bitsToShift; i++) { \
+    operand = operand | ones;             \
+    ones = ones >> 1;                     \
+  }                                       \
+}
+#define ror(bits)                           \
+operand = operand >> bitsToRotate;          \
+operand += (toAdd << (bits - bitsToRotate));
+#define checkOverflow(bits)          \
+(b > 0 && a > INT##bits##_MAX - b) ||\
+(b < 0 && a < INT##bits##_MIN - b) ||\
+(b > 0 && a < INT##bits##_MIN + b) ||\
+(b < 0 && a > INT##bits##_MAX - b)
 
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
@@ -22,17 +39,13 @@ static void updateBitsSubset(bool bits[], int newBits, int msb, int lsb) {
 
 static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
-  for (int i = msb; i >= lsb; i--) {
-    subset = (subset << 1) | bits[i];
-  }
+  getBitsSubset
   return subset;
 }
 
 static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = bits[msb] ? -1 : 0;
-  for (int i = msb; i >= lsb; i--) {
-    subset = (subset << 1) | bits[i];
-  }
+  getBitsSubset
   return (int32_t) subset;
 }
 
@@ -77,10 +90,7 @@ static uint64_t zeroPad32BitSigned(int32_t num) {
 }
 
 static int checkOverUnderflow32(int32_t a, int32_t b) {
-  if ((b > 0 && a > INT32_MAX - b) ||
-      (b < 0 && a < INT32_MIN - b) ||
-      (b > 0 && a < INT32_MIN + b) ||
-      (b < 0 && a > INT32_MAX - b)) {
+  if (checkOverflow(32)) {
     return 1;
   } else {
     return 0;
@@ -88,10 +98,7 @@ static int checkOverUnderflow32(int32_t a, int32_t b) {
 }
 
 static int checkOverUnderflow64(int64_t a, int64_t b) {
-  if ((b > 0 && a > INT64_MAX - b) ||
-      (b < 0 && a < INT64_MIN - b) ||
-      (b > 0 && a < INT64_MIN + b) ||
-      (b < 0 && a > INT64_MAX - b)) {
+  if (checkOverflow(64)) {
     return 1;
   } else {
     return 0;
@@ -102,19 +109,10 @@ static int checkOverUnderflow64(int64_t a, int64_t b) {
 //assume the number given is a 64 bit
 static uint64_t asr64(uint64_t operand, int bitsToShift) {
   assert(bitsToShift < 64);
-
   if (bitsToShift == 0) return operand;
-
   uint64_t ones = (UINT64_C(1) << 63) & operand; //1000000000000000;
   operand = operand >> bitsToShift;
-
-  if (ones != 0) {
-    for (int i = 0; i < bitsToShift; i++) {
-      operand = operand | ones;
-      ones = ones >> 1;
-    }
-  }
-
+  asr
   return operand;
 }
 
@@ -122,19 +120,10 @@ static uint64_t asr64(uint64_t operand, int bitsToShift) {
 //assume the number given is 32 bit (the first 32 0s are removed already)
 static uint32_t asr32(uint32_t operand, int bitsToShift) {
   assert(bitsToShift < 32);
-
   if (bitsToShift == 0) return operand;
-
   uint32_t ones = (UINT32_C(1) << 31) & operand;
   operand = operand >> bitsToShift;
-
-  if (ones != 0) {
-    for (int i = 0; i < bitsToShift; i++) {
-      operand = operand | ones;
-      ones = ones >> 1;
-    }
-  }
-
+  asr
   return operand;
 }
 
@@ -145,8 +134,7 @@ static uint64_t ror64(uint64_t operand, int bitsToRotate) {
 
   uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
   uint64_t toAdd = ones & operand;
-  operand = operand >> bitsToRotate;
-  operand += (toAdd << (64 - bitsToRotate));
+  ror(64)
   return operand;
 }
 
@@ -154,11 +142,9 @@ static uint64_t ror64(uint64_t operand, int bitsToRotate) {
 //assume the number given is the 32 bit used portion of the operand
 static uint32_t ror32(uint32_t operand, int bitsToRotate) {
   assert(bitsToRotate < 32);
-
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
-  operand = operand >> bitsToRotate;
-  operand += (toAdd << (32 - bitsToRotate));
+  ror(32)
   return operand;
 }
 
