@@ -105,7 +105,6 @@ static uint32_t getMemAddress(SystemState *state, bool bits[]) {
     return (*state).generalPurpose[xn] + (*state).generalPurpose[xm];
   } else if (!bits[21] && bits[10]) {
     //Pre/Post Index
-    //INCORRECT IMPLEMENTATION (don't understand)
     int32_t simm9 = getBitsSubsetSigned(bits, 20, 12);
     uint32_t oldVal = (*state).generalPurpose[xn];
     uint32_t newVal = oldVal + simm9;
@@ -461,7 +460,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
     generalPurposeRegisterNotFound(rd_reg);
   }
   uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
-  int32_t operand = getBitsSubsetSigned(bits, 15, 10);
+  uint32_t operand = getBitsSubsetUnsigned(bits, 15, 10);
   int64_t
       rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
                                                                        9,
@@ -587,9 +586,10 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         rn_dat = (rn_reg == 31) ? 0 : read64bitReg(state, rn_reg);
         rm_dat = (rm_reg == 31) ? 0 : read64bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
-        operand = getBitsSubsetSigned(bits, 15, 10);
+        printf("%016"PRIx64"\n", rm_dat);
         rm_dat =
             (int64_t) conditionalShiftForLogical64(shift, rm_dat, operand);
+        printf("%016"PRIx64"\n", rm_dat);
         switch (opc_n) {
           case 0://opc = 00, N = 0 (and)
             and64_bic64(state, rd_reg, rn_dat, rm_dat);
@@ -632,7 +632,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
         int32_t rn_dat_32 = (rn_reg == 31) ? 0 : read32bitReg(state, rn_reg);
         int32_t rm_dat_32 = (rm_reg == 31) ? 0 : read32bitReg(state, rm_reg);
         shift = getBitsSubsetUnsigned(bits, 23, 22);
-        operand = getBitsSubsetSigned(bits, 15, 10);
         rm_dat_32 = (int32_t) conditionalShiftForLogical32(shift, rm_dat_32,
                                                            operand);
         switch (opc_n) {
