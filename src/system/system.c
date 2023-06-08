@@ -28,7 +28,7 @@
   (b > 0 && a > INT##bits##_MAX - b) || \
   (b < 0 && a < INT##bits##_MIN - b) || \
   (b > 0 && a < INT##bits##_MIN + b) || \
-  (b < 0 && a > INT##bits##_MAX - b)
+  (b < 0 && a > INT##bits##_MAX + b)    \
 
 #define conditionalShift(bits)                       \
   switch (shiftCond) {                               \
