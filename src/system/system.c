@@ -4,15 +4,15 @@
 #include <inttypes.h>
 #include <assert.h>
 
-#define zeroArray(array, size)\
+#define ZERO_ARRAY(array, size)\
   for (int i = 0; i < (size); i++)\
     (array)[i] = 0;
 
-#define getBitsSubset\
+#define GET_BITS_SUBSET\
   for (int i = msb; i >= lsb; i--)\
     subset = (subset << 1) | bits[i];
 
-#define asr_general\
+#define ASR_GENERAL\
   if (ones != 0) {\
     for (int i = 0; i < bitsToShift; i++) {\
       operand = operand | ones;\
@@ -20,17 +20,17 @@
     }\
   }
 
-#define ror_general(bits)\
+#define ROR_GENERAL(bits)\
   operand = operand >> bitsToRotate;\
   operand += (toAdd << ((bits) - bitsToRotate));
 
-#define checkOverflow(bits)\
+#define CHECK_OVERFLOW(bits)\
   (b > 0 && a > INT##bits##_MAX - b) ||\
   (b < 0 && a < INT##bits##_MIN - b) ||\
   (b > 0 && a < INT##bits##_MIN + b) ||\
   (b < 0 && a > INT##bits##_MAX + b)\
 
-#define conditionalShift(bits)\
+#define CONDITIONAL_SHIFT(bits)\
   switch (shiftCond) {\
     case 0:\
       return valToShift << shiftMagnitude;\
@@ -42,7 +42,7 @@
       return ror##bits(valToShift, shiftMagnitude);\
   }
 
-#define addsImmediateDP(bits)\
+#define ADDS_IMMEDIATE_DP(bits)\
   int##bits##_t res = (int##bits##_t) ((*state).generalPurpose[rn]) + imm12;\
     if (rd != 31) {\
       (*state).generalPurpose[rd] = res;\
@@ -54,7 +54,7 @@
       (int##bits##_t) (*state).generalPurpose[rn],\
       (int##bits##_t) imm12);\
 
-#define subsImmediateDP(bits)\
+#define SUBS_IMMEDIATE_DP(bits)\
   int##bits##_t minuend = (int##bits##_t) ((*state).generalPurpose[rn]);\
   int##bits##_t subtrahend = (int##bits##_t) imm12;\
   int##bits##_t res = minuend - subtrahend;\
@@ -74,13 +74,13 @@ static int invalidInstruction(void) {
 
 static uint32_t getBitsSubsetUnsigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = 0;
-  getBitsSubset
+  GET_BITS_SUBSET
   return subset;
 }
 
 static int32_t getBitsSubsetSigned(const bool bits[], int msb, int lsb) {
   uint32_t subset = bits[msb] ? -1 : 0;
-  getBitsSubset
+  GET_BITS_SUBSET
   return (int32_t) subset;
 }
 
@@ -115,7 +115,7 @@ static uint64_t zeroPad32BitSigned(int32_t num) {
 }
 
 static int checkOverUnderflow32(int32_t a, int32_t b) {
-  if (checkOverflow(32)) {
+  if (CHECK_OVERFLOW(32)) {
     return 1;
   } else {
     return 0;
@@ -123,7 +123,7 @@ static int checkOverUnderflow32(int32_t a, int32_t b) {
 }
 
 static int checkOverUnderflow64(int64_t a, int64_t b) {
-  if (checkOverflow(64)) {
+  if (CHECK_OVERFLOW(64)) {
     return 1;
   } else {
     return 0;
@@ -136,7 +136,7 @@ static uint64_t asr64(uint64_t operand, int bitsToShift) {
   if (bitsToShift == 0) return operand;
   uint64_t ones = (UINT64_C(1) << 63) & operand; //1000000000000000;
   operand = operand >> bitsToShift;
-  asr_general
+  ASR_GENERAL
   return operand;
 }
 
@@ -146,7 +146,7 @@ static uint32_t asr32(uint32_t operand, int bitsToShift) {
   if (bitsToShift == 0) return operand;
   uint32_t ones = (UINT32_C(1) << 31) & operand;
   operand = operand >> bitsToShift;
-  asr_general
+  ASR_GENERAL
   return operand;
 }
 
@@ -155,7 +155,7 @@ static uint64_t ror64(uint64_t operand, int bitsToRotate) {
 
   uint64_t ones = (UINT64_C(1) << bitsToRotate) - UINT64_C(1);
   uint64_t toAdd = ones & operand;
-  ror_general(64)
+  ROR_GENERAL(64)
   return operand;
 }
 
@@ -164,20 +164,20 @@ static uint32_t ror32(uint32_t operand, int bitsToRotate) {
   assert(bitsToRotate < 32);
   uint32_t ones = (UINT32_C(1) << bitsToRotate) - UINT32_C(1);
   uint32_t toAdd = ones & operand;
-  ror_general(32)
+  ROR_GENERAL(32)
   return operand;
 }
 
 static uint32_t
 conditionalShiftForLogical32(uint32_t shiftCond, uint32_t valToShift,
                              uint32_t shiftMagnitude) {
-  conditionalShift(32)
+  CONDITIONAL_SHIFT(32)
 }
 
 static uint64_t
 conditionalShiftForLogical64(uint64_t shiftCond, uint64_t valToShift,
                              uint64_t shiftMagnitude) {
-  conditionalShift(64)
+  CONDITIONAL_SHIFT(64)
 }
 
 static void
@@ -294,9 +294,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 1://opc = 01 (adds)
           if (sf) {
-            addsImmediateDP(64)
+            ADDS_IMMEDIATE_DP(64)
           } else {
-            addsImmediateDP(32)
+            ADDS_IMMEDIATE_DP(32)
           }
           break;
         case 2://opc = 10 (sub)
@@ -311,9 +311,9 @@ static int executeImmediateDP(SystemState *state, const bool bits[]) {
           break;
         case 3://opc = 11 (subs)
           if (sf) {
-            subsImmediateDP(64)
+            SUBS_IMMEDIATE_DP(64)
           } else {
-            subsImmediateDP(32)
+            SUBS_IMMEDIATE_DP(32)
           }
           break;
         default:
@@ -802,13 +802,13 @@ int execute(SystemState *state,
 
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
-  zeroArray((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
-  zeroArray(&(*state).programCounter, 1)
+  ZERO_ARRAY((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
+  ZERO_ARRAY(&(*state).programCounter, 1)
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
-  zeroArray((*state).primaryMemory.primaryMemory, MEMORY_SIZE_BYTES)
+  ZERO_ARRAY((*state).primaryMemory.primaryMemory, MEMORY_SIZE_BYTES)
   for (int i = 0; i < numberOfInstructions; i++) {
     writeNBytes(&(*state).primaryMemory, instructions[i], i * 4, 4);
   }

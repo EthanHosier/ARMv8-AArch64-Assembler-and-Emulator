@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#define store_general(bits)\
+#define STORE_GENERAL(bits)\
   uint##bits##_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;\
   mask = mask << i * 8;\
   storeByteUnifiedMemory(memory,base + i, (int8_t) ((val & mask) >> i * 8));
@@ -35,19 +35,19 @@ void writeNBytes(Memory *memory, uint64_t val, uint32_t base, int bytes) {
   for (int i = 0; i < bytes; i++) {
     switch (bytes) {
       case 1: {
-        store_general(8)
+        STORE_GENERAL(8)
         break;
       }
       case 2: {
-        store_general(16)
+        STORE_GENERAL(16)
         break;
       }
       case 4: {
-        store_general(32)
+        STORE_GENERAL(32)
         break;
       }
       case 8: {
-        store_general(64)
+        STORE_GENERAL(64)
         break;
       }
       default:
