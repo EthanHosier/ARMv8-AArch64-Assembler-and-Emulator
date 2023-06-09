@@ -8,13 +8,22 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Invalid number of arguments!\n");
     return 1;
   }
-  uint32_t instructions[MAX_INSTRUCTIONS];
+  uint32_t *instructions = malloc(MAX_INSTRUCTIONS * INSTRUCTION_SIZE_BITS);
+  if (instructions == NULL) {
+    fprintf(stderr, "Failed to store instructions on the heap!");
+    return 1;
+  }
   int numberOfInstructions = 0;
   if (readBinaryFile(argv[1], instructions, &numberOfInstructions)) {
     return 1;
   }
   SystemState *state = malloc(sizeof(SystemState));
+  if (state == NULL) {
+    fprintf(stderr, "Failed to allocate memory for virtual machine!");
+    return 1;
+  }
   initialiseSystemState(state, numberOfInstructions, instructions);
+  free(instructions);
   bool executing = true;
   do {
     uint32_t instruction =
