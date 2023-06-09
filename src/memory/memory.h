@@ -9,6 +9,6 @@ typedef struct {
 } Memory;
 
 extern uint64_t readNBytes(Memory *memory, uint32_t address, int bytes);
-void writeNBytes(Memory *memory, uint64_t, uint32_t base, int bytes);
+extern void writeNBytes(Memory *memory, uint64_t, uint32_t base, int bytes);
 
 #endif
