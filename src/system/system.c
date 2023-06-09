@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <assert.h>
+#include "../memory/memory.h"
 
 #define zeroArray(array, size)\
   for (int i = 0; i < (size); i++)\
@@ -66,11 +67,6 @@
   (*state).pState.carry = (uint##bits##_t) minuend >= (uint##bits##_t) subtrahend;\
   (*state).pState.overflow = checkOverUnderflow##bits(\
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
-
-#define store_general(bits)\
-  uint##bits##_t mask = (1 << ((8 * i + 7) - (8 * i) + 1)) - 1;\
-  mask = mask << i * 8;\
-  storeByteUnifiedMemory(state,base + i, (int8_t) ((val & mask) >> i * 8));
 
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
@@ -650,29 +646,6 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   return 0;
 }
 
-static uint8_t readByteUnifiedMemory(SystemState *state,
-                                     uint32_t address) {
-  return (*state).primaryMemory[address];
-}
-
-static void storeByteUnifiedMemory(SystemState *state,
-                                   uint32_t address,
-                                   int8_t value) {
-  (*state).primaryMemory[address] = value;
-}
-
-extern uint64_t readNBytes(SystemState *state,
-                           uint32_t address, int bytes) {
-  assert(bytes <= 8);
-  uint64_t val = 0;
-  for (int i = 0; i < bytes; i++) {
-    val = val | (uint64_t) readByteUnifiedMemory(state,
-                                                 address + i)
-        << i * 8;
-  }
-  return val;
-}
-
 static int executeSingleDataTransfer(SystemState *state,
                                      bool bits[]) {
   fprintf(stdout, "Single Data Transfer Instruction\n\n");
@@ -682,32 +655,28 @@ static int executeSingleDataTransfer(SystemState *state,
     if (bits[22]) {//load
 
       uint32_t base = getMemAddress(state, bits);
-      uint64_t val = readNBytes(state, base, 8);
+      uint64_t val = readNBytes(&((*state).primaryMemory), base, 8);
       (*state).generalPurpose[rt] = val;
 
     } else {//store
 
       uint32_t base = getMemAddress(state, bits);
       uint64_t val = (*state).generalPurpose[rt];
-      for (int i = 0; i < 8; i++) {
-        store_general(64)
-      }
+      writeNBytes(&(*state).primaryMemory, val, base, 8);
     }
 
   } else {//32bit
 
     if (bits[22]) {//load
       uint32_t base = getMemAddress(state, bits);
-      uint32_t val = (uint32_t) readNBytes(state, base, 4);
+      uint32_t val = (uint32_t) readNBytes(&((*state).primaryMemory), base, 4);
       (*state).generalPurpose[rt] = (uint64_t) val;
 
     } else {//store
 
       uint32_t base = getMemAddress(state, bits);
       uint32_t val = (uint32_t) (*state).generalPurpose[rt];
-      for (int i = 0; i < 4; i++) {
-        store_general(32)
-      }
+      writeNBytes(&(*state).primaryMemory, val, base, 4);
     }
   }
   (*state).programCounter += 4;
@@ -723,10 +692,10 @@ executeLoadLiteral(SystemState *state,
   uint32_t address = (uint32_t) ((*state).programCounter + 4 * simm19);
 
   if (bits[30]) {//64bit
-    uint64_t val = readNBytes(state, address, 8);
+    uint64_t val = readNBytes(&((*state).primaryMemory), address, 8);
     (*state).generalPurpose[rt] = (uint64_t) val;
   } else {//32bit
-    uint32_t val = readNBytes(state, address, 4);
+    uint32_t val = readNBytes(&((*state).primaryMemory), address, 4);
     (*state).generalPurpose[rt] = (uint32_t) val;
   }
 
@@ -788,7 +757,9 @@ executeBranch(SystemState *state, const bool bits[]) {
 }
 
 uint32_t readInstruction(SystemState *state, uint32_t address) {
-  return (uint32_t) readNBytes(state, address, INSTRUCTION_SIZE_BITS / 8);
+  return (uint32_t) readNBytes(&((*state).primaryMemory),
+                               address,
+                               INSTRUCTION_SIZE_BITS / 8);
 }
 
 static void getBits(uint32_t instruction, bool bits[]) {
@@ -838,24 +809,9 @@ void initialiseSystemState(SystemState *state, int numberOfInstructions,
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
-  zeroArray((*state).primaryMemory, MEMORY_SIZE_BYTES)
+  zeroArray((*state).primaryMemory.primaryMemory, MEMORY_SIZE_BYTES)
   for (int i = 0; i < numberOfInstructions; i++) {
-    storeByteUnifiedMemory(state,
-                           i * 4 + 0,
-                           (int8_t) ((instructions[i] & 0x000000FF)
-                               >> (8 * 0)));
-    storeByteUnifiedMemory(state,
-                           i * 4 + 1,
-                           (int8_t) ((instructions[i] & 0x0000FF00)
-                               >> (8 * 1)));
-    storeByteUnifiedMemory(state,
-                           i * 4 + 2,
-                           (int8_t) ((instructions[i] & 0x00FF0000)
-                               >> (8 * 2)));
-    storeByteUnifiedMemory(state,
-                           i * 4 + 3,
-                           (int8_t) ((instructions[i] & 0xFF000000)
-                               >> (8 * 3)));
+    writeNBytes(&(*state).primaryMemory, instructions[i], i * 4, 4);
   }
 }
 

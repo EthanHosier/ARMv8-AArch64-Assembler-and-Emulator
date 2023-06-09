@@ -1,9 +1,10 @@
-#ifndef ARM_SYSTEM_H
-#define ARM_SYSTEM_H
+#ifndef SYSTEM_H
+#define SYSTEM_H
 
 #include <stdint.h>
 #include <stdbool.h>
 #include "../consts.h"
+#include "../memory/memory.h"
 
 typedef struct {
   bool negative;
@@ -15,7 +16,7 @@ typedef struct {
   uint64_t generalPurpose[GENERAL_PURPOSE_REGISTERS];
   uint64_t programCounter;
   PState pState;
-  uint8_t primaryMemory[MEMORY_SIZE_BYTES];
+  Memory primaryMemory;
 } SystemState;
 
 extern void initialiseSystemState(SystemState *state, int, const uint32_t *);
