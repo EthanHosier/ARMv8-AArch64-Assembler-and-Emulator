@@ -20,7 +20,7 @@ static void storeByteUnifiedMemory(Memory *memory,
 
 uint64_t readNBytes(Memory *memory,
                     uint32_t address, int bytes) {
-  assert(bytes <= 8);
+  assert(bytes <= 8 && bytes >= 0);
   uint64_t val = 0;
   for (int i = 0; i < bytes; i++) {
     val = val | (uint64_t) readByteUnifiedMemory(memory,
@@ -31,12 +31,9 @@ uint64_t readNBytes(Memory *memory,
 }
 
 void writeNBytes(Memory *memory, uint64_t val, uint32_t base, int bytes) {
-  assert(bytes > 0);
+  assert(bytes >= 0);
   for (int i = 0; i < bytes; i++) {
     switch (bytes) {
-      case 0: {
-        return;
-      }
       case 1: {
         store_general(8)
         break;
