@@ -1,8 +1,8 @@
-#include "../consts.h"
-#include <stdint.h>
-
 #ifndef MEMORY_H
 #define MEMORY_H
+
+#include "../consts.h"
+#include <stdint.h>
 
 typedef struct {
   uint8_t primaryMemory[MEMORY_SIZE_BYTES];
