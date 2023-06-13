@@ -1,4 +1,0 @@
-gcc -Wall emulate.c ./system/system.c ./io/io.c -o ../../armv8_testsuite/solution/emulate
-cd ../../armv8_testsuite
-./run
-sed -n 2,7p ./test/actual_results/results.json

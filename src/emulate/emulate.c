@@ -1,6 +1,7 @@
+#include "../assemble/assemble.h"
 #include <stdio.h>
-#include "io/io.h"
-#include "system/system.h"
+#include "../io/io.h"
+#include "../system/system.h"
 #include <stdlib.h>
 
 int main(int argc, char **argv) {
