@@ -5,11 +5,11 @@
 
 
 typedef struct {
-  char* instruction;
+  char *instruction;
 } InstructionToken;
 
 typedef struct {
-  char* register_name;
+  char *register_name;
 } RegisterToken;
 
 typedef struct {

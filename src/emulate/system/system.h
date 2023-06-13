@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "../consts.h"
-#include "../../memory/memory.h"
+#include "../memory/memory.h"
 
 typedef struct {
   bool negative;
