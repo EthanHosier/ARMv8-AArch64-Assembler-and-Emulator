@@ -21,12 +21,8 @@ typedef struct {
 } ImmediateToken;
 
 typedef struct {
-    char* label;
+    char *label;
 } LabelToken;
-
-typedef struct {
-    int32_t immediate;
-} DirectiveToken;
 
 
 typedef enum {
@@ -34,7 +30,7 @@ typedef enum {
     TOKEN_TYPE_IMMEDIATE,
     TOKEN_TYPE_REGISTER,
     TOKEN_TYPE_LABEL,
-    TOKEN_TYPE_DIRECTIVE
+    TOKEN_TYPE_DOT_INT
 } TokenType;
 
 
@@ -45,10 +41,10 @@ typedef struct {
         RegisterToken registerToken;
         ImmediateToken immediateToken;
         LabelToken labelToken;
-        DirectiveToken directiveToken;
     };
 } Token;
 
 
-extern ArrayList* tokenize(char *line);
+extern ArrayList *tokenize(char *line);
+
 #endif
