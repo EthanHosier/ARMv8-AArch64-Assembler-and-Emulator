@@ -45,7 +45,7 @@ static void initialiseInstructionsBST() {
     };
 
     for (int i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
-        add_strbst(instructionsBST, instructions[i]);
+        add_strbst(instructionsBST, instructions[i], -1);
     }
 }
 
@@ -129,25 +129,19 @@ ArrayList *tokenize(char *line) {
 
     tokenStr = strtok(line, " ");
     while (tokenStr != NULL) {
-        // Create a copy of the token and add it to the tokens list
+        // Create a copy of the token
         char *tokenStrCopy = strdup(tokenStr);
 
-        /*
-        if (check_if_address_code(tokenStrCopy) == ADDRESS_CODE_POSSIBILITIES_NOT) {
-            Token t = string_to_token(tokenStrCopy);
-            add_ArrayList_element(tokens, t);
-            tokenStr = strtok(NULL, " ,");
-        } else {
-            tokenStr = strtok(NULL, " ,");
-        }
-         */
 
+        //check if is address code
         switch (check_if_address_code(tokenStrCopy)) {
             case ADDRESS_CODE_POSSIBILITIES_NOT: {
                 Token t = string_to_token(tokenStrCopy);
                 add_ArrayList_element(tokens, t);
                 break;
             }
+
+
             case ADDRESS_CODE_POSSIBILITIES_ONE:{
                 Token t = NEW(struct Token);
                 assert(t != NULL);
