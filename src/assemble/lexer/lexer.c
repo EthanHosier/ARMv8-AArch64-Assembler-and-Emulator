@@ -45,7 +45,7 @@ static void initialiseInstructionsBST() {
   };
 
   for (int i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
-    add_strbst(instructionsBST, instructions[i]);
+    add_strbst(instructionsBST, instructions[i], 0);
   }
 }
 
