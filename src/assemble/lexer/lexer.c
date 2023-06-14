@@ -50,7 +50,13 @@ static void initialiseInstructionsBST() {
 }
 
 static void print_arrayList_element(void *element) {
-    fprintf(stdout, "willy");
+    char strs[] = {"INSTRUCTION",
+                   "IMMEDIATE",
+                   "LABEL",
+                   "DOT_INT",
+                   "ADDRESS_CODE"};
+
+    printf("%s", strs[((Token) element)->type]);
 }
 
 
