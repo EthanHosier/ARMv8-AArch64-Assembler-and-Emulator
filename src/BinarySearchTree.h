@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 struct strbst; // forward definition
-typedef struct strbst *strbst; // pure binary tree of (sorted) strings
+typedef struct strbst *BinarySearchTree; // pure binary tree of (sorted) strings
 struct strbst {
     char *key; // the key: a string
-    strbst left, right; // the left and right subtrees
+    BinarySearchTree left, right; // the left and right subtrees
 };
 
 #endif

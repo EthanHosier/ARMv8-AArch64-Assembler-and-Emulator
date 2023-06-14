@@ -9,11 +9,11 @@
 #define make_empty_strbst() NULL
 
 
-// strbst t = makenode( key );
+// BinarySearchTree t = makenode( key );
 // Make a new bst node with <key>, duplicating the key.
 // Abort if any memory allocation fails.
-static strbst makenode(char *key) {
-  strbst t = NEW(strbst);
+static BinarySearchTree makenode(char *key) {
+  BinarySearchTree t = NEW(strbst);
   assert(t != NULL);
   key = strdup(key); // key = strcpy( malloc(1+strlen(key), key )
   assert(key != NULL);
@@ -25,7 +25,7 @@ static strbst makenode(char *key) {
 
 // bool present = in_strbst( t, key );
 // Return true iff <key> is in <t>. Else return false.
-bool in_strbst(strbst t, char *key) {
+bool in_strbst(BinarySearchTree t, char *key) {
   while (t != NULL) {
     int cmp = strcmp(key, t->key);
     if (cmp == 0) return true;
@@ -37,7 +37,7 @@ bool in_strbst(strbst t, char *key) {
 // t = add_strbst( t, key );
 // Add <key> to <t>, if it’s not already present.
 // Abort if any memory allocation fails.
-strbst add_strbst(strbst t, char *key) {
+BinarySearchTree add_strbst(BinarySearchTree t, char *key) {
   if (t == NULL) {
     return makenode(key);
   }
@@ -55,8 +55,8 @@ strbst add_strbst(strbst t, char *key) {
 }
 
 // free_strbst( t );
-// Free the given strbst <t>.
-void free_strbst(strbst t) {
+// Free the given BinarySearchTree <t>.
+void free_strbst(BinarySearchTree t) {
   if (t->left != NULL) free_strbst(t->left);
   if (t->right != NULL) free_strbst(t->right);
   free(t->key); // was strdup()ed, remember
