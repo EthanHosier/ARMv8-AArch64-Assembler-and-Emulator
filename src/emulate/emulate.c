@@ -2,6 +2,7 @@
 #include "io/io.h"
 #include "system/system.h"
 #include <stdlib.h>
+#include "../global.h"
 
 int main(int argc, char **argv) {
   if (argc != 3) {

@@ -20,15 +20,21 @@ typedef struct {
     uint32_t value;
 } ConstantToken;
 
+typedef struct {
+    char* label;
+} LabelToken;
 
+typedef struct {
+    int32_t immediate;
+} DirectiveToken;
 
 
 typedef enum {
     TOKEN_TYPE_INSTRUCTION,
     TOKEN_TYPE_IMMEDIATE,
-    TOKEN_TYPE_REGISTER
-
-
+    TOKEN_TYPE_REGISTER,
+    TOKEN_TYPE_LABEL,
+    TOKEN_TYPE_DIRECTIVE
 } TokenType;
 
 
@@ -38,6 +44,8 @@ typedef struct {
         InstructionToken instructionToken;
         RegisterToken registerToken;
         ConstantToken constantToken;
+        LabelToken labelToken;
+        DirectiveToken directiveToken;
     };
 } Token;
 

@@ -3,9 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include "BinarySearchTree.h"
-
-
 #define NEW(t) malloc(sizeof(struct t))
+
+
 #define make_empty_strbst() NULL
 
 

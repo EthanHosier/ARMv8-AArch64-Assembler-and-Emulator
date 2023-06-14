@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <assert.h>
+#include "../../global.h"
 
 #define ZERO_ARRAY(array, size)\
   for (int i = 0; i < (size); i++)\
