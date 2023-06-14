@@ -1,20 +1,26 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+
 #include <stdint.h>
+#include "../../ArrayList.h"
 
 
 typedef struct {
     char *instruction;
 } InstructionToken;
 
+
 typedef struct {
     char *register_name;
 } RegisterToken;
 
+
 typedef struct {
     uint32_t value;
 } ConstantToken;
+
+
 
 
 typedef enum {
@@ -22,7 +28,9 @@ typedef enum {
     TOKEN_TYPE_IMMEDIATE,
     TOKEN_TYPE_REGISTER
 
+
 } TokenType;
+
 
 typedef struct {
     TokenType type;
@@ -33,6 +41,6 @@ typedef struct {
     };
 } Token;
 
-extern Token *tokenize(char *line);
 
+extern ArrayList* tokenize(char *line);
 #endif

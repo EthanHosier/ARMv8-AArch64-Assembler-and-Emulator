@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <strings.h>
+#include <string.h>
 #include <stdbool.h>
 #include "BinarySearchTree.h"
 
