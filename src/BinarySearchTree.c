@@ -3,16 +3,14 @@
 #include <string.h>
 #include <stdbool.h>
 #include "BinarySearchTree.h"
+
 #define NEW(t) malloc(sizeof(struct t))
-
-
-#define make_empty_strbst() NULL
 
 
 // BinarySearchTree t = makenode( key );
 // Make a new bst node with <key>, duplicating the key.
 // Abort if any memory allocation fails.
-static BinarySearchTree makenode(char *key) {
+static BinarySearchTree makenode(char *key, uint32_t value) {
   BinarySearchTree t = NEW(strbst);
   assert(t != NULL);
   key = strdup(key); // key = strcpy( malloc(1+strlen(key), key )
@@ -20,6 +18,7 @@ static BinarySearchTree makenode(char *key) {
   t->key = key;
   t->left = NULL;
   t->right = NULL;
+  t->value = value;
   return t;
 }
 
@@ -37,9 +36,9 @@ bool in_strbst(BinarySearchTree t, char *key) {
 // t = add_strbst( t, key );
 // Add <key> to <t>, if it’s not already present.
 // Abort if any memory allocation fails.
-BinarySearchTree add_strbst(BinarySearchTree t, char *key) {
+BinarySearchTree add_strbst(BinarySearchTree t, char *key, uint32_t value) {
   if (t == NULL) {
-    return makenode(key);
+    return makenode(key, value);
   }
   int cmp = strcmp(key, t->key);
   if (cmp == 0) {
@@ -47,9 +46,9 @@ BinarySearchTree add_strbst(BinarySearchTree t, char *key) {
     return t;
   }
   if (cmp < 0) {
-    t->left = add_strbst(t->left, key);
+    t->left = add_strbst(t->left, key, value);
   } else {
-    t->right = add_strbst(t->right, key);
+    t->right = add_strbst(t->right, key, value);
   }
   return t;
 }
