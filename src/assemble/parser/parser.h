@@ -1,33 +1,133 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <stdbool.h>
 #include "../lexer/lexer.h"
-
-typedef enum {
-  TREE_REGISTER_DP,
-  TREE_IMMEDIATE_DP,
-  TREE_SINGLE_DATA_TRANSFER,
-  TREE_LOAD_LITERAL,
-  TREE_BRANCH
-} tree_type;
-
-typedef struct __register_dp {} Register_DP_Tree;
-typedef struct __immediate_dp {} Immediate_DP_Tree;
-typedef struct __single_data_transfer {} Single_Data_Transfer_Tree;
-typedef struct __load_literal {} Load_Literal_Tree;
-typedef struct __branch {} Branch_Tree;
+#include "../../ArrayList.h"
 
 typedef struct {
-  tree_type type;
-  union {
-    Register_DP_Tree register_tree;
-    Immediate_DP_Tree immediate_tree;
-    Single_Data_Transfer_Tree single_tree;
-    Load_Literal_Tree load_tree;
-    Branch_Tree branch_tree;
-  };
+    int register_number;
+    bool is_64_bit;
+} Register;
+
+typedef struct {
+    bool is_register;
+    union {
+        Register reg;
+        uint32_t imm;
+    };
+} Register_or_immediate;
+
+typedef struct {
+    char *type;
+    int amount;
+} Shift;
+
+
+typedef struct {
+    char *instruction;
+    Register Rd;
+    Register Rn;
+    Register_or_immediate Rm_or_immediate;
+    Shift *shift;
+} Tree_add_sub; // also includes flag setting instructions
+
+typedef struct {
+    char *instruction;
+    Register R1;
+    Register_or_immediate Rm_or_immediate;
+    Shift *shift;
+} Tree_cmp_cmn_neg_negs;
+
+typedef struct {
+    char *instruction;
+    Register Rd;
+    Register Rn;
+    Register Rm;
+    Shift shift;
+} Tree_logical_instructions;
+
+typedef struct {
+    Register R1;
+    Register_or_immediate Rm_or_immediate;
+    Shift *shift;
+} Tree_test_movk_movn_movz_mvn;
+
+typedef struct {
+    Register Rd;
+    Register Rn;
+} Tree_mov;
+
+typedef struct {
+    Register Rd;
+    Register Rn;
+    Register Rm;
+    Register Ra;
+} Tree_madd_msub;
+
+typedef struct {
+    Register Rd;
+    Register Rn;
+    Register Rm;
+} Tree_mul_mneg;
+
+typedef struct {
+    uint32_t imm;
+} Tree_b_and_b_cond;
+
+typedef struct {
+    Register Rn; // MUST BE 64-BIT!!
+} Tree_br;
+
+typedef struct {
+    Register Rt;
+    Register Rn; // MUST BE 64-BIT!!!
+    Register_or_immediate R3;
+} Tree_single_data_transfer;
+
+typedef struct {
+    Register Rt;
+    uint32_t immediate;
+} Tree_load_literal;
+
+typedef struct {
+    uint32_t immediate;
+} Tree_dot_int;
+
+typedef enum {
+    Type_add_sub,
+    Type_cmp_cmn_neg_negs,
+    Type_logical_instructions,
+    Type_test_movk_movn_movz_mvn,
+    Type_mov,
+    Type_madd_msub,
+    Type_mul_mneg,
+    Type_b_and_b_cond,
+    Type_br,
+    Type_single_data_transfer,
+    Type_load_literal,
+    Type_dot_int
+} tree_type;
+
+typedef struct {
+    tree_type type;
+    union {
+        Tree_add_sub add_sub;
+        Tree_cmp_cmn_neg_negs cmp_cmn_neg_negs;
+        Tree_logical_instructions logical_instructions;
+        Tree_test_movk_movn_movz_mvn test_movk_movn_movz_mvn;
+        Tree_mov mov;
+        Tree_madd_msub madd_msub;
+        Tree_mul_mneg mul_mneg;
+        Tree_b_and_b_cond b_and_b_cond;
+        Tree_br br;
+        Tree_single_data_transfer single_data_transfer;
+        Tree_load_literal load_literal;
+        Tree_dot_int dot_int;
+    };
 } Parser_Tree;
 
-extern Parser_Tree *parse(Token *tokens);
+extern Parser_Tree *first_parse(ArrayList* list);
+extern Parser_Tree *second_pass(ArrayList* list);
 
 #endif
