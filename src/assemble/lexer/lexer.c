@@ -68,9 +68,10 @@ static Token *string_to_token(char *str){
         instructionToken->instruction = str;
         t->instructionToken = *instructionToken;
         t->type = TOKEN_TYPE_INSTRUCTION;
+        return t;
     }
 
-    
+
 
     return NULL;
 }
