@@ -22,9 +22,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0432387e-c435-4b3d-bb15-b62e846561e8" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/BinarySearchTree.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/BinarySearchTree.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/assemble/lexer/lexer.h" beforeDir="false" afterPath="$PROJECT_DIR$/src/assemble/lexer/lexer.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/assemble/lexer/lexer.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/assemble/lexer/lexer.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -93,7 +92,7 @@
       <option name="presentableId" value="Default" />
       <updated>1686762001054</updated>
       <workItem from="1686762002324" duration="1013000" />
-      <workItem from="1686763056560" duration="438000" />
+      <workItem from="1686763056560" duration="1518000" />
     </task>
     <servers />
   </component>
