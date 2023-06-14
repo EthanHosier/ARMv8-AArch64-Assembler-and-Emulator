@@ -4,24 +4,8 @@
 #include <stdbool.h>
 #include "../lexer/lexer.h"
 #include "../../ArrayList.h"
-
-typedef struct {
-    int register_number;
-    bool is_64_bit;
-} Register;
-
-typedef struct {
-    bool is_register;
-    union {
-        Register reg;
-        uint32_t imm;
-    };
-} Register_or_immediate;
-
-typedef struct {
-    char *type;
-    int amount;
-} Shift;
+#include "../../BinarySearchTree.h"
+#include "../register.h"
 
 
 typedef struct {
@@ -127,7 +111,8 @@ typedef struct {
     };
 } Parser_Tree;
 
-extern Parser_Tree *first_parse(ArrayList* list);
-extern Parser_Tree *second_pass(ArrayList* list);
+extern BinarySearchTree first_pass(ArrayList *tokens);
+
+extern Parser_Tree *second_pass(ArrayList *tokens, BinarySearchTree tree);
 
 #endif
