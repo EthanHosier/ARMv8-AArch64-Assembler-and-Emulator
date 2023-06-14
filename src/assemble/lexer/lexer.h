@@ -18,7 +18,7 @@ typedef struct {
 
 typedef struct {
     uint32_t value;
-} ConstantToken;
+} ImmediateToken;
 
 typedef struct {
     char* label;
@@ -43,7 +43,7 @@ typedef struct {
     union {
         InstructionToken instructionToken;
         RegisterToken registerToken;
-        ConstantToken constantToken;
+        ImmediateToken constantToken;
         LabelToken labelToken;
         DirectiveToken directiveToken;
     };
