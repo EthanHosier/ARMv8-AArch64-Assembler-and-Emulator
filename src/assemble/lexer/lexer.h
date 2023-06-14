@@ -43,7 +43,7 @@ typedef struct {
     union {
         InstructionToken instructionToken;
         RegisterToken registerToken;
-        ImmediateToken constantToken;
+        ImmediateToken immediateToken;
         LabelToken labelToken;
         DirectiveToken directiveToken;
     };
