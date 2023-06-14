@@ -10,4 +10,8 @@ struct strbst {
     BinarySearchTree left, right; // the left and right subtrees
 };
 
+extern bool in_strbst(BinarySearchTree t, char *key);
+extern void free_strbst(BinarySearchTree t);
+extern BinarySearchTree add_strbst(BinarySearchTree t, char *key);
+
 #endif
