@@ -3,8 +3,16 @@
 #include <printf.h>
 
 int main(int argc, char **argv) {
-  char line[] = "ldr x20, [x5, x15]";
-  ArrayList *tokens = tokenize(line);
-  print_ArrayList_elements(tokens);
+  char **lines = NULL; //readLines(file_name);
+  ArrayList *token_lines = create_ArrayList(NULL, NULL);
+  for (int i = 0; i < sizeof(lines); i++) // maybe works
+    add_ArrayList_element(token_lines, tokenize(lines[i]));
+  Map *label_identifiers = first_pass(token_lines);
+  Parser_Tree *trees = second_pass(token_lines, label_identifiers);
+  free(token_lines);
+  free(label_identifiers);
+  // TODO: Make second_pass return an ArrayList
+  // TODO: Use the parser trees to create machine code
+  free(trees);
   return EXIT_SUCCESS;
 }

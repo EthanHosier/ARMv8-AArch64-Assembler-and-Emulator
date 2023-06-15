@@ -120,6 +120,7 @@ static Token string_to_token(char *str) {
 
     //treat as a label
   else {
+    // TODO: if token is first token on the line- check to ensure there is a colon
     LabelToken *labelToken = NEW(LabelToken);
     assert(labelToken != NULL);
 
