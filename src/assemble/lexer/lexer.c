@@ -18,6 +18,7 @@ static void initialiseInstructionsBST() {
   }
   const char *instructions[] = {
           "adds",
+          "add",
           "sub",
           "cmp",
           "cmn",
@@ -38,9 +39,9 @@ static void initialiseInstructionsBST() {
           "msub",
           "mul",
           "mneg",
+          "b.eq",
           "b",
           "br",
-          "b.cond",
           "ldr",
           "str"
   };
@@ -61,9 +62,18 @@ static void print_arrayList_element(void *element) {
   strs[3] = "LABEL";
   strs[4] = "DOT_INT";
   strs[5] = "ADDRESS_CODE";
-  int num = ((Token) element)->type;
+
+  Token t = (Token) element;
+  int num = t->type;
   char *type = strs[num];
-  printf("%s", type);
+
+    if (strcmp(type, "ADDRESS_CODE") == 0){
+        printf("[");
+
+    } else {
+        printf("%s", type);
+    }
+
   free(strs);
 }
 
@@ -163,14 +173,13 @@ ArrayList *tokenize(char *line) {
 
           if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
               act->t1 = t1;
-
               t->type = TOKEN_ADDRESS_CODE;
               t->addressToken = *act;
 
           } else{
               //ADDRESS_CODE_POSSIBILITIES_TWO
 
-              tokenStr = strtok(NULL, " ,");
+              tokenStr = strtok(NULL, "]");
               tokenStrCopy = strdup(tokenStr);
               Token t2 = string_to_token(strtok(tokenStrCopy, " []!"));
 

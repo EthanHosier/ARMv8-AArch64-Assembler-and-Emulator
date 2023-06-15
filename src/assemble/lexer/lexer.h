@@ -42,7 +42,6 @@ struct Token;
 typedef struct Token *Token;
 
 typedef struct {
-    TokenType type;
     Token t1;
     Token pT2;
 } AddressCodeToken;
