@@ -42,18 +42,20 @@ void *remove_ArrayList_element(ArrayList *list) {
 }
 
 void *get_ArrayList_element(ArrayList *list, int index) {
-  assert(index < list->size);
+  if(index >= list->size || index < 0) return NULL;
+  /* This is not how we would do a general
+   * arraylist but this will make it easier to pattern match
+   * in the second_pass function within parser.c */
   return (list->elements)[index];
 }
 
 ArrayList *
 create_ArrayList(print_ArrayList_element print, free_ArrayList_element free) {
   ArrayList *list = malloc(sizeof(ArrayList));
-  if (list == NULL) {
-    return NULL;
-  }
+  if (list == NULL) return NULL;
   void **elements = malloc(INITIAL_CAPACITY * sizeof(void *));
   if (elements == NULL) {
+    free(list);
     return NULL;
   }
   list->elements = elements;
