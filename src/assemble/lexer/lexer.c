@@ -54,15 +54,17 @@ static void initialiseInstructionsBST() {
 }
 
 static void print_arrayList_element(void *element) {
-  char **strs = {"INSTRUCTION",
-                 "IMMEDIATE",
-                 "Register",
-                 "LABEL",
-                 "DOT_INT",
-                 "ADDRESS_CODE"};
+  char **strs = malloc(6 * sizeof(char *));
+  strs[0] = "INSTRUCTION";
+  strs[1] = "IMMEDIATE";
+  strs[2] = "Register";
+  strs[3] = "LABEL";
+  strs[4] = "DOT_INT";
+  strs[5] = "ADDRESS_CODE";
   int num = ((Token) element)->type;
   char *type = strs[num];
   printf("%s", type);
+  free(strs);
 }
 
 
