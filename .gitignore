@@ -17,6 +17,8 @@
 *.o
 emulate
 assemble
+emulateTemp
+assembleTemp
 
 #ignore junk files from compiling Haskell code
 *.hi
