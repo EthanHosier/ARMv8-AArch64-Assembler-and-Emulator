@@ -22,7 +22,7 @@ static Binary_search_tree *create_node(char *key, uint32_t value) {
 
 Map *create_map() {
   Map *new = malloc(sizeof(Map));
-  if(new == NULL) return NULL;
+  if (new == NULL) return NULL;
   new->root = NULL;
   return new;
 }
