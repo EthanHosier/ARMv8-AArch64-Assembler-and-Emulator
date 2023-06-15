@@ -174,7 +174,7 @@ ArrayList *tokenize(char *line) {
         tokenStr = strtok(NULL, " ,");
     }
     free_map(instructionsBST);
-    return tokens;
+    return tokens;;
 
 
 }
