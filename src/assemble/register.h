@@ -19,7 +19,7 @@ typedef struct {
 
 typedef struct {
     char *type;
-    int amount;
+    uint32_t amount;
 } Shift;
 
 #endif
