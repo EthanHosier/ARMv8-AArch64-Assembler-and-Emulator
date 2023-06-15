@@ -4,7 +4,7 @@
 #include <printf.h>
 
 int main(int argc, char **argv) {
-  Token *label1 = malloc(sizeof(Token));
+  Token label1 = malloc(sizeof(Token));
   LabelToken *specificLabel = malloc(sizeof(LabelToken));
   specificLabel->label = "foo";
   label1->type = TOKEN_TYPE_LABEL;

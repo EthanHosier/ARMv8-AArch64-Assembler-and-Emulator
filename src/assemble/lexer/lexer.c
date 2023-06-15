@@ -12,6 +12,10 @@ static Map *instructionsBST = NULL;
 
 static void initialiseInstructionsBST() {
   instructionsBST = create_map();
+  if (instructionsBST == NULL) {
+    fprintf(stderr, "Not enough memory to assemble!");
+    exit(1);
+  }
   const char *instructions[] = {
           "adds",
           "sub",
@@ -42,7 +46,10 @@ static void initialiseInstructionsBST() {
   };
 
   for (int i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
-    put_map(instructionsBST, instructions[i], -1);
+    if (!put_map(instructionsBST, instructions[i], -1)) {
+      fprintf(stderr, "Not enough memory to assemble!");
+      exit(1);
+    }
   }
 }
 
