@@ -87,7 +87,15 @@ static Token string_to_token(char *str) {
     t->type = TOKEN_TYPE_IMMEDIATE;
   }
 
+    //check for register token
+    else if ((str[0] == 'w' || str[0] == 'x') &&  ((int)str[1] <= 57 && (int)str[1] >= 48)){
+        RegisterToken *registerToken = NEW (RegisterToken);
+        assert(registerToken != NULL);
 
+        registerToken->register_name = str;
+        t->registerToken = *registerToken;
+        t-> type = TOKEN_TYPE_REGISTER;
+    }
 
     //treat as a label
   else {
@@ -129,58 +137,44 @@ ArrayList *tokenize(char *line) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
 
+    AddressCodePossibilities result = check_if_address_code(tokenStrCopy);
+    Token t;
 
-    //check if is address code
-    switch (check_if_address_code(tokenStrCopy)) {
-      case ADDRESS_CODE_POSSIBILITIES_NOT: {
-        Token t = string_to_token(tokenStrCopy);
-        add_ArrayList_element(tokens, t);
-        break;
-      }
+      if(result == ADDRESS_CODE_POSSIBILITIES_NOT){
+          t = string_to_token(tokenStrCopy);
+    } else {
+          t = NEW(struct Token);
+          assert(t != NULL);
 
+          AddressCodeToken *act = NEW (AddressCodeToken);
+          assert(act != NULL);
+          Token t1 = string_to_token(strtok(tokenStrCopy, " []!"));
 
-      case ADDRESS_CODE_POSSIBILITIES_ONE: {
-        Token t = NEW(struct Token);
-        assert(t != NULL);
+          if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
+              act->t1 = t1;
 
-        AddressCodeToken *act = NEW (AddressCodeToken);
-        assert(act != NULL);
+              t->type = TOKEN_ADDRESS_CODE;
+              t->addressToken = *act;
 
-        Token tInside = string_to_token(strtok(tokenStrCopy, " []!"));
+          } else{
+              //ADDRESS_CODE_POSSIBILITIES_TWO
 
-        act->t1 = tInside;
+              tokenStr = strtok(NULL, " ,");
+              tokenStrCopy = strdup(tokenStr);
+              Token t2 = string_to_token(strtok(tokenStrCopy, " []!"));
 
-        t->type = TOKEN_ADDRESS_CODE;
-        t->addressToken = *act;
-
-
-        break;
-      }
-
-      case ADDRESS_CODE_POSSIBILITIES_TWO: {
-        Token t = NEW (struct Token);
-        assert(t != NULL);
-
-        AddressCodeToken *act = NEW (AddressCodeToken);
-        assert(act != NULL);
-
-        Token t1 = string_to_token(strtok(tokenStrCopy, " []!"));
-        tokenStr = strtok(NULL, " ,");
-        tokenStrCopy = strdup(tokenStr);
-        Token t2 = string_to_token(strtok(tokenStrCopy, " []!"));
-
-        act->t1 = t1;
-        act->pT2 = t2;
+              act->t1 = t1;
+              act->pT2 = t2;
 
 
-        t->type = TOKEN_ADDRESS_CODE;
-        t->addressToken = *act;
+              t->type = TOKEN_ADDRESS_CODE;
+              t->addressToken = *act;
+          }
 
       }
-    }
 
-    tokenStr = strtok(NULL, " ,");
-
+      add_ArrayList_element(tokens, t);
+      tokenStr = strtok(NULL, " ,");
   }
 
   return tokens;
