@@ -29,122 +29,143 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   return shift;
 }
 
-Parser_Tree *second_pass(ArrayList *list, Map *tree) {//why return pointer?
-  Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
-  for (int i = 0; i < list->size; i++) {
-    ArrayList *line = get_ArrayList_element(list, i);
+ArrayList *second_pass(ArrayList *file, Map *tree) {//why return pointer?
+  ArrayList *returnArray = create_ArrayList(NULL, free);
+  for (int i = 0; i < file->size; i++) {
+    Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
+    ArrayList *line = get_ArrayList_element(file, i);
+    for (int j = 1; j < line->size; j++) {
+      Token currTok = get_ArrayList_element(line, j);
+      if (currTok->type == TOKEN_TYPE_LABEL) {
+        Token newTok = malloc(sizeof(struct Token));
+        newTok->type = TOKEN_TYPE_IMMEDIATE;
+        newTok->immediateToken.value = getVal_map(tree,currTok->labelToken.label);
+        line->elements[j] = newTok;//bad implementation:
+        //TODO: create replace element function in ArrayList
+      }
+    }
     Token first_token = get_ArrayList_element(line, 0);
-    if (first_token->type == TOKEN_TYPE_LABEL) {//label
-      break;
+    Token second_token = get_ArrayList_element(line, 1);
+    Token third_token = get_ArrayList_element(line, 2);
+    Token fourth_token = get_ArrayList_element(line, 3);
+    Token fifth_token = get_ArrayList_element(line, 4);
+    Token sixth_token = get_ArrayList_element(line, 5);
 
-    } else if (first_token->type == TOKEN_TYPE_NOP) {//nop
+    if (first_token == NULL &&
+        second_token == NULL &&
+        third_token == NULL &&
+        fourth_token == NULL &&
+        fifth_token == NULL &&
+        sixth_token == NULL) {//nop
+
       returnTree->type = Type_nop;
 
-    } else if (first_token->type == TOKEN_TYPE_DOT_INT) {//.int
-      returnTree->type = Type_b_bCond_dotInt;
-      returnTree->b_bCond_dotInt.instruction = first_token->instructionToken.instruction;
-      returnTree->b_bCond_dotInt.immediate = ((Token) get_ArrayList_element(
-              line, 0))->immediateToken.value;
-      return returnTree;
+    } else if (first_token->type == TOKEN_TYPE_LABEL &&
+        second_token == NULL &&
+        third_token == NULL &&
+        fourth_token == NULL &&
+        fifth_token == NULL &&
+        sixth_token == NULL) {//label
 
-    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION) {
-      Token second_token = get_ArrayList_element(line, 1);
-      if (second_token->type == TOKEN_TYPE_IMMEDIATE) {//b, b.cond
-        returnTree->type = Type_b_bCond_dotInt;
-        returnTree->b_bCond_dotInt.instruction = first_token->instructionToken.instruction;
-        returnTree->b_bCond_dotInt.immediate = ((Token) get_ArrayList_element(
-                line, 0))->immediateToken.value;
-        return returnTree;
+      break;
 
-      } else if (second_token->type == TOKEN_TYPE_REGISTER) {
-        if (line->size == 2) {//br
-          returnTree->type = Type_br;
-          returnTree->br.instruction = first_token->instructionToken.instruction;
-          returnTree->br.Rn = *makeRegStruct(
-                  second_token->registerToken.register_name);
-        } else {
-          Token third_token = get_ArrayList_element(line, 2);
-          if (third_token->type ==
-              TOKEN_TYPE_IMMEDIATE) {//cmp, cmn, neg, negs, movk, movn, movz, ldr
-            returnTree->type = Type_cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM;
-            returnTree->cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM.instruction = first_token->instructionToken.instruction;
-            returnTree->cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM.R1 = *makeRegStruct(
-                    ((Token) get_ArrayList_element(line,
-                                                   0))->registerToken.register_name);
-            if (line->size == 5) {
-              returnTree->cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM.shift = makeShiftStruct(
-                      ((Token) get_ArrayList_element(line,
-                                                     3))->instructionToken,
-                      ((Token) get_ArrayList_element(line, 4))->immediateToken);
-            }
-            return returnTree;
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_IMMEDIATE &&
+               third_token == NULL &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL) {//.int, b, b.cond
 
-          } else if (third_token->type == TOKEN_TYPE_REGISTER) {
-            if (line->size == 3 || line->size == 5 &&
-                                   ((Token) get_ArrayList_element(line,
-                                                                  3))->type ==
-                                   TOKEN_TYPE_INSTRUCTION) {//cmp,cmn,neg, negs, tst, mov, mvn
-              returnTree->type = Type_cmp_cmn_neg_negs_tst_mov_mvn_REG;
-              returnTree->cmp_cmn_neg_negs_tst_mov_mvn_REG.instruction = first_token->instructionToken.instruction;
-              returnTree->cmp_cmn_neg_negs_tst_mov_mvn_REG.R1 = *makeRegStruct(
-                      second_token->registerToken.register_name);
-              returnTree->cmp_cmn_neg_negs_tst_mov_mvn_REG.Rm = *makeRegStruct(
-                      third_token->registerToken.register_name);
-              if (line->size == 5) {
-                returnTree->cmp_cmn_neg_negs_tst_mov_mvn_REG.shift = makeShiftStruct(
-                        ((Token) get_ArrayList_element(line,
-                                                       3))->instructionToken,
-                        ((Token) get_ArrayList_element(line,
-                                                       4))->immediateToken);
-              }
-              return returnTree;
-            } else {
-              Token fourth_token = get_ArrayList_element(line, 3);
-              if ((line->size == 4 || line->size == 6 &&
-                                      ((Token) get_ArrayList_element(line,
-                                                                     4))->type ==
-                                      TOKEN_TYPE_INSTRUCTION)) {//logic, mul, mneg
-                returnTree->type = Type_logical_mul_mneg;
-                returnTree->logical_mul_mneg.instruction = first_token->instructionToken.instruction;
-                returnTree->logical_mul_mneg.Rd = *makeRegStruct(
-                        second_token->registerToken.register_name);
-                returnTree->logical_mul_mneg.Rn = *makeRegStruct(
-                        third_token->registerToken.register_name);
-                returnTree->logical_mul_mneg.Rm = *makeRegStruct(
-                        fourth_token->registerToken.register_name);
-                if (line->size == 6) {
-                  returnTree->cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM.shift = makeShiftStruct(
-                          ((Token) get_ArrayList_element(line,
-                                                         4))->instructionToken,
-                          ((Token) get_ArrayList_element(line,
-                                                         5))->immediateToken);
-                }
-                return returnTree;
-              } else if (line->size == 5 &&
-                         ((Token) get_ArrayList_element(line, 4))->type ==
-                         TOKEN_TYPE_REGISTER) {//madd, msub
-                returnTree->type = Type_madd_msub;
-                returnTree->madd_msub.instruction = first_token->instructionToken.instruction;
-                returnTree->madd_msub.Rd = *makeRegStruct(
-                        second_token->registerToken.register_name);
-                returnTree->madd_msub.Rn = *makeRegStruct(
-                        third_token->registerToken.register_name);
-                returnTree->madd_msub.Rm = *makeRegStruct(
-                        fourth_token->registerToken.register_name);
-                returnTree->madd_msub.Ra = *makeRegStruct(
-                        ((Token) get_ArrayList_element(line,
-                                                       4))->registerToken.register_name);
-              } else {
-                //error
-              }
-            }
-          }
-        }
-      } else {
-        //error
-      }
+      returnTree->type = Type_dotInt_b_bCond;
+      returnTree->dotInt_b_bCond.instruction = first_token->instructionToken.instruction;
+      returnTree->dotInt_b_bCond.imm = second_token->immediateToken.value;
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token == NULL &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL) {//br
+
+      returnTree->type = Type_br;
+      returnTree->br.instruction = first_token->instructionToken.instruction;
+      returnTree->br.R1 = *makeRegStruct(second_token->registerToken.register_name);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_IMMEDIATE &&
+               ((fourth_token == NULL && fifth_token == NULL) ||
+                (fourth_token->type == TOKEN_TYPE_INSTRUCTION && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
+               sixth_token == NULL) {//ldr, cmp, cmn, neg, negs, movk, movn, movz
+
+      returnTree->type = Type_cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit;
+      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.instruction = first_token->instructionToken.instruction;
+      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.R1 = *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.imm = third_token->immediateToken.value;
+      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.shift = makeShiftStruct(fourth_token->instructionToken, fifth_token->immediateToken);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               ((fourth_token == NULL && fifth_token == NULL) ||
+                (fourth_token->type == TOKEN_TYPE_INSTRUCTION && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
+               sixth_token == NULL) {//cmp, cmn, neg, negs, tst, mov, mvn
+
+      returnTree->type = Type_cmp_cmn_neg_negs_REG_tst_mov_mvn;
+      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.instruction = first_token->instructionToken.instruction;
+      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R1 = *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R2 = *makeRegStruct(third_token->registerToken.register_name);
+      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.shift = makeShiftStruct(fourth_token->instructionToken, fifth_token->immediateToken);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               fourth_token->type == TOKEN_TYPE_IMMEDIATE &&
+               ((fifth_token == NULL && sixth_token == NULL) ||
+                (fifth_token->type == TOKEN_TYPE_INSTRUCTION && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
+                ) {//add, adds, sub, subs
+
+      returnTree->type = Type_add_sub_adds_subs_IMM;
+      returnTree->add_sub_adds_subs_IMM.instruction = first_token->instructionToken.instruction;
+      returnTree->add_sub_adds_subs_IMM.R1 = *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->add_sub_adds_subs_IMM.R2 = *makeRegStruct(third_token->registerToken.register_name);
+      returnTree->add_sub_adds_subs_IMM.imm = fourth_token->immediateToken.value;
+      returnTree->add_sub_adds_subs_IMM.shift = makeShiftStruct(fifth_token->instructionToken, sixth_token->immediateToken);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               fourth_token->type == TOKEN_TYPE_REGISTER &&
+               ((fifth_token == NULL && sixth_token == NULL) ||
+                (fifth_token->type == TOKEN_TYPE_INSTRUCTION && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
+                ) {//add, adds, sub, subs, mul, mneg, logic
+
+      returnTree->type = Type_add_sub_adds_subs_REG_mul_mneg_logical;
+      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.instruction = first_token->instructionToken.instruction;
+      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R1 = *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R2 = *makeRegStruct(third_token->registerToken.register_name);
+      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R3 = *makeRegStruct(fourth_token->registerToken.register_name);
+      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.shift = makeShiftStruct(fifth_token->instructionToken, sixth_token->immediateToken);
+
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               fourth_token->type == TOKEN_TYPE_REGISTER &&
+               fifth_token->type == TOKEN_TYPE_REGISTER &&
+               sixth_token == NULL) {//madd, msub
+
+      returnTree->type = Type_madd_msub;
+      returnTree->madd_msub.instruction = first_token->instructionToken.instruction;
+      returnTree->madd_msub.R1 = *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->madd_msub.R2 = *makeRegStruct(third_token->registerToken.register_name);
+      returnTree->madd_msub.R3 = *makeRegStruct(fourth_token->registerToken.register_name);
+      returnTree->madd_msub.R4 = *makeRegStruct(fifth_token->registerToken.register_name);
+
     } else {
-      //error
+      exit(EXIT_FAILURE);
     }
+    add_ArrayList_element(returnArray, returnTree);
   }
+  return returnArray;
 }

@@ -21,6 +21,8 @@ extern bool put_map(Map *map, char *key, uint32_t value);
 
 extern bool in_map(Map *map, char *key);
 
+uint32_t getVal_map(Map *map, char *key);
+
 extern void free_map(Map *map);
 
 #endif

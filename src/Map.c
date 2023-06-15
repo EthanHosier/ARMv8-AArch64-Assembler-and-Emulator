@@ -60,6 +60,17 @@ bool in_map(Map *map, char *key) {
   }
 }
 
+uint32_t getVal_map(Map *map, char *key) {
+  Binary_search_tree *current = map->root;
+  for (;;) {
+    if (current == NULL) return false;
+    int compared = strcmp(key, current->key);
+    if (compared == 0) return current->value;
+    if (compared < 0) current = current->left;
+    else current = current->right;
+  }
+}
+
 static void free_bst(Binary_search_tree *bst) {
   if (bst == NULL) return;
   free_bst(bst->left);
