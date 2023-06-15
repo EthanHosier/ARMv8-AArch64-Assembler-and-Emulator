@@ -14,7 +14,7 @@ typedef enum {
     TOKEN_ADDRESS_CODE,
 } TokenType;
 
-typedef enum{
+typedef enum {
     ADDRESS_CODE_POSSIBILITIES_NOT,
     ADDRESS_CODE_POSSIBILITIES_ONE,
     ADDRESS_CODE_POSSIBILITIES_TWO
@@ -41,12 +41,10 @@ typedef struct {
 struct Token;
 typedef struct Token *Token;
 
-typedef struct{
-    TokenType type;
+typedef struct {
     Token t1;
     Token pT2;
 } AddressCodeToken;
-
 
 
 struct Token {

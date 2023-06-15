@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include "../lexer/lexer.h"
 #include "../../ArrayList.h"
-#include "../../BinarySearchTree.h"
+#include "../../Map.h"
 #include "../register.h"
 
 
@@ -125,8 +125,8 @@ typedef struct {
     };
 } Parser_Tree;
 
-extern BinarySearchTree first_pass(ArrayList *tokens);
+extern Map *first_pass(ArrayList *tokens);
 
-extern Parser_Tree *second_pass(ArrayList *tokens, BinarySearchTree tree);
+extern Parser_Tree *second_pass(ArrayList *tokens, Map *tree);
 
 #endif
