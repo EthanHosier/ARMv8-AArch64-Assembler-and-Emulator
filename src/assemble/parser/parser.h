@@ -95,7 +95,7 @@ typedef struct {
 typedef enum {
     Type_add_sub_adds_subs_IMM,
     Type_add_sub_adds_subs_REG,
-    Type_cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM ,
+    Type_cmp_cmn_neg_negs_movk_movn_movz_ldrlit_IMM,
     Type_cmp_cmn_neg_negs_tst_mov_mvn_REG,
     Type_logical_mul_mneg,
     Type_madd_msub,
