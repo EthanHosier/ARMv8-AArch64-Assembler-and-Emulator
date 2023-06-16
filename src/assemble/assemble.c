@@ -3,6 +3,10 @@
 #include <printf.h>
 
 int main(int argc, char **argv) {
+    char str[] = "ldr x20, [x5, #8]";
+    ArrayList *tokens = tokenize(str);
+    print_ArrayList_elements(tokens);
+
   char **lines = NULL; //readLines(file_name);
   ArrayList *token_lines = create_ArrayList(NULL, &free_ArrayList);
   for (int i = 0; i < sizeof(lines); i++) // maybe works
