@@ -1,6 +1,7 @@
 #include "ArrayList.h"
 #include <stdlib.h>
 #include <assert.h>
+#include "global.h"
 #include <stdio.h>
 
 void print_ArrayList_elements(ArrayList *list) {
@@ -25,24 +26,22 @@ static bool grow(ArrayList *list) {
   return true;
 }
 
-bool add_ArrayList_element(ArrayList *list, void *element) {
+void add_ArrayList_element(ArrayList *list, void *element) {
   if (list->size == list->capacity) {
     if (!grow(list)) {
-      return false;
+      IRREPARABLE_MEMORY_ERROR;
     }
   }
   (list->elements)[list->size++] = element;
-  return true;
 }
 
 void *remove_ArrayList_element(ArrayList *list) {
   assert(list->size != 0);
-  list->size--;
-  return (list->elements)[list->size];
+  return (list->elements)[--list->size];
 }
 
 void *get_ArrayList_element(ArrayList *list, int index) {
-  if(index >= list->size || index < 0) return NULL;
+  if (index >= list->size || index < 0) return NULL;
   /* This is not how we would do a general
    * arraylist but this will make it easier to pattern match
    * in the second_pass function within parser.c */
@@ -66,12 +65,11 @@ create_ArrayList(print_ArrayList_element print, free_ArrayList_element free) {
   return list;
 }
 
-void free_ArrayList(ArrayList *list) {
-  if (list->free_element != NULL) {
-    for (int i = 0; i < list->size; i++) {
+void free_ArrayList(void *input) {
+  ArrayList *list = (ArrayList *) input;
+  if (list->free_element != NULL)
+    for (int i = 0; i < list->size; i++)
       (list->free_element)(get_ArrayList_element(list, i));
-    }
-  }
   free(list->elements);
   free(list);
 }

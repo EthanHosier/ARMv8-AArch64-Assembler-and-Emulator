@@ -18,9 +18,9 @@ typedef struct {
 
 extern void print_ArrayList_elements(ArrayList *);
 
-extern void free_ArrayList(ArrayList *);
+extern void free_ArrayList(void *);
 
-extern bool add_ArrayList_element(ArrayList *list, void *element);
+extern void add_ArrayList_element(ArrayList *list, void *element);
 
 extern void *remove_ArrayList_element(ArrayList *);
 
