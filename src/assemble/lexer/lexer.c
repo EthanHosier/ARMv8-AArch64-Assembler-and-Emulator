@@ -109,28 +109,19 @@ static Token string_to_token(char *str) {
 
     //check for instruction token
   else if (in_map(instructionsBST, str)) {
-    InstructionToken *instructionToken = NEW(InstructionToken);
-    assert(instructionToken != NULL);
-
-    instructionToken->instruction = str;
-    t->instructionToken = *instructionToken;
+    t->instructionToken.instruction = str;
     t->type = TOKEN_TYPE_INSTRUCTION;
   }
 
     //check for '#' immediate token
   else if (str[0] == '#' || str[0] == '0') {
-    ImmediateToken *immediateToken = NEW (ImmediateToken);
-    assert(immediateToken != NULL);
-
     if (str[0] == '#') {
       str++; //get rid of '#'
-      immediateToken->value = (uint32_t) atoi(str);
+      t->immediateToken.value = (uint32_t) atoi(str);
     } else {
       //str[0] == '0'
-      immediateToken->value = (uint32_t) strtol(str, NULL, 16);
+      t->immediateToken.value = (uint32_t) strtol(str, NULL, 16);
     }
-
-    t->immediateToken = *immediateToken;
     t->type = TOKEN_TYPE_IMMEDIATE;
   }
 
@@ -139,22 +130,14 @@ static Token string_to_token(char *str) {
   else if (strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0
       || (str[0] == 'w' || str[0] == 'x')
           && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
-    RegisterToken *registerToken = NEW (RegisterToken);
-    assert(registerToken != NULL);
-
-    registerToken->register_name = str;
-    t->registerToken = *registerToken;
+    t->registerToken.register_name = str;
     t->type = TOKEN_TYPE_REGISTER;
   }
 
     //treat as a label
   else {
     // TODO: if token is first token on the line- check to ensure there is a colon
-    LabelToken *labelToken = NEW(LabelToken);
-    assert(labelToken != NULL);
-
-    labelToken->label = str;
-    t->labelToken = *labelToken;
+    t->labelToken.label = str;
     t->type = TOKEN_TYPE_LABEL;
   }
 
@@ -204,10 +187,7 @@ ArrayList *tokenize(char *line) {
     } else {
       t = NEW(struct Token);
       assert(t != NULL);
-
-      AddressCodeToken *act = NEW (AddressCodeToken);
-      assert(act != NULL);
-      act->exclamation = exclamation;
+      t->addressToken.exclamation = exclamation;
       tokenStrCopy++; //remove the "\["
       Token t1 = string_to_token(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
@@ -224,12 +204,11 @@ ArrayList *tokenize(char *line) {
         tokenStrCopy = strdup(tokenStr);
         Token t2 = string_to_token(strtok(tokenStrCopy, " ,]!"));
 
-        act->pT2 = t2;
+        t->addressToken.pT2 = t2;
 
       }
-      act->t1 = t1;
+      t->addressToken.t1 = t1;
       t->type = TOKEN_ADDRESS_CODE;
-      t->addressToken = *act;
     }
     add_ArrayList_element(tokens, t);
     tokenStr = strtok(NULL, " ,");
