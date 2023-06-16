@@ -12,12 +12,7 @@ TreeMap *first_pass(ArrayList *list) {
     if (line == NULL || line->size == 0) return NULL;
     Token first_token = get_ArrayList_element(line, 0);
     if (first_token->type == TOKEN_TYPE_LABEL) {
-      uint32_t *address = malloc(1 * sizeof(uint32_t));
-      if (address == NULL) {
-        IRREPARABLE_MEMORY_ERROR;
-      }
-      *address = i * 4;
-      put_map(found_labels, first_token->labelToken.label, address);
+      put_map_int(found_labels, first_token->labelToken.label, i * 4);
     }
   }
   return found_labels;
@@ -140,7 +135,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         }
         newTok->type = TOKEN_TYPE_IMMEDIATE;
         newTok->immediateToken.value =
-            *(uint32_t *) get_map(tree, currTok->labelToken.label);
+            get_map_int(tree, currTok->labelToken.label);
         line->elements[j] = newTok;//bad implementation:
         //TODO: create replace element function in ArrayList
       }

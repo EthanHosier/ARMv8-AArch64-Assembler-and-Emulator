@@ -122,8 +122,8 @@ typedef enum {
   Type_b,
   Type_b_cond,
   Type_br,
-  Type_str,
-  Type_ldr,
+  Type_str, //
+  Type_ldr, // for this one and the one above, seperate into addressing mode cases
   Type_load_literal,
   Type_nop,
   Type_dot_int
@@ -147,6 +147,17 @@ typedef struct {
     Tree_ldr_str_regOffset ldr_str_regOffset;
   };
 } Parser_Tree;
+
+//typedef struct {
+//  tree_type type;
+//  Register *R1;
+//  Register *R2;
+//  Register *R3;
+//  Register *R4;
+//  uint32_t *imm;
+//  Shift *shift;
+//  Mem_Addr_Type_Reg_Reg_Imm *address;
+//} Parser_Tree;
 
 extern TreeMap *first_pass(ArrayList *tokens);
 
