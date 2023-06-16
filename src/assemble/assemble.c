@@ -26,9 +26,7 @@ int main(int argc, char **argv) {
   free_map(label_identifiers);
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
   for (int i = 0; i < trees->size; i++) {
-    Parser_Tree *tree = get_ArrayList_element(trees, i);
-    //char *instr = tree->instruction;
-    //if (strcmp(instr, ))
+    //Parser_Tree *tree = get_ArrayList_element(trees, i);
 
   }
   free_ArrayList(trees);
@@ -91,10 +89,10 @@ uint32_t buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
       | rt;
 }
 
-uint32_t buildBinaryBranch() {
+uint32_t buildBinaryBranch(void) {
   //TODO
 }
 
-uint32_t buildNOP() {
+uint32_t buildNOP(void) {
   return 0xD503201F;
 }

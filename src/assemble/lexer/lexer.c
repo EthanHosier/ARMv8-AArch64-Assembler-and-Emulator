@@ -10,7 +10,7 @@
 
 static TreeMap *instructionsBST = NULL;
 
-static void initialiseInstructionsBST() {
+static void initialiseInstructionsBST(void) {
   instructionsBST = create_map(NULL, free, compare_strings_map);
   if (instructionsBST == NULL) {
     fprintf(stderr, "Not enough memory to assemble!");
@@ -86,7 +86,7 @@ static void print_Token(void *element) {
       }
     }
     printf("]");
-    t->addressToken.exclamation && printf("!");
+    if(t->addressToken.exclamation) printf("!");
 
   } else {
     printf("%s", type);
@@ -127,8 +127,8 @@ static Token string_to_token(char *str) {
 
     //check for register token
   else if (strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0
-      || (str[0] == 'w' || str[0] == 'x')
-          && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
+      || ((str[0] == 'w' || str[0] == 'x')
+          && ((int) str[1] <= 57 && (int) str[1] >= 48))) {
     t->registerToken.register_name = str;
     t->type = TOKEN_TYPE_REGISTER;
   }
