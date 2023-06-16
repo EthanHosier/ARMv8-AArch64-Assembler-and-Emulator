@@ -12,12 +12,12 @@
 static TreeMap *instructionsBST = NULL;
 
 static void initialiseInstructionsBST() {
-  instructionsBST = create_map(&free);
+  instructionsBST = create_map(NULL, free, compare_strings_map);
   if (instructionsBST == NULL) {
     fprintf(stderr, "Not enough memory to assemble!");
     exit(1);
   }
-  const char *instructions[] = {
+  char *instructions[] = {
       "adds",
       "add",
       "sub",
@@ -209,7 +209,7 @@ ArrayList *tokenize(char *line) {
       tokenStrCopy++; //remove the "\["
 
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
-        int len = strlen(tokenStrCopy);
+        int len = (int) strlen(tokenStrCopy);
         if (exclamation) {
           tokenStrCopy[len - 2] = '\0';
         } else {

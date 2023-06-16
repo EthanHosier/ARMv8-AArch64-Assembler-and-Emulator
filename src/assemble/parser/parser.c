@@ -5,7 +5,7 @@
 
 TreeMap *first_pass(ArrayList *list) {
   if (list == NULL || list->size == 0) return NULL;
-  TreeMap *found_labels = create_map(&free);
+  TreeMap *found_labels = create_map(NULL, free, compare_strings_map);
   for (int i = 0; i < list->size; i++) {
     ArrayList *line = get_ArrayList_element(list, i);
     if (line == NULL || line->size == 0) return NULL;

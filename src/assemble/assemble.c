@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
   ArrayList *trees = second_pass(token_lines, label_identifiers);
   free_ArrayList(token_lines);
   free_map(label_identifiers);
+  // TODO: Make map of Parser_Tree.type to function pointers that do final step
   for (int i = 0; i < trees->size; i++) {
     Parser_Tree *tree = get_ArrayList_element(trees, i);
     switch (tree->type) {
@@ -54,7 +55,6 @@ int main(int argc, char **argv) {
         exit(1);
     }
   }
-  // TODO: Use the parser trees to create machine code
   free_ArrayList(trees);
   return EXIT_SUCCESS;
 }

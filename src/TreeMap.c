@@ -14,7 +14,7 @@ if((t) == NULL) {\
 current = (t)
 
 
-static Binary_search_tree *create_node(const char *key, void *value) {
+static Binary_search_tree *create_node(void *key, void *value) {
   Binary_search_tree *tree = malloc(sizeof(Binary_search_tree));
   if (tree == NULL) return NULL;
   tree->value = value;
@@ -24,15 +24,17 @@ static Binary_search_tree *create_node(const char *key, void *value) {
   return tree;
 }
 
-TreeMap *create_map(free_map_element free_element) {
+TreeMap *create_map(free_map_element free_keys, free_map_element free_values, compare_map_keys compare_keys) {
   TreeMap *new = malloc(sizeof(TreeMap));
   if (new == NULL) return NULL;
   new->root = NULL;
-  new->free_element = free_element;
+  new->free_values = free_values;
+  new->free_keys=free_keys;
+  new->compare_keys = compare_keys;
   return new;
 }
 
-void put_map(TreeMap *map, const char *key, void *value) {
+void put_map(TreeMap *map, void *key, void *value) {
   assert(value != NULL);
   Binary_search_tree *new = create_node(key, value);
   if (new == NULL) {
@@ -44,7 +46,7 @@ void put_map(TreeMap *map, const char *key, void *value) {
   }
   Binary_search_tree *current = map->root;
   for (;;) {
-    int compared = strcmp(key, current->key);
+    int compared = (map->compare_keys)(key, current->key);
     if (compared == 0) {
       current->value = value;
       return;
@@ -57,18 +59,18 @@ void put_map(TreeMap *map, const char *key, void *value) {
   }
 }
 
-void *get_map(TreeMap *map, char *key) {
+void *get_map(TreeMap *map, void *key) {
   Binary_search_tree *current = map->root;
   for (;;) {
     if (current == NULL) return NULL;
-    int compared = strcmp(key, current->key);
+    int compared = (map->compare_keys)(key, current->key);
     if (compared == 0) return current->value;
     if (compared < 0) current = current->left;
     else current = current->right;
   }
 }
 
-bool in_map(TreeMap *map, char *key) {
+bool in_map(TreeMap *map, void *key) {
   return get_map(map, key) != NULL;
 }
 
@@ -93,10 +95,15 @@ void free_map(void *input) {
   }
   while (stack2->size != 0) {
     Binary_search_tree *to_free = remove_ArrayList_element(stack2);
-    if (map->free_element != NULL) (map->free_element)(to_free->value);
+    if (map->free_values != NULL) (map->free_values)(to_free->value);
+    if (map->free_keys != NULL) (map->free_keys)(to_free->key);
     free(to_free);
   }
   free_ArrayList(stack1);
   free_ArrayList(stack2);
   free(map);
+}
+
+int compare_strings_map(void* key1, void* key2) {
+  return strcmp(key1, key2);
 }
