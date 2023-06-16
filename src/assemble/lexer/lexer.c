@@ -5,7 +5,6 @@
 #include <assert.h>
 #include "lexer.h"
 #include "../../TreeMap.h"
-#include "../../global.h"
 
 #define NEW(t) malloc(sizeof(t))
 

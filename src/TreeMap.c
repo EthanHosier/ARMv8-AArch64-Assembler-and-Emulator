@@ -87,7 +87,12 @@ bool in_map(TreeMap *map, void *key) {
 }
 
 void free_map(void *input) {
+  if (input == NULL) return;
   TreeMap *map = (TreeMap *) input;
+  if (map->root == NULL) {
+    free(map);
+    return;
+  }
   ArrayList *stack1 = create_ArrayList(NULL, NULL);
   if (stack1 == NULL) {
     IRREPARABLE_MEMORY_ERROR;

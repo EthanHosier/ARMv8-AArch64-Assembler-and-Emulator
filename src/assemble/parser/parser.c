@@ -4,6 +4,8 @@
 
 #include "../../global.h"
 
+#define FREE_REGISTER(reg) if((reg)!=NULL) free(reg)
+
 TreeMap *first_pass(ArrayList *list) {
   if (list == NULL || list->size == 0) return NULL;
   TreeMap *found_labels = create_map(NULL, free, compare_strings_map);
@@ -18,25 +20,41 @@ TreeMap *first_pass(ArrayList *list) {
   return found_labels;
 }
 
+void free_parser_tree(void *input) {
+  Parser_Tree *tree = (Parser_Tree *) input;
+  if (tree == NULL) return;
+  FREE_REGISTER(tree->R1);
+  FREE_REGISTER(tree->R2);
+  FREE_REGISTER(tree->R3);
+  FREE_REGISTER(tree->R4);
+  if (tree->imm != NULL) free(tree->imm);
+  if (tree->shift != NULL) free(tree->shift);
+  free(tree);
+}
+
+static uint32_t *make_new_int(uint32_t input) {
+  uint32_t *new = malloc(sizeof(uint32_t));
+  *new = input;
+  return new;
+}
+
 static void b_cond(Parser_Tree *tree, Token token) {
-  tree->type = Type_b_cond;
   TreeMap *map = create_map(NULL, free, compare_strings_map);
-  put_map_int(map, "b.eq", CONDITION_EQUALS);
-  put_map_int(map, "b.ne", CONDITION_NOT_EQUAL);
-  put_map_int(map, "b.ge", CONDITION_GREATER_EQUAL);
-  put_map_int(map, "b.lt", CONDITION_LESS_THAN);
-  put_map_int(map, "b.gt", CONDITION_GREATER_THAN);
-  put_map_int(map, "b.le", CONDITION_LESS_EQUAL);
-  put_map_int(map, "b.al", CONDITION_ALWAYS);
-  tree->b_bCond.condition =
-      get_map_int(map, token->instructionToken.instruction);
+  put_map_int(map, "b.eq", Type_beq);
+  put_map_int(map, "b.ne", Type_bne);
+  put_map_int(map, "b.ge", Type_bge);
+  put_map_int(map, "b.lt", Type_blt);
+  put_map_int(map, "b.gt", Type_bgt);
+  put_map_int(map, "b.le", Type_ble);
+  put_map_int(map, "b.al", Type_bal);
+  tree->type = get_map_int(map, token->instructionToken.instruction);
   free_map(map);
 }
 
 static void discriminator1(Parser_Tree *tree, Token token) {
   // ldr, cmp, cmn, neg, negs, movk, movn, movz
   TreeMap *map = create_map(NULL, free, compare_strings_map);
-  put_map_int(map, "ldr", Type_load_literal);
+  put_map_int(map, "ldr", Type_ldr_literal);
   put_map_int(map, "cmp", Type_cmp_imm);
   put_map_int(map, "cmn", Type_cmn_imm);
   put_map_int(map, "neg", Type_neg_imm);
@@ -94,10 +112,31 @@ static void discriminator5(Parser_Tree *tree, Token token) {
 }
 
 static void discriminator6(Parser_Tree *tree, Token token) {
-  // Type_ldr_str_preIndex_postIndex_unsignedOffset
+  // Type_ldr_str_preIndex
   if (strcmp("ldr", token->instructionToken.instruction) == 0)
-    tree->type = Type_ldr;
-  else tree->type = Type_str;
+    tree->type = Type_ldr_pre;
+  else tree->type = Type_str_pre;
+}
+
+static void discriminator7(Parser_Tree *tree, Token token) {
+  // Type_ldr_str_postIndex
+  if (strcmp("ldr", token->instructionToken.instruction) == 0)
+    tree->type = Type_ldr_post;
+  else tree->type = Type_str_post;
+}
+
+static void discriminator8(Parser_Tree *tree, Token token) {
+  // Type_ldr_str_unsignedOffset
+  if (strcmp("ldr", token->instructionToken.instruction) == 0)
+    tree->type = Type_ldr_unsigned;
+  else tree->type = Type_str_unsigned;
+}
+
+static void discriminator9(Parser_Tree *tree, Token token) {
+  // Type_ldr_str_reg
+  if (strcmp("ldr", token->instructionToken.instruction) == 0)
+    tree->type = Type_ldr_reg;
+  else tree->type = Type_str_reg;
 }
 
 static Register *makeRegStruct(char *regString) {
@@ -122,7 +161,7 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
 }
 
 ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
-  ArrayList *returnArray = create_ArrayList(NULL, free);
+  ArrayList *returnArray = create_ArrayList(NULL, free_parser_tree);
   for (int i = 0; i < file->size; i++) {
     Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
     ArrayList *line = get_ArrayList_element(file, i);
@@ -172,14 +211,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         fifth_token == NULL &&
         sixth_token == NULL) {//b, b.cond
 
-      if (strcmp(first_token->instructionToken.instruction, "b") == 0) {
+      if (strcmp(first_token->instructionToken.instruction, "b") == 0)
         returnTree->type = Type_b;
-        returnTree->b_bCond.condition = UNCONDITIONAL;
-        returnTree->b_bCond.imm = second_token->immediateToken.value;
-      } else {
-        b_cond(returnTree, first_token);
-        returnTree->b_bCond.imm = second_token->immediateToken.value;
-      }
+      else b_cond(returnTree, first_token);
+      returnTree->imm = make_new_int(second_token->immediateToken.value);
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
         third_token == NULL &&
@@ -188,8 +223,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         sixth_token == NULL) {//br
 
       returnTree->type = Type_br;
-      returnTree->br.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R1 = makeRegStruct(second_token->registerToken.register_name);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
@@ -201,11 +235,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         ) {//ldr, cmp, cmn, neg, negs, movk, movn, movz
 
       discriminator1(returnTree, first_token);
-      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.imm =
-          third_token->immediateToken.value;
-      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.shift =
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->imm = make_new_int(third_token->immediateToken.value);
+      returnTree->shift =
           makeShiftStruct(fourth_token->instructionToken,
                           fifth_token->immediateToken);
 
@@ -218,11 +251,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         sixth_token == NULL) {//cmp, cmn, neg, negs, tst, mov, mvn
 
       discriminator2(returnTree, first_token);
-      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R2 =
-          *makeRegStruct(third_token->registerToken.register_name);
-      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.shift = makeShiftStruct(
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
+      returnTree->shift = makeShiftStruct(
           fourth_token->instructionToken,
           fifth_token->immediateToken);
 
@@ -236,13 +268,11 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         ) {//add, adds, sub, subs
 
       discriminator3(returnTree, first_token);
-      returnTree->add_sub_adds_subs_IMM.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->add_sub_adds_subs_IMM.R2 =
-          *makeRegStruct(third_token->registerToken.register_name);
-      returnTree->add_sub_adds_subs_IMM.imm =
-          fourth_token->immediateToken.value;
-      returnTree->add_sub_adds_subs_IMM.shift =
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
+      returnTree->imm = make_new_int(fourth_token->immediateToken.value);
+      returnTree->shift =
           makeShiftStruct(fifth_token->instructionToken,
                           sixth_token->immediateToken);
 
@@ -256,13 +286,13 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         ) {//add, adds, sub, subs, mul, mneg, logic
 
       discriminator4(returnTree, first_token);
-      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R2 =
-          *makeRegStruct(third_token->registerToken.register_name);
-      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R3 =
-          *makeRegStruct(fourth_token->registerToken.register_name);
-      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.shift =
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 =
+          makeRegStruct(third_token->registerToken.register_name);
+      returnTree->R3 =
+          makeRegStruct(fourth_token->registerToken.register_name);
+      returnTree->shift =
           makeShiftStruct(fifth_token->instructionToken,
                           sixth_token->immediateToken);
 
@@ -274,14 +304,14 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         sixth_token == NULL) {//madd, msub
 
       discriminator5(returnTree, first_token);
-      returnTree->madd_msub.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->madd_msub.R2 =
-          *makeRegStruct(third_token->registerToken.register_name);
-      returnTree->madd_msub.R3 =
-          *makeRegStruct(fourth_token->registerToken.register_name);
-      returnTree->madd_msub.R4 =
-          *makeRegStruct(fifth_token->registerToken.register_name);
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 =
+          makeRegStruct(third_token->registerToken.register_name);
+      returnTree->R3 =
+          makeRegStruct(fourth_token->registerToken.register_name);
+      returnTree->R4 =
+          makeRegStruct(fifth_token->registerToken.register_name);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
@@ -292,17 +322,18 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER &&
         third_token->addressToken.pT2->type == TOKEN_TYPE_IMMEDIATE
         ) {//Pre-Index, Unsigned Offset
-      discriminator6(returnTree, first_token);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
-          *makeRegStruct(third_token->addressToken.
+      if (third_token->addressToken.exclamation)
+        discriminator6(returnTree,
+                       first_token);
+      else discriminator8(returnTree, first_token);
+
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 =
+          makeRegStruct(third_token->addressToken.
               t1->registerToken.register_name);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.imm =
-          third_token->addressToken.pT2->immediateToken.value;
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.addrType =
-          (third_token->addressToken.exclamation)
-          ? PRE_INDEX : UNSIGNED_OFFSET;
+      returnTree->imm =
+          make_new_int(third_token->addressToken.pT2->immediateToken.value);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
@@ -314,14 +345,14 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         third_token->addressToken.pT2->type == TOKEN_TYPE_REGISTER
         ) {//Reg
 
-      discriminator6(returnTree, first_token);
-      returnTree->ldr_str_regOffset.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->ldr_str_regOffset.R2 =
-          *makeRegStruct(third_token->addressToken.
+      discriminator9(returnTree, first_token);
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 =
+          makeRegStruct(third_token->addressToken.
               t1->registerToken.register_name);
-      returnTree->ldr_str_regOffset.R3 =
-          *makeRegStruct(fourth_token->addressToken.
+      returnTree->R3 =
+          makeRegStruct(fourth_token->addressToken.
               pT2->registerToken.register_name);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
@@ -333,16 +364,13 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER
         ) {//Post-Index
 
-      discriminator6(returnTree, first_token);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
-          *makeRegStruct(third_token->addressToken.
+      discriminator7(returnTree, first_token);
+      returnTree->R1 =
+          makeRegStruct(second_token->registerToken.register_name);
+      returnTree->R2 =
+          makeRegStruct(third_token->addressToken.
               t1->registerToken.register_name);
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.imm =
-          fourth_token->immediateToken.value;
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.addrType =
-          POST_INDEX;
+      returnTree->imm = make_new_int(fourth_token->immediateToken.value);
 
     } else {
       perror("invalid syntax");

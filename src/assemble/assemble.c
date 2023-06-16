@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
   for (int i = 0; i < trees->size; i++) {
     Parser_Tree *tree = get_ArrayList_element(trees, i);
-    char *instr = tree->instruction;
+    //char *instr = tree->instruction;
     //if (strcmp(instr, ))
 
   }
@@ -36,43 +36,59 @@ int main(int argc, char **argv) {
 }
 
 
-uint32_t buildBinaryDPImm(uint32_t sf, uint32_t opc, uint32_t opi, uint32_t operand, uint32_t rd) {
+uint32_t buildBinaryDPImm(uint32_t sf,
+                          uint32_t opc,
+                          uint32_t opi,
+                          uint32_t operand,
+                          uint32_t rd) {
   return sf << 31
-          | opc << 29
-          | 1 << 28
-          | opi << 23
-          | operand << 5
-          | rd;
+      | opc << 29
+      | 1 << 28
+      | opi << 23
+      | operand << 5
+      | rd;
 }
 
-uint32_t buildBinaryDPReg(uint32_t sf, uint32_t opc, uint32_t m, uint32_t opr, uint32_t rm, uint32_t operand, uint32_t rn, uint32_t rd) {
+uint32_t buildBinaryDPReg(uint32_t sf,
+                          uint32_t opc,
+                          uint32_t m,
+                          uint32_t opr,
+                          uint32_t rm,
+                          uint32_t operand,
+                          uint32_t rn,
+                          uint32_t rd) {
   return sf << 31
-         | opc << 29
-         | m << 28
-         | 5 << 26
-         | opr << 21
-         | rm << 16
-         | operand << 10
-         | rn << 5
-         | rd;
+      | opc << 29
+      | m << 28
+      | 5 << 26
+      | opr << 21
+      | rm << 16
+      | operand << 10
+      | rn << 5
+      | rd;
 }
 
-uint32_t buildBinarySDT(uint32_t sf, uint32_t u, uint32_t l, uint32_t offset, uint32_t xn, uint32_t rt) {
+uint32_t buildBinarySDT(uint32_t sf,
+                        uint32_t u,
+                        uint32_t l,
+                        uint32_t offset,
+                        uint32_t xn,
+                        uint32_t rt) {
   return 1 << 31
-         | sf << 30
-         | 7 << 27
-         | u << 24
-         | l << 22
-         | offset << 10
-         | xn << 5
-         | rt;
+      | sf << 30
+      | 7 << 27
+      | u << 24
+      | l << 22
+      | offset << 10
+      | xn << 5
+      | rt;
 }
 
 uint32_t buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
   return sf << 30
-         | 3 << 27
-         | simm19 << 5
-         | rt;
+      | 3 << 27
+      | simm19 << 5
+      | rt;
 }
 
 uint32_t buildBinaryBranch() {
