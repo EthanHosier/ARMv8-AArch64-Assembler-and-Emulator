@@ -86,7 +86,7 @@ static void print_Token(void *element) {
       }
     }
     printf("]");
-    if(t->addressToken.exclamation) printf("!");
+    if (t->addressToken.exclamation) printf("!");
 
   } else {
     printf("%s", type);

@@ -79,7 +79,9 @@ void *get_map(TreeMap *map, void *key) {
 }
 
 int get_map_int(TreeMap *map, void *key) {
-  return *(int *) get_map(map, key);
+  void *result = get_map(map, key);
+  assert(result != NULL);
+  return *(int *) result;
 }
 
 bool in_map(TreeMap *map, void *key) {

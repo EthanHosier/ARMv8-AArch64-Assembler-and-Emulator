@@ -1,6 +1,7 @@
 #include "parser.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 #include "../../global.h"
 
@@ -160,32 +161,45 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   return shift;
 }
 
+static Parser_Tree *make_parser_tree() {
+  Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
+  assert(returnTree != NULL);
+  returnTree->R1 = NULL;
+  returnTree->R2 = NULL;
+  returnTree->R3 = NULL;
+  returnTree->R4 = NULL;
+  returnTree->shift = NULL;
+  returnTree->imm = NULL;
+}
+
 ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
   ArrayList *returnArray = create_ArrayList(NULL, free_parser_tree);
   for (int i = 0; i < file->size; i++) {
-    Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
     ArrayList *line = get_ArrayList_element(file, i);
-    for (int j = 1; j < line->size; j++) {
-      Token currTok = get_ArrayList_element(line, j);
-      if (currTok->type == TOKEN_TYPE_LABEL) {
-        Token newTok = malloc(sizeof(struct Token));
-        if (newTok == NULL) {
-          IRREPARABLE_MEMORY_ERROR;
-        }
-        newTok->type = TOKEN_TYPE_IMMEDIATE;
-        newTok->immediateToken.value =
-            get_map_int(tree, currTok->labelToken.label);
-        line->elements[j] = newTok;//bad implementation:
-        //TODO: create replace element function in ArrayList
-      }
-    }
     Token first_token = get_ArrayList_element(line, 0);
     Token second_token = get_ArrayList_element(line, 1);
     Token third_token = get_ArrayList_element(line, 2);
     Token fourth_token = get_ArrayList_element(line, 3);
     Token fifth_token = get_ArrayList_element(line, 4);
     Token sixth_token = get_ArrayList_element(line, 5);
+    if (first_token->type == TOKEN_TYPE_LABEL &&
+        second_token == NULL &&
+        third_token == NULL &&
+        fourth_token == NULL &&
+        fifth_token == NULL &&
+        sixth_token == NULL) {//label
+      continue;
+    }
+    Parser_Tree *returnTree = make_parser_tree();
 
+    for (int j = 1; j < line->size; j++) {
+      Token currTok = get_ArrayList_element(line, j);
+      if (currTok->type == TOKEN_TYPE_LABEL) {
+        currTok->type = TOKEN_TYPE_IMMEDIATE;
+        currTok->immediateToken.value =
+            get_map_int(tree, currTok->labelToken.label);
+      }
+    }
     if (first_token == NULL &&
         second_token == NULL &&
         third_token == NULL &&
@@ -194,15 +208,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         sixth_token == NULL) {//nop
 
       returnTree->type = Type_nop;
-
-    } else if (first_token->type == TOKEN_TYPE_LABEL &&
-        second_token == NULL &&
-        third_token == NULL &&
-        fourth_token == NULL &&
-        fifth_token == NULL &&
-        sixth_token == NULL) {//label
-
-      continue;
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_IMMEDIATE &&
