@@ -14,31 +14,26 @@ typedef enum {
 } Mem_Addr_Type_Reg_Reg_Imm;
 
 typedef struct {
-  char *instruction;
   uint32_t imm;
 } Tree_dotInt_b_bCond;
 
 typedef struct {
-  char *instruction;
   Register R1;
 } Tree_br;
 
 typedef struct {
-  char *instruction;
   Register R1;
   uint32_t imm;
   Shift *shift;
 } Tree_cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;
   Shift *shift;
 } Tree_cmp_cmn_neg_negs_REG_tst_mov_mvn;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;
   uint32_t imm;
@@ -46,7 +41,6 @@ typedef struct {
 } Tree_add_sub_adds_subs_IMM;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;
   Register R3;
@@ -54,7 +48,6 @@ typedef struct {
 } Tree_add_sub_adds_subs_REG_mul_mneg_logical;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;
   Register R3;
@@ -62,7 +55,6 @@ typedef struct {
 } Tree_madd_msub;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;//64Bit
   uint32_t imm;
@@ -70,7 +62,6 @@ typedef struct {
 } Tree_ldr_str_preIndex_postIndex_unsignedOffset;
 
 typedef struct {
-  char *instruction;
   Register R1;
   Register R2;//64Bit
   Register R3;//64Bit
@@ -90,7 +81,8 @@ typedef enum {
 } tree_type;
 
 typedef struct {
-  tree_type type;
+    char *instruction;
+    tree_type type;
   union {
     Tree_dotInt_b_bCond dotInt_b_bCond;
     Tree_br br;

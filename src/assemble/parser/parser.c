@@ -69,6 +69,8 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     Token fifth_token = get_ArrayList_element(line, 4);
     Token sixth_token = get_ArrayList_element(line, 5);
 
+    returnTree->instruction = first_token->instructionToken.instruction;
+
     if (first_token == NULL &&
         second_token == NULL &&
         third_token == NULL &&
@@ -95,8 +97,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                sixth_token == NULL) {//.int, b, b.cond
 
       returnTree->type = Type_dotInt_b_bCond;
-      returnTree->dotInt_b_bCond.instruction =
-          first_token->instructionToken.instruction;
       returnTree->dotInt_b_bCond.imm = second_token->immediateToken.value;
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
@@ -107,7 +107,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                sixth_token == NULL) {//br
 
       returnTree->type = Type_br;
-      returnTree->br.instruction = first_token->instructionToken.instruction;
       returnTree->br.R1 =
           *makeRegStruct(second_token->registerToken.register_name);
 
@@ -121,8 +120,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//ldr, cmp, cmn, neg, negs, movk, movn, movz
 
       returnTree->type = Type_cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit;
-      returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.instruction =
-          first_token->instructionToken.instruction;
       returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.R1 =
           *makeRegStruct(second_token->registerToken.register_name);
       returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.imm =
@@ -140,8 +137,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                sixth_token == NULL) {//cmp, cmn, neg, negs, tst, mov, mvn
 
       returnTree->type = Type_cmp_cmn_neg_negs_REG_tst_mov_mvn;
-      returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.instruction =
-          first_token->instructionToken.instruction;
       returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R1 =
           *makeRegStruct(second_token->registerToken.register_name);
       returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.R2 =
@@ -160,8 +155,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//add, adds, sub, subs
 
       returnTree->type = Type_add_sub_adds_subs_IMM;
-      returnTree->add_sub_adds_subs_IMM.instruction =
-          first_token->instructionToken.instruction;
       returnTree->add_sub_adds_subs_IMM.R1 =
           *makeRegStruct(second_token->registerToken.register_name);
       returnTree->add_sub_adds_subs_IMM.R2 =
@@ -182,8 +175,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//add, adds, sub, subs, mul, mneg, logic
 
       returnTree->type = Type_add_sub_adds_subs_REG_mul_mneg_logical;
-      returnTree->add_sub_adds_subs_REG_mul_mneg_logical.instruction =
-          first_token->instructionToken.instruction;
       returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R1 =
           *makeRegStruct(second_token->registerToken.register_name);
       returnTree->add_sub_adds_subs_REG_mul_mneg_logical.R2 =
@@ -202,8 +193,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         sixth_token == NULL) {//madd, msub
 
       returnTree->type = Type_madd_msub;
-      returnTree->madd_msub.instruction =
-              first_token->instructionToken.instruction;
       returnTree->madd_msub.R1 =
               *makeRegStruct(second_token->registerToken.register_name);
       returnTree->madd_msub.R2 =
@@ -224,8 +213,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//Pre-Index, Unsigned Offset
 
       returnTree->type = Type_ldr_str_preIndex_postIndex_unsignedOffset;
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.instruction =
-              first_token->instructionToken.instruction;
       returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
               *makeRegStruct(second_token->registerToken.register_name);
       returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
@@ -248,8 +235,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//Reg
 
       returnTree->type = Type_ldr_str_regOffset;
-      returnTree->ldr_str_regOffset.instruction =
-              first_token->instructionToken.instruction;
       returnTree->ldr_str_regOffset.R1 =
               *makeRegStruct(second_token->registerToken.register_name);
       returnTree->ldr_str_regOffset.R2 =
@@ -269,8 +254,6 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                ) {//Post-Index
 
       returnTree->type = Type_ldr_str_preIndex_postIndex_unsignedOffset;
-      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.instruction =
-              first_token->instructionToken.instruction;
       returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
               *makeRegStruct(second_token->registerToken.register_name);
       returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
