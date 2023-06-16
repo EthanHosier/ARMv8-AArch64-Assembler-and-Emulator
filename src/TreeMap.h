@@ -12,7 +12,7 @@ struct binary_search_tree {
   Binary_search_tree *right;
 };
 typedef void (*free_map_element)(void *);
-typedef int (*compare_map_keys) (void *, void*);
+typedef int (*compare_map_keys)(void *, void *);
 typedef struct {
   Binary_search_tree *root;
   free_map_element free_values;
@@ -20,7 +20,9 @@ typedef struct {
   compare_map_keys compare_keys;
 } TreeMap;
 
-extern TreeMap *create_map(free_map_element free_keys, free_map_element free_values, compare_map_keys);
+extern TreeMap *create_map(free_map_element free_keys,
+                           free_map_element free_values,
+                           compare_map_keys);
 
 extern void put_map(TreeMap *map, void *key, void *value);
 
@@ -30,6 +32,10 @@ extern void free_map(void *map);
 
 extern bool in_map(TreeMap *map, void *key);
 
-extern int compare_strings_map(void*, void*);
+extern int compare_strings_map(void *, void *);
+
+extern int get_map_int(TreeMap *map, void *key);
+
+extern void put_map_int(TreeMap *map, void *key, int value);
 
 #endif

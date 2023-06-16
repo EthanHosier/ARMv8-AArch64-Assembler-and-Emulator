@@ -123,7 +123,7 @@ typedef enum {
   Type_b_cond,
   Type_br,
   Type_str,
-  Type_lds,
+  Type_ldr,
   Type_load_literal,
   Type_nop,
   Type_dot_int

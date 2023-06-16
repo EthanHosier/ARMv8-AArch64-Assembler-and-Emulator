@@ -53,12 +53,7 @@ static void initialiseInstructionsBST() {
       "str"
   };
   for (int i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
-    uint8_t *placeholder = malloc(1 * sizeof(uint8_t));
-    if (placeholder == NULL) {
-      IRREPARABLE_MEMORY_ERROR;
-    }
-    *placeholder = -1;
-    put_map(instructionsBST, instructions[i], placeholder);
+    put_map_int(instructionsBST, instructions[i], -1);
   }
 }
 
@@ -141,8 +136,9 @@ static Token string_to_token(char *str) {
 
 
     //check for register token
-  else if ( strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0 || (str[0] == 'w' || str[0] == 'x')
-      && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
+  else if (strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0
+      || (str[0] == 'w' || str[0] == 'x')
+          && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
     RegisterToken *registerToken = NEW (RegisterToken);
     assert(registerToken != NULL);
 

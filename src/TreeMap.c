@@ -24,12 +24,14 @@ static Binary_search_tree *create_node(void *key, void *value) {
   return tree;
 }
 
-TreeMap *create_map(free_map_element free_keys, free_map_element free_values, compare_map_keys compare_keys) {
+TreeMap *create_map(free_map_element free_keys,
+                    free_map_element free_values,
+                    compare_map_keys compare_keys) {
   TreeMap *new = malloc(sizeof(TreeMap));
   if (new == NULL) return NULL;
   new->root = NULL;
   new->free_values = free_values;
-  new->free_keys=free_keys;
+  new->free_keys = free_keys;
   new->compare_keys = compare_keys;
   return new;
 }
@@ -59,6 +61,12 @@ void put_map(TreeMap *map, void *key, void *value) {
   }
 }
 
+void put_map_int(TreeMap *map, void *key, int value) {
+  int *pointer = malloc(sizeof(uint64_t));
+  *pointer = value;
+  put_map(map, key, pointer);
+}
+
 void *get_map(TreeMap *map, void *key) {
   Binary_search_tree *current = map->root;
   for (;;) {
@@ -68,6 +76,10 @@ void *get_map(TreeMap *map, void *key) {
     if (compared < 0) current = current->left;
     else current = current->right;
   }
+}
+
+int get_map_int(TreeMap *map, void *key) {
+  return *(int *) get_map(map, key);
 }
 
 bool in_map(TreeMap *map, void *key) {
@@ -104,6 +116,6 @@ void free_map(void *input) {
   free(map);
 }
 
-int compare_strings_map(void* key1, void* key2) {
+int compare_strings_map(void *key1, void *key2) {
   return strcmp(key1, key2);
 }
