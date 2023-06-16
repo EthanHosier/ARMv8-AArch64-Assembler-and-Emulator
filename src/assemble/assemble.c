@@ -1,6 +1,7 @@
 #include "assemble.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "string.h"
 
 int main(int argc, char **argv) {
 //  char str[] = "ldr x20, [x5, #8]";
@@ -26,32 +27,58 @@ int main(int argc, char **argv) {
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
   for (int i = 0; i < trees->size; i++) {
     Parser_Tree *tree = get_ArrayList_element(trees, i);
-    switch (tree->type) {
-      case Type_dotInt_b_bCond:
-        break;
-      case Type_br:
-        break;
-      case Type_cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit:
-        break;
-      case Type_cmp_cmn_neg_negs_REG_tst_mov_mvn:
-        break;
-      case Type_add_sub_adds_subs_IMM:
-        break;
-      case Type_add_sub_adds_subs_REG_mul_mneg_logical:
-        break;
-      case Type_madd_msub:
-        break;
-      case Type_ldr_str_preIndex_postIndex_unsignedOffset:
-        break;
-      case Type_ldr_str_regOffset:
-        break;
-      case Type_nop:
-        break;
-      default:
-        fprintf(stderr, "Invalid parser tree!");
-        exit(1);
-    }
+    char *instr = tree->instruction;
+    //if (strcmp(instr, ))
+
   }
   free_ArrayList(trees);
   return EXIT_SUCCESS;
+}
+
+
+uint32_t buildBinaryDPImm(uint32_t sf, uint32_t opc, uint32_t opi, uint32_t operand, uint32_t rd) {
+  return sf << 31
+          | opc << 29
+          | 1 << 28
+          | opi << 23
+          | operand << 5
+          | rd;
+}
+
+uint32_t buildBinaryDPReg(uint32_t sf, uint32_t opc, uint32_t m, uint32_t opr, uint32_t rm, uint32_t operand, uint32_t rn, uint32_t rd) {
+  return sf << 31
+         | opc << 29
+         | m << 28
+         | 5 << 26
+         | opr << 21
+         | rm << 16
+         | operand << 10
+         | rn << 5
+         | rd;
+}
+
+uint32_t buildBinarySDT(uint32_t sf, uint32_t u, uint32_t l, uint32_t offset, uint32_t xn, uint32_t rt) {
+  return 1 << 31
+         | sf << 30
+         | 7 << 27
+         | u << 24
+         | l << 22
+         | offset << 10
+         | xn << 5
+         | rt;
+}
+
+uint32_t buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
+  return sf << 30
+         | 3 << 27
+         | simm19 << 5
+         | rt;
+}
+
+uint32_t buildBinaryBranch() {
+  //TODO
+}
+
+uint32_t buildNOP() {
+  return 0xD503201F;
 }
