@@ -56,7 +56,7 @@ static void initialiseInstructionsBST() {
   }
 }
 
-static void print_arrayList_element(void *element) {
+static void print_Token(void *element) {
   char **strs = malloc(6 * sizeof(char *));
   strs[0] = "INSTRUCTION";
   strs[1] = "IMMEDIATE";
@@ -160,7 +160,7 @@ static Token string_to_token(char *str) {
 
 }
 
-AddressCodePossibilities check_if_address_code(char *str, bool *exclamation) {
+static AddressCodePossibilities check_if_address_code(char *str, bool *exclamation) {
   if (str[0] != '[') {
     return ADDRESS_CODE_POSSIBILITIES_NOT;
   }
@@ -182,7 +182,7 @@ AddressCodePossibilities check_if_address_code(char *str, bool *exclamation) {
 ArrayList *tokenize(char *line) {
   initialiseInstructionsBST();
 
-  ArrayList *tokens = create_ArrayList(print_arrayList_element, &free);
+  ArrayList *tokens = create_ArrayList(print_Token, &free);
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
