@@ -213,7 +213,7 @@ ArrayList *tokenize(char *line) {
       assert(act != NULL);
       act->exclamation = exclamation;
       tokenStrCopy++; //remove the "\["
-
+      Token t1 = string_to_token(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         int len = (int) strlen(tokenStrCopy);
         if (exclamation) {
@@ -231,7 +231,6 @@ ArrayList *tokenize(char *line) {
         act->pT2 = t2;
 
       }
-      Token t1 = string_to_token(tokenStrCopy);
       act->t1 = t1;
       t->type = TOKEN_ADDRESS_CODE;
       t->addressToken = *act;
