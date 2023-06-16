@@ -41,6 +41,12 @@ static void initialiseInstructionsBST() {
       "mul",
       "mneg",
       "b.eq",
+      "b.ne",
+      "b.ge",
+      "b.lt",
+      "b.gt",
+      "b.le",
+      "b.al",
       "b",
       "br",
       "ldr",
@@ -135,7 +141,7 @@ static Token string_to_token(char *str) {
 
 
     //check for register token
-  else if ((str[0] == 'w' || str[0] == 'x')
+  else if ( strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0 || (str[0] == 'w' || str[0] == 'x')
       && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
     RegisterToken *registerToken = NEW (RegisterToken);
     assert(registerToken != NULL);
@@ -207,7 +213,7 @@ ArrayList *tokenize(char *line) {
       assert(act != NULL);
       act->exclamation = exclamation;
       tokenStrCopy++; //remove the "\["
-
+      Token t1 = string_to_token(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         int len = (int) strlen(tokenStrCopy);
         if (exclamation) {
@@ -225,7 +231,6 @@ ArrayList *tokenize(char *line) {
         act->pT2 = t2;
 
       }
-      Token t1 = string_to_token(tokenStrCopy);
       act->t1 = t1;
       t->type = TOKEN_ADDRESS_CODE;
       t->addressToken = *act;
