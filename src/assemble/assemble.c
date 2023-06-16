@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
 //  ArrayList *tokens = tokenize(str);
 //  print_ArrayList_elements(tokens);
 
-  char line[] = "add x0, x0, x0";
+  char line[] = "ldr x1 [x2]!";
   int number_of_lines = 1;
   char **lines =
       malloc(number_of_lines * sizeof(char *)); //readLines(file_name);
@@ -16,6 +16,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < number_of_lines; i++) {// maybe works
     ArrayList *tokens = tokenize(lines[i]);
     add_ArrayList_element(token_lines, tokens);
+      print_ArrayList_elements(tokens);
   }
   free(lines);
   TreeMap *label_identifiers = first_pass(token_lines);

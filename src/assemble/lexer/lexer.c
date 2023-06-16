@@ -86,6 +86,7 @@ static void print_arrayList_element(void *element) {
       }
     }
     printf("]");
+    t->addressToken.exclamation && printf("!");
 
   } else {
     printf("%s", type);
@@ -105,7 +106,7 @@ static Token string_to_token(char *str) {
     t->type = TOKEN_TYPE_DOT_INT;
   }
 
-    //check for instruciton token
+    //check for instruction token
   else if (in_map(instructionsBST, str)) {
     InstructionToken *instructionToken = NEW(InstructionToken);
     assert(instructionToken != NULL);
@@ -205,25 +206,30 @@ ArrayList *tokenize(char *line) {
       assert(act != NULL);
       act->exclamation = exclamation;
       tokenStrCopy++; //remove the "\["
-      Token t1 = string_to_token(tokenStrCopy);
 
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
-        act->t1 = t1;
-        t->type = TOKEN_ADDRESS_CODE;
-        t->addressToken = *act;
+          int len = strlen(tokenStrCopy);
+          if (exclamation){
+              tokenStrCopy[len - 2] = '\0';
+          } else {
+              tokenStrCopy[len - 1] = '\0';
+          }
+
 
       } else {
         //ADDRESS_CODE_POSSIBILITIES_TWO
-        tokenStr = strtok(NULL, " ,]");
+        tokenStr = strtok(NULL, " ,]!");
         tokenStrCopy = strdup(tokenStr);
-        Token t2 = string_to_token(strtok(tokenStrCopy, " ,"));
+        Token t2 = string_to_token(strtok(tokenStrCopy, " ,]!"));
 
-        act->t1 = t1;
         act->pT2 = t2;
 
+
+      }
+        Token t1 = string_to_token(tokenStrCopy);
+        act->t1 = t1;
         t->type = TOKEN_ADDRESS_CODE;
         t->addressToken = *act;
-      }
     }
     add_ArrayList_element(tokens, t);
     tokenStr = strtok(NULL, " ,");
