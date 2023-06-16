@@ -42,6 +42,7 @@ struct Token;
 typedef struct Token *Token;
 
 typedef struct {
+  bool exclamation;
   Token t1;
   Token pT2;
 } AddressCodeToken;

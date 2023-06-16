@@ -154,14 +154,19 @@ static Token string_to_token(char *str) {
 
 }
 
-AddressCodePossibilities check_if_address_code(char *str) {
+AddressCodePossibilities check_if_address_code(char *str, bool *exclamation) {
     if (str[0] != '[') {
         return ADDRESS_CODE_POSSIBILITIES_NOT;
     }
 
     int length = (int) strlen(str);
 
-    if (str[length - 1] == ']' || str[length - 1] == '!') {
+    if (str[length - 1] == ']'){
+        return ADDRESS_CODE_POSSIBILITIES_ONE;
+    }
+
+    if(str[length - 1] == '!') {
+        *exclamation = 1;
         return ADDRESS_CODE_POSSIBILITIES_ONE;
     }
 
@@ -179,7 +184,8 @@ ArrayList *tokenize(char *line) {
         // Create a copy of the token
         char *tokenStrCopy = strdup(tokenStr);
 
-        AddressCodePossibilities result = check_if_address_code(tokenStrCopy);
+        bool exclamation = 0;
+        AddressCodePossibilities result = check_if_address_code(tokenStrCopy, &exclamation);
         Token t;
 
         if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
@@ -190,6 +196,7 @@ ArrayList *tokenize(char *line) {
 
             AddressCodeToken *act = NEW (AddressCodeToken);
             assert(act != NULL);
+            act->exclamation = exclamation;
             tokenStrCopy++; //remove the "\["
             Token t1 = string_to_token(tokenStrCopy);
 
