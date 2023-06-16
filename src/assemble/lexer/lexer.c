@@ -135,7 +135,7 @@ static Token string_to_token(char *str) {
 
 
     //check for register token
-  else if ((str[0] == 'w' || str[0] == 'x')
+  else if ( strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0 || (str[0] == 'w' || str[0] == 'x')
       && ((int) str[1] <= 57 && (int) str[1] >= 48)) {
     RegisterToken *registerToken = NEW (RegisterToken);
     assert(registerToken != NULL);
