@@ -42,9 +42,7 @@ int main(int argc, char **argv) {
         break;
       case Type_madd_msub:
         break;
-      case Type_ldr_str_preIndex_postIndex:
-        break;
-      case Type_ldr_str_unsigned:
+      case Type_ldr_str_preIndex_postIndex_unsignedOffset:
         break;
       case Type_ldr_str_regOffset:
         break;

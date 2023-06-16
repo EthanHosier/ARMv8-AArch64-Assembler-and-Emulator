@@ -24,6 +24,9 @@ TreeMap *first_pass(ArrayList *list) {
 
 static Register *makeRegStruct(char *regString) {
   Register *reg = malloc(sizeof(Register));
+  if (reg == NULL) {
+    IRREPARABLE_MEMORY_ERROR;
+  }
   reg->is_64_bit = regString[0] == 'x';
   reg->register_number = (int) strtol(++regString, NULL, 10);
   return reg;
@@ -32,6 +35,9 @@ static Register *makeRegStruct(char *regString) {
 static Shift *
 makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   Shift *shift = malloc(sizeof(Shift));
+  if (shift == NULL) {
+    IRREPARABLE_MEMORY_ERROR;
+  }
   shift->type = shiftType.instruction;
   shift->amount = magnitude.value;
   return shift;
@@ -46,6 +52,9 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       Token currTok = get_ArrayList_element(line, j);
       if (currTok->type == TOKEN_TYPE_LABEL) {
         Token newTok = malloc(sizeof(struct Token));
+        if (newTok == NULL) {
+          IRREPARABLE_MEMORY_ERROR;
+        }
         newTok->type = TOKEN_TYPE_IMMEDIATE;
         newTok->immediateToken.value =
             *(uint32_t *) get_map(tree, currTok->labelToken.label);
@@ -70,20 +79,20 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->type = Type_nop;
 
     } else if (first_token->type == TOKEN_TYPE_LABEL &&
-        second_token == NULL &&
-        third_token == NULL &&
-        fourth_token == NULL &&
-        fifth_token == NULL &&
-        sixth_token == NULL) {//label
+               second_token == NULL &&
+               third_token == NULL &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL) {//label
 
       break;
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_IMMEDIATE &&
-        third_token == NULL &&
-        fourth_token == NULL &&
-        fifth_token == NULL &&
-        sixth_token == NULL) {//.int, b, b.cond
+               second_token->type == TOKEN_TYPE_IMMEDIATE &&
+               third_token == NULL &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL) {//.int, b, b.cond
 
       returnTree->type = Type_dotInt_b_bCond;
       returnTree->dotInt_b_bCond.instruction =
@@ -91,11 +100,11 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->dotInt_b_bCond.imm = second_token->immediateToken.value;
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_REGISTER &&
-        third_token == NULL &&
-        fourth_token == NULL &&
-        fifth_token == NULL &&
-        sixth_token == NULL) {//br
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token == NULL &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL) {//br
 
       returnTree->type = Type_br;
       returnTree->br.instruction = first_token->instructionToken.instruction;
@@ -103,12 +112,13 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           *makeRegStruct(second_token->registerToken.register_name);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_REGISTER &&
-        third_token->type == TOKEN_TYPE_IMMEDIATE &&
-        ((fourth_token == NULL && fifth_token == NULL) ||
-            (fourth_token->type == TOKEN_TYPE_INSTRUCTION
-                && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
-        sixth_token == NULL) {//ldr, cmp, cmn, neg, negs, movk, movn, movz
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_IMMEDIATE &&
+               ((fourth_token == NULL && fifth_token == NULL) ||
+                  (fourth_token->type == TOKEN_TYPE_INSTRUCTION
+                  && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
+               sixth_token == NULL
+               ) {//ldr, cmp, cmn, neg, negs, movk, movn, movz
 
       returnTree->type = Type_cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit;
       returnTree->cmp_cmn_neg_negs_IMM_movk_movn_movz_ldrlit.instruction =
@@ -122,12 +132,12 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                           fifth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_REGISTER &&
-        third_token->type == TOKEN_TYPE_REGISTER &&
-        ((fourth_token == NULL && fifth_token == NULL) ||
-            (fourth_token->type == TOKEN_TYPE_INSTRUCTION
-                && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
-        sixth_token == NULL) {//cmp, cmn, neg, negs, tst, mov, mvn
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               ((fourth_token == NULL && fifth_token == NULL)
+                  || (fourth_token->type == TOKEN_TYPE_INSTRUCTION
+                  && fifth_token->type == TOKEN_TYPE_IMMEDIATE)) &&
+               sixth_token == NULL) {//cmp, cmn, neg, negs, tst, mov, mvn
 
       returnTree->type = Type_cmp_cmn_neg_negs_REG_tst_mov_mvn;
       returnTree->cmp_cmn_neg_negs_REG_tst_mov_mvn.instruction =
@@ -141,13 +151,13 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           fifth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_REGISTER &&
-        third_token->type == TOKEN_TYPE_REGISTER &&
-        fourth_token->type == TOKEN_TYPE_IMMEDIATE &&
-        ((fifth_token == NULL && sixth_token == NULL) ||
-            (fifth_token->type == TOKEN_TYPE_INSTRUCTION
-                && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
-        ) {//add, adds, sub, subs
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               fourth_token->type == TOKEN_TYPE_IMMEDIATE &&
+               ((fifth_token == NULL && sixth_token == NULL)
+                  || (fifth_token->type == TOKEN_TYPE_INSTRUCTION
+                  && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
+               ) {//add, adds, sub, subs
 
       returnTree->type = Type_add_sub_adds_subs_IMM;
       returnTree->add_sub_adds_subs_IMM.instruction =
@@ -163,13 +173,13 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
                           sixth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-        second_token->type == TOKEN_TYPE_REGISTER &&
-        third_token->type == TOKEN_TYPE_REGISTER &&
-        fourth_token->type == TOKEN_TYPE_REGISTER &&
-        ((fifth_token == NULL && sixth_token == NULL) ||
-            (fifth_token->type == TOKEN_TYPE_INSTRUCTION
-                && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
-        ) {//add, adds, sub, subs, mul, mneg, logic
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_TYPE_REGISTER &&
+               fourth_token->type == TOKEN_TYPE_REGISTER &&
+               ((fifth_token == NULL && sixth_token == NULL)
+                   || (fifth_token->type == TOKEN_TYPE_INSTRUCTION
+                   && sixth_token->type == TOKEN_TYPE_IMMEDIATE))
+               ) {//add, adds, sub, subs, mul, mneg, logic
 
       returnTree->type = Type_add_sub_adds_subs_REG_mul_mneg_logical;
       returnTree->add_sub_adds_subs_REG_mul_mneg_logical.instruction =
@@ -193,17 +203,87 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
 
       returnTree->type = Type_madd_msub;
       returnTree->madd_msub.instruction =
-          first_token->instructionToken.instruction;
+              first_token->instructionToken.instruction;
       returnTree->madd_msub.R1 =
-          *makeRegStruct(second_token->registerToken.register_name);
+              *makeRegStruct(second_token->registerToken.register_name);
       returnTree->madd_msub.R2 =
-          *makeRegStruct(third_token->registerToken.register_name);
+              *makeRegStruct(third_token->registerToken.register_name);
       returnTree->madd_msub.R3 =
-          *makeRegStruct(fourth_token->registerToken.register_name);
+              *makeRegStruct(fourth_token->registerToken.register_name);
       returnTree->madd_msub.R4 =
-          *makeRegStruct(fifth_token->registerToken.register_name);
+              *makeRegStruct(fifth_token->registerToken.register_name);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_ADDRESS_CODE &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL &&
+               third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER &&
+               third_token->addressToken.pT2->type == TOKEN_TYPE_IMMEDIATE
+               ) {//Pre-Index, Unsigned Offset
+
+      returnTree->type = Type_ldr_str_preIndex_postIndex_unsignedOffset;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.instruction =
+              first_token->instructionToken.instruction;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
+              *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
+              *makeRegStruct(third_token->addressToken.
+                             t1->registerToken.register_name);
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.imm =
+              third_token->addressToken.pT2->immediateToken.value;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.addrType =
+              (third_token->addressToken.exclamation)
+                  ? PRE_INDEX : UNSIGNED_OFFSET;
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_ADDRESS_CODE &&
+               fourth_token == NULL &&
+               fifth_token == NULL &&
+               sixth_token == NULL &&
+               third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER &&
+               third_token->addressToken.pT2->type == TOKEN_TYPE_REGISTER
+               ) {//Reg
+
+      returnTree->type = Type_ldr_str_regOffset;
+      returnTree->ldr_str_regOffset.instruction =
+              first_token->instructionToken.instruction;
+      returnTree->ldr_str_regOffset.R1 =
+              *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->ldr_str_regOffset.R2 =
+              *makeRegStruct(third_token->addressToken.
+                             t1->registerToken.register_name);
+      returnTree->ldr_str_regOffset.R3 =
+              *makeRegStruct(fourth_token->addressToken.
+                             pT2->registerToken.register_name);
+
+    } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+               second_token->type == TOKEN_TYPE_REGISTER &&
+               third_token->type == TOKEN_ADDRESS_CODE &&
+               fourth_token->type == TOKEN_TYPE_IMMEDIATE &&
+               fifth_token == NULL &&
+               sixth_token == NULL &&
+               third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER
+               ) {//Post-Index
+
+      returnTree->type = Type_ldr_str_preIndex_postIndex_unsignedOffset;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.instruction =
+              first_token->instructionToken.instruction;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R1 =
+              *makeRegStruct(second_token->registerToken.register_name);
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.R2 =
+              *makeRegStruct(third_token->addressToken.
+                             t1->registerToken.register_name);
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.imm =
+              fourth_token->immediateToken.value;
+      returnTree->ldr_str_preIndex_postIndex_unsignedOffset.addrType =
+              POST_INDEX;
+
 
     } else {
+      perror("invalid syntax");
       exit(EXIT_FAILURE);
     }
     add_ArrayList_element(returnArray, returnTree);

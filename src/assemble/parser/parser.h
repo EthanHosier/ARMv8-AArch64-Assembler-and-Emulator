@@ -7,6 +7,12 @@
 #include "../../TreeMap.h"
 #include "../register.h"
 
+typedef enum {
+    POST_INDEX,
+    PRE_INDEX,
+    UNSIGNED_OFFSET
+} Mem_Addr_Type_Reg_Reg_Imm;
+
 typedef struct {
   char *instruction;
   uint32_t imm;
@@ -58,23 +64,16 @@ typedef struct {
 typedef struct {
   char *instruction;
   Register R1;
-  Register W2;//64Bit
-  int32_t simm;
-  bool isPreIndexed;
-} Tree_ldr_str_preIndex_postIndex;
-
-typedef struct {
-  char *instruction;
-  Register R1;
-  Register W2;//64Bit
+  Register R2;//64Bit
   uint32_t imm;
-} Tree_ldr_str_unsigned;
+  Mem_Addr_Type_Reg_Reg_Imm addrType;
+} Tree_ldr_str_preIndex_postIndex_unsignedOffset;
 
 typedef struct {
   char *instruction;
   Register R1;
-  Register W2;//64Bit
-  Register W3;//64Bit
+  Register R2;//64Bit
+  Register R3;//64Bit
 } Tree_ldr_str_regOffset;
 
 typedef enum {
@@ -85,8 +84,7 @@ typedef enum {
   Type_add_sub_adds_subs_IMM,
   Type_add_sub_adds_subs_REG_mul_mneg_logical,
   Type_madd_msub,
-  Type_ldr_str_preIndex_postIndex,
-  Type_ldr_str_unsigned,
+  Type_ldr_str_preIndex_postIndex_unsignedOffset,
   Type_ldr_str_regOffset,
   Type_nop
 } tree_type;
@@ -103,8 +101,7 @@ typedef struct {
     Tree_add_sub_adds_subs_REG_mul_mneg_logical
         add_sub_adds_subs_REG_mul_mneg_logical;
     Tree_madd_msub madd_msub;
-    Tree_ldr_str_preIndex_postIndex ldr_str_preIndex_postIndex;
-    Tree_ldr_str_unsigned ldr_str_unsigned;
+    Tree_ldr_str_preIndex_postIndex_unsignedOffset ldr_str_preIndex_postIndex_unsignedOffset;
     Tree_ldr_str_regOffset ldr_str_regOffset;
   };
 } Parser_Tree;
