@@ -195,9 +195,12 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     for (int j = 1; j < line->size; j++) {
       Token currTok = get_ArrayList_element(line, j);
       if (currTok->type == TOKEN_TYPE_LABEL) {
+        char *old_label_string = strdup(currTok->labelToken.label);
+        free(currTok->labelToken.label);
         currTok->type = TOKEN_TYPE_IMMEDIATE;
         currTok->immediateToken.value =
-            get_map_int(tree, currTok->labelToken.label);
+            get_map_int(tree, old_label_string);
+        free(old_label_string);
       }
     }
     if (first_token == NULL &&

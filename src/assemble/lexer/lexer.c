@@ -10,6 +10,31 @@
 
 static TreeMap *instructionsBST = NULL;
 
+static void free_token(void *input) {
+  Token token = (Token) input;
+  switch (token->type) {
+    case TOKEN_TYPE_INSTRUCTION:
+      free(token->instructionToken.instruction);
+      break;
+    case TOKEN_TYPE_REGISTER:
+      free(token->registerToken.register_name);
+      break;
+    case TOKEN_TYPE_LABEL:
+      free(token->labelToken.label);
+      break;
+    case TOKEN_ADDRESS_CODE:
+      if (token->addressToken.t1->type == TOKEN_TYPE_REGISTER) {
+        free(token->addressToken.t1->registerToken.register_name);
+        free(token->addressToken.t1);
+      }
+      free_token(token->addressToken.pT2);
+      break;
+    default:
+      break;
+  }
+  free(token);
+}
+
 static void initialiseInstructionsBST(void) {
   instructionsBST = create_map(NULL, free, compare_strings_map);
   if (instructionsBST == NULL) {
@@ -168,7 +193,7 @@ check_if_address_code(char *str, bool *exclamation) {
 ArrayList *tokenize(char *line) {
   initialiseInstructionsBST();
 
-  ArrayList *tokens = create_ArrayList(print_Token, &free);
+  ArrayList *tokens = create_ArrayList(print_Token, free_token);
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
