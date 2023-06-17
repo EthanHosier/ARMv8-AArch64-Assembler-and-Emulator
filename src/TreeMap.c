@@ -126,3 +126,13 @@ void free_map(void *input) {
 int compare_strings_map(void *key1, void *key2) {
   return strcmp(key1, key2);
 }
+
+void put_map_int_key(TreeMap *map, int key, void *value) {
+  int *p = malloc(sizeof(int));
+  *p = key;
+  put_map(map, p, value);
+}
+
+void *get_map_int_key(TreeMap *map, int key) {
+  return get_map(map, &key);
+}

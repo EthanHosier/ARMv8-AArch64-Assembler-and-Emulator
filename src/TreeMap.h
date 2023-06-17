@@ -38,4 +38,8 @@ extern int get_map_int(TreeMap *map, void *key);
 
 extern void put_map_int(TreeMap *map, void *key, int value);
 
+extern void put_map_int_key(TreeMap *map, int key, void *value);
+
+extern void *get_map_int_key(TreeMap *map, int key);
+
 #endif

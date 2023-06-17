@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <inttypes.h>
 #include "lexer.h"
 #include "../../TreeMap.h"
 
@@ -82,32 +83,37 @@ static void initialiseInstructionsBST(void) {
   }
 }
 
+static int compare_ints(void *input1, void *input2) {
+  int *int1 = (int *) input1;
+  int *int2 = (int *) input2;
+  if (*int1 < *int2) return -1;
+  if (*int1 > *int2) return 1;
+  return 0;
+}
+
 static void print_Token(void *element) {
-  char **strs = malloc(6 * sizeof(char *));
-  strs[0] = "INSTRUCTION";
-  strs[1] = "IMMEDIATE";
-  strs[2] = "REGISTER";
-  strs[3] = "LABEL";
-  strs[4] = "DOT_INT";
-  strs[5] = "ADDRESS_CODE";
-
   Token t = (Token) element;
-  int num = t->type;
-  char *type = strs[num];
 
-  if (strcmp(type, "ADDRESS_CODE") == 0) {
-    printf("ADDRESS_CODE@[%s: %s",
-           strs[(t->addressToken.t1->type)],
+  TreeMap *map = create_map(free, NULL, compare_ints);
+  put_map_int_key(map, TOKEN_TYPE_IMMEDIATE, "Immediate");
+  put_map_int_key(map, TOKEN_TYPE_INSTRUCTION, "Instruction");
+  put_map_int_key(map, TOKEN_TYPE_REGISTER, "Register");
+  put_map_int_key(map, TOKEN_TYPE_LABEL, "Label");
+  put_map_int_key(map, TOKEN_TYPE_DOT_INT, ".int");
+  char *type = get_map_int_key(map, t->type);
+  if (t->type == TOKEN_ADDRESS_CODE) {
+    printf("Address@[%s: %s",
+           (char *) get_map_int_key(map, t->addressToken.t1->type),
            t->addressToken.t1->registerToken.register_name);
     if (t->addressToken.pT2 != NULL) {
-      char *pt2Type = strs[t->addressToken.pT2->type];
-      if (strcmp(pt2Type, "REGISTER") == 0) {
+      char *pt2Type = get_map_int_key(map, t->addressToken.pT2->type);
+      if (t->addressToken.pT2->type == TOKEN_TYPE_REGISTER) {
         printf(", %s: %s",
-               strs[(t->addressToken.pT2->type)],
+               (char *) get_map_int_key(map, t->addressToken.pT2->type),
                t->addressToken.pT2->registerToken.register_name);
-      } else if (strcmp(pt2Type, "IMMEDIATE") == 0) {
+      } else if (t->addressToken.pT2->type == TOKEN_TYPE_IMMEDIATE) {
         printf(", %s: %d",
-               strs[(t->addressToken.pT2->type)],
+               (char *) get_map_int_key(map, t->addressToken.pT2->type),
                t->addressToken.pT2->immediateToken.value);
       }
     }
@@ -115,10 +121,18 @@ static void print_Token(void *element) {
     if (t->addressToken.exclamation) printf("!");
 
   } else {
-    printf("%s", type);
+    printf("%s: ", type);
+    if (t->type == TOKEN_TYPE_INSTRUCTION)
+      printf("%s",
+             t->instructionToken.instruction);
+    else if (t->type == TOKEN_TYPE_REGISTER)
+      printf("%s: ", t->registerToken.register_name);
+    else if (t->type == TOKEN_TYPE_IMMEDIATE)
+      printf("%"PRIu32, t->immediateToken.value);
+    else if (t->type == TOKEN_TYPE_LABEL)
+      printf("%s", t->labelToken.label);
   }
-
-  free(strs);
+  free_map(map);
 }
 
 
