@@ -11,6 +11,7 @@
 static TreeMap *instructionsBST = NULL;
 
 static void free_token(void *input) {
+  if (input == NULL) return;
   Token token = (Token) input;
   switch (token->type) {
     case TOKEN_TYPE_INSTRUCTION:

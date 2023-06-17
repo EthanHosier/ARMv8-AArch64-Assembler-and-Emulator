@@ -3,7 +3,7 @@
 #include "string.h"
 
 int main(int argc, char **argv) {
-  char line[] = "ldr x20, [x5, #8]";
+  char line[] = "ldr x20, [x5], #8";
   int number_of_lines = 1;
   char **lines =
       malloc(number_of_lines * sizeof(char *)); //readLines(file_name);
