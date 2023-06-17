@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
   //char line[] = "ldr x20, [x5, #8]"; // unsigned offset test
   //char line[] = "ldr x20, [x5, x8]"; // reg test
   char line1[] = "foo";
-  char line2[] = "b.eq foo";
+  char line2[] = "ldr x0, foo";
   int number_of_lines = 2;
   char **lines =
       malloc(number_of_lines * sizeof(char *)); //readLines(file_name);

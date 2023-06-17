@@ -246,9 +246,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->R1 =
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->imm = make_new_int(third_token->immediateToken.value);
-      returnTree->shift =
-          makeShiftStruct(fourth_token->instructionToken,
-                          fifth_token->immediateToken);
+      if (returnTree->type != Type_ldr_literal)
+        returnTree->shift =
+            makeShiftStruct(fourth_token->instructionToken,
+                            fifth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
