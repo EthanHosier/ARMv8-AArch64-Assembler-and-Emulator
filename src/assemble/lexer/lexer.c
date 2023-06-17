@@ -212,14 +212,15 @@ ArrayList *tokenize(char *line) {
       t = NEW(struct Token);
       assert(t != NULL);
       t->addressToken.exclamation = exclamation;
-      tokenStrCopy++; //remove the "\["
-      Token t1 = string_to_token(tokenStrCopy);
+      char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
+      Token t1 = string_to_token(new_value);
+      free(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
-        int len = (int) strlen(tokenStrCopy);
+        int len = (int) strlen(new_value);
         if (exclamation) {
-          tokenStrCopy[len - 2] = '\0';
+          new_value[len - 2] = '\0';
         } else {
-          tokenStrCopy[len - 1] = '\0';
+          new_value[len - 1] = '\0';
         }
 
       } else {
