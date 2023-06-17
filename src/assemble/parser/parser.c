@@ -360,7 +360,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           makeRegStruct(third_token->addressToken.
               t1->registerToken.register_name);
       returnTree->R3 =
-          makeRegStruct(fourth_token->addressToken.
+          makeRegStruct(third_token->addressToken.
               pT2->registerToken.register_name);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&

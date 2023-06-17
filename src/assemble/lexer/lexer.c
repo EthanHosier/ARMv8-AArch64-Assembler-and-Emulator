@@ -140,8 +140,8 @@ static Token string_to_token(char *str) {
     //check for '#' immediate token
   else if (str[0] == '#' || str[0] == '0') {
     if (str[0] == '#') {
-      str++; //get rid of '#'
-      t->immediateToken.value = (uint32_t) atoi(str);
+      t->immediateToken.value = (uint32_t) atoi(++str); //get rid of '#'
+      free(--str);
     } else {
       //str[0] == '0'
       t->immediateToken.value = (uint32_t) strtol(str, NULL, 16);
@@ -227,7 +227,7 @@ ArrayList *tokenize(char *line) {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]!");
         tokenStrCopy = strdup(tokenStr);
-        Token t2 = string_to_token(strtok(tokenStrCopy, " ,]!"));
+        Token t2 = string_to_token(tokenStrCopy);
 
         t->addressToken.pT2 = t2;
 
