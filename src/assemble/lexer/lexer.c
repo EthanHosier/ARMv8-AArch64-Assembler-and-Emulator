@@ -109,11 +109,11 @@ static void print_Token(void *element) {
       char *pt2Type = get_map_int_key(map, t->addressToken.pT2->type);
       if (t->addressToken.pT2->type == TOKEN_TYPE_REGISTER) {
         printf(", %s: %s",
-               (char *) get_map_int_key(map, t->addressToken.pT2->type),
+               pt2Type,
                t->addressToken.pT2->registerToken.register_name);
       } else if (t->addressToken.pT2->type == TOKEN_TYPE_IMMEDIATE) {
         printf(", %s: %d",
-               (char *) get_map_int_key(map, t->addressToken.pT2->type),
+               pt2Type,
                t->addressToken.pT2->immediateToken.value);
       }
     }
