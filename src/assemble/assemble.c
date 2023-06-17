@@ -92,6 +92,7 @@ uint32_t buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
 
 uint32_t buildBinaryBranch(void) {
   //TODO
+  return -1;
 }
 
 uint32_t buildNOP(void) {

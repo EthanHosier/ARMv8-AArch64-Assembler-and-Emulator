@@ -161,7 +161,7 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   return shift;
 }
 
-static Parser_Tree *make_parser_tree() {
+static Parser_Tree *make_parser_tree(void) {
   Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
   assert(returnTree != NULL);
   returnTree->R1 = NULL;
@@ -170,6 +170,7 @@ static Parser_Tree *make_parser_tree() {
   returnTree->R4 = NULL;
   returnTree->shift = NULL;
   returnTree->imm = NULL;
+  return returnTree;
 }
 
 ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
@@ -381,7 +382,14 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
               t1->registerToken.register_name);
       returnTree->imm = make_new_int(fourth_token->immediateToken.value);
 
-    } else {
+    } else if (first_token->type == TOKEN_TYPE_DOT_INT &&
+        second_token->type == TOKEN_TYPE_IMMEDIATE &&
+        third_token == NULL &&
+        fourth_token == NULL &&
+        fifth_token == NULL &&
+        sixth_token == NULL)
+      returnTree->type = Type_dot_int;
+    else {
       perror("invalid syntax");
       exit(EXIT_FAILURE);
     }

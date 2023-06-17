@@ -130,6 +130,7 @@ static Token string_to_token(char *str) {
 
   if (strcmp(str, ".int") == 0) {
     t->type = TOKEN_TYPE_DOT_INT;
+    free(str);
   }
 
     //check for instruction token
@@ -146,6 +147,7 @@ static Token string_to_token(char *str) {
     } else {
       //str[0] == '0'
       t->immediateToken.value = (uint32_t) strtol(str, NULL, 16);
+      free(str);
     }
     t->type = TOKEN_TYPE_IMMEDIATE;
   }
