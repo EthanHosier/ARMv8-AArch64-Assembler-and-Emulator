@@ -217,6 +217,7 @@ ArrayList *tokenize(char *line) {
       Token t1 = string_to_token(new_value);
       free(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
+        t->addressToken.pT2 = NULL;
         int len = (int) strlen(new_value);
         if (exclamation) {
           new_value[len - 2] = '\0';
