@@ -172,22 +172,14 @@ static Token string_to_token(char *str) {
 }
 
 static AddressCodePossibilities
-check_if_address_code(char *str, bool *exclamation) {
+check_if_address_code(char *str) {
   if (str[0] != '[') {
     return ADDRESS_CODE_POSSIBILITIES_NOT;
   }
-
   int length = (int) strlen(str);
-
   if (str[length - 1] == ']') {
     return ADDRESS_CODE_POSSIBILITIES_ONE;
   }
-
-  if (str[length - 1] == '!') {
-    *exclamation = 1;
-    return ADDRESS_CODE_POSSIBILITIES_ONE;
-  }
-
   return ADDRESS_CODE_POSSIBILITIES_TWO;
 }
 
@@ -198,13 +190,12 @@ ArrayList *tokenize(char *line) {
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
-  while (tokenStr != NULL) {
+  while (true) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
 
-    bool exclamation = 0;
     AddressCodePossibilities
-        result = check_if_address_code(tokenStrCopy, &exclamation);
+        result = check_if_address_code(tokenStrCopy);
     Token t;
 
     if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
@@ -212,22 +203,15 @@ ArrayList *tokenize(char *line) {
     } else {
       t = NEW(struct Token);
       assert(t != NULL);
-      t->addressToken.exclamation = exclamation;
       char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
       Token t1 = string_to_token(new_value);
       free(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         t->addressToken.pT2 = NULL;
-        int len = (int) strlen(new_value);
-        if (exclamation) {
-          new_value[len - 2] = '\0';
-        } else {
-          new_value[len - 1] = '\0';
-        }
-
+        new_value[strlen(new_value) - 1] = '\0';
       } else {
         //ADDRESS_CODE_POSSIBILITIES_TWO
-        tokenStr = strtok(NULL, " ,]!");
+        tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
         Token t2 = string_to_token(tokenStrCopy);
 
@@ -235,10 +219,16 @@ ArrayList *tokenize(char *line) {
 
       }
       t->addressToken.t1 = t1;
+      t->addressToken.exclamation = false;
       t->type = TOKEN_ADDRESS_CODE;
     }
     add_ArrayList_element(tokens, t);
     tokenStr = strtok(NULL, " ,");
+    if (tokenStr == NULL) break;
+    if (strcmp(tokenStr, "!") == 0) {
+      t->addressToken.exclamation = true;
+      break;
+    }
   }
   free_map(instructionsBST);
   return tokens;

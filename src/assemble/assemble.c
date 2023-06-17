@@ -3,11 +3,17 @@
 #include "string.h"
 
 int main(int argc, char **argv) {
-  char line[] = "ldr x20, [x5], #8";
-  int number_of_lines = 1;
+  //char line[] = "ldr x20, [x5] #8"; // post-index test
+  //char line[] = "ldr x20, [x5, #8]!"; // pre-index test
+  //char line[] = "ldr x20, [x5, #8]"; // unsigned offset test
+  //char line[] = "ldr x20, [x5, x8]"; // reg test
+  char line1[] = "foo";
+  char line2[] = "b.eq foo";
+  int number_of_lines = 2;
   char **lines =
       malloc(number_of_lines * sizeof(char *)); //readLines(file_name);
-  lines[0] = line;
+  lines[0] = line1;
+  lines[1] = line2;
   ArrayList *token_lines = create_ArrayList(NULL, &free_ArrayList);
   for (int i = 0; i < number_of_lines; i++) {// maybe works
     ArrayList *tokens = tokenize(lines[i]);
