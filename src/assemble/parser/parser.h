@@ -7,6 +7,11 @@
 #include "../../TreeMap.h"
 #include "../register.h"
 
+#define PARSE(tokenized_lines) \
+TreeMap *label_identifiers = first_pass(tokenized_lines);\
+ArrayList *trees = second_pass(tokenized_lines, label_identifiers);\
+free_ArrayList(tokenized_lines);\
+free_map(label_identifiers)\
 
 typedef enum {
   Type_add_imm,

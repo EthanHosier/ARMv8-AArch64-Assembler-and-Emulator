@@ -3,28 +3,17 @@
 #include "string.h"
 
 int main(int argc, char **argv) {
-  //char line[] = "ldr x20, [x5] #8"; // post-index test
+  char line[] = "ldr x20, [x5] #8"; // post-index test
   //char line[] = "ldr x20, [x5, #8]!"; // pre-index test
   //char line[] = "ldr x20, [x5, #8]"; // unsigned offset test
   //char line[] = "ldr x20, [x5, x8]"; // reg test
-  char line1[] = "foo";
-  char line2[] = "ldr x0, foo";
-  int number_of_lines = 2;
-  char **lines =
-      malloc(number_of_lines * sizeof(char *)); //readLines(file_name);
-  lines[0] = line1;
-  lines[1] = line2;
-  ArrayList *token_lines = create_ArrayList(NULL, &free_ArrayList);
-  for (int i = 0; i < number_of_lines; i++) {// maybe works
-    ArrayList *tokens = tokenize(lines[i]);
-    add_ArrayList_element(token_lines, tokens);
-    print_ArrayList_elements(tokens);
-  }
-  free(lines);
-  TreeMap *label_identifiers = first_pass(token_lines);
-  ArrayList *trees = second_pass(token_lines, label_identifiers);
-  free_ArrayList(token_lines);
-  free_map(label_identifiers);
+  //char line1[] = "foo";
+  //char line2[] = "ldr x0, foo";
+  ArrayList *lines = create_ArrayList(NULL, NULL);
+  add_ArrayList_element(lines, line); // read from files
+  ArrayList *tokenized_lines = tokenize(lines);
+  free_ArrayList(lines);
+  PARSE(tokenized_lines);
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
   for (int i = 0; i < trees->size; i++) {
     //Parser_Tree *tree = get_ArrayList_element(trees, i);

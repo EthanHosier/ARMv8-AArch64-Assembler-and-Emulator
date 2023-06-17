@@ -185,7 +185,7 @@ check_if_address_code(char *str) {
   return ADDRESS_CODE_POSSIBILITIES_TWO;
 }
 
-ArrayList *tokenize(char *line) {
+static ArrayList *tokenize_line(char *line) {
   initialiseInstructionsBST();
 
   ArrayList *tokens = create_ArrayList(print_Token, free_token);
@@ -237,4 +237,13 @@ ArrayList *tokenize(char *line) {
 
 }
 
+ArrayList *tokenize(ArrayList *lines) {
+  ArrayList *new = create_ArrayList(NULL, &free_ArrayList);
+  for (int i = 0; i < lines->size; i++) {// maybe works
+    ArrayList *tokens = tokenize(get_ArrayList_element(lines, i));
+    add_ArrayList_element(new, tokens);
+    print_ArrayList_elements(tokens);
+  }
+  return new;
+}
 
