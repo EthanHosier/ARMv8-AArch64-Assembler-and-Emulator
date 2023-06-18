@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include <strings.h>
+#include <string.h>
 
 static void printBinaryHelper(uint32_t val, FILE *fileOut) {
   uint32_t mask = 1;
