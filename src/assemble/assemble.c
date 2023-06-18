@@ -3,6 +3,7 @@
 #include "string.h"
 #include <stdio.h>
 #include "decoder/decoder.h"
+#include "io/io.h"
 
 int main(int argc, char **argv) {
   //char line[] = "ldr x20, [x5] #8"; // post-index test
@@ -13,16 +14,7 @@ int main(int argc, char **argv) {
   //char line2[] = "ldr x0, foo";
   ArrayList *lines = create_ArrayList(NULL, NULL);
   //add_ArrayList_element(lines, line);
-  FILE *fileIn = fopen(argv[1], "r");
-  if (fileIn == NULL) {
-    printf("Failed to open the file.\n");
-    return EXIT_FAILURE;
-  }
-  char buffer[256];
-  while (fgets(buffer, sizeof(buffer), fileIn) != NULL) {
-    add_ArrayList_element(lines, buffer); // read from files
-  }
-  fclose(fileIn);
+  readFileToArray(argv[1], lines);
   ArrayList *tokenized_lines = tokenize(lines);
   free_ArrayList(lines);
   PARSE(tokenized_lines);
@@ -34,16 +26,7 @@ int main(int argc, char **argv) {
     add_ArrayList_element(binaryLines, outputVal);
   }
   free_ArrayList(trees);
-  FILE *fileOut = fopen(argv[2], "w");
-  if (fileOut == NULL) {
-    printf("Failed to open the file.\n");
-    return EXIT_FAILURE;
-  }
-  for (int i = 0; i < binaryLines->size; i++) {
-    for (int j = 0; j < 32; j++) {
-      fprintf(fileOut, "%b", *((uint32_t *) get_ArrayList_element(binaryLines, i)));
-    }
-  }
+  printBinary(binaryLines, argv[2]);
   free_ArrayList(trees);
   return EXIT_SUCCESS;
 }
