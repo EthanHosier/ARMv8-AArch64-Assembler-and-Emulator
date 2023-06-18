@@ -62,7 +62,7 @@ static uint32_t *buildAddAddsSubSubsReg(Parser_Tree *tree) {
   uint32_t m = 0;
   uint32_t opr = 8 | ((tree->shift == NULL) ? 0 : tree->shift->type) << 1;//enum
   uint32_t rm = tree->R3->register_number;
-  uint32_t operand = tree->shift->amount;
+  uint32_t operand = (tree->shift != NULL) ? (tree->shift->amount) : 0;
   uint32_t rn = tree->R2->register_number;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPReg(sf, opc, m, opr, rm, operand, rn, rd);
@@ -76,7 +76,7 @@ static uint32_t *buildAndAndsBicBicsEorOrrEonOrn(Parser_Tree *tree) {
   uint32_t opr =
       ((tree->shift == NULL) ? 0 : tree->shift->type) << 1 | (opc_n & 1);//enum
   uint32_t rm = tree->R3->register_number;
-  uint32_t operand = (tree->shift!=NULL) ? (tree->shift->amount) : 0;
+  uint32_t operand = (tree->shift != NULL) ? (tree->shift->amount) : 0;
   uint32_t rn = tree->R2->register_number;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPReg(sf, opc, m, opr, rm, operand, rn, rd);
@@ -153,7 +153,7 @@ static uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
   uint32_t sh = tree->shift != NULL;
   uint32_t imm12 = *(tree->imm);
   uint32_t rn = tree->R2->register_number;
-  uint32_t operand = sh << (22-5) | imm12 << (10-5) | rn;
+  uint32_t operand = sh << (22 - 5) | imm12 << (10 - 5) | rn;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPImm(sf, opc, opi, operand, rd);
 }
@@ -167,7 +167,9 @@ static uint32_t *cmp_cmn_imm(Parser_Tree *tree) {
 
 static uint32_t *cmp_cmn_reg(Parser_Tree *tree) {
   tree->type = (tree->type == Type_cmp_reg) ? Type_subs_imm : Type_adds_imm;
+  Register *temp = tree->R2;
   tree->R2 = tree->R1;
+  tree->R3 = temp;
   tree->R1 = createZeroRegister(tree->R1->is_64_bit);
   return buildAddAddsSubSubsReg(tree);
 }

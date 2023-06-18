@@ -22,14 +22,24 @@ void printBinary(ArrayList *binaryLines, char *fileName) {
   FILE *fileOut = fopen(fileName, "wb");
   if (fileOut == NULL) {
     printf("Failed to open the file.\n");
-      exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   for (int i = 0; i < binaryLines->size; i++) {
-    uint32_t element = *(uint32_t*)get_ArrayList_element(binaryLines, i);
-      printBinaryHelper(element, fileOut);
+    uint32_t element = *(uint32_t *) get_ArrayList_element(binaryLines, i);
+    printBinaryHelper(element, fileOut);
   }
   fclose(fileOut);
+}
+
+static bool contains_only_whitespace(const char *str) {
+  while (*str != '\0') {
+    if (*str != ' ' && *str != '\n') {
+      return false;
+    }
+    str++;
+  }
+  return true;
 }
 
 void readFileToArray(char *fileName, ArrayList *lines) {
@@ -38,10 +48,10 @@ void readFileToArray(char *fileName, ArrayList *lines) {
     printf("Failed to open the file.\n");
     exit(EXIT_FAILURE);
   }
-  char* buffer = malloc(256*sizeof (char));
+  char *buffer = malloc(256 * sizeof(char));
   while (fgets(buffer, 256, fileIn) != NULL) {
-    if(buffer[0]=='\n') continue;
-    buffer[strlen(buffer)-1]='\0';
+    if (contains_only_whitespace(buffer)) continue;
+    buffer[strlen(buffer) - 1] = '\0';
     add_ArrayList_element(lines, strdup(buffer)); // read from files
   }
   free(buffer);

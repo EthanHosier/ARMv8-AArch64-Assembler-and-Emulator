@@ -14,12 +14,14 @@ TreeMap *first_pass(ArrayList *list) {
   for (int i = 0; i < list->size; i++) {
     ArrayList *line = get_ArrayList_element(list, i);
     if (line == NULL) return NULL;
-    if(line->size==0) continue;
+    if (line->size == 0) continue;
     Token first_token = get_ArrayList_element(line, 0);
     if (first_token->type == TOKEN_TYPE_LABEL) {
       size_t length = strlen(first_token->labelToken.label);
-      first_token->labelToken.label[length-1]='\0';
-      put_map_int(found_labels, first_token->labelToken.label, instruction_number*4);
+      first_token->labelToken.label[length - 1] = '\0';
+      put_map_int(found_labels,
+                  first_token->labelToken.label,
+                  instruction_number * 4);
       continue;
     }
     instruction_number++;
@@ -209,7 +211,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     Token fourth_token = get_ArrayList_element(line, 3);
     Token fifth_token = get_ArrayList_element(line, 4);
     Token sixth_token = get_ArrayList_element(line, 5);
-    if(first_token==NULL) continue;
+    if (first_token == NULL) continue;
     if (first_token->type == TOKEN_TYPE_LABEL &&
         second_token == NULL &&
         third_token == NULL &&
@@ -232,7 +234,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       }
     }
     if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
-    strcmp(first_token->instructionToken.instruction,"nop")==0 &&
+        strcmp(first_token->instructionToken.instruction, "nop") == 0 &&
         second_token == NULL &&
         third_token == NULL &&
         fourth_token == NULL &&
@@ -292,10 +294,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->R1 =
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
-      if(fourth_token != NULL && fifth_token != NULL)
-      returnTree->shift = makeShiftStruct(
-          fourth_token->instructionToken,
-          fifth_token->immediateToken);
+      if (fourth_token != NULL && fifth_token != NULL)
+        returnTree->shift = makeShiftStruct(
+            fourth_token->instructionToken,
+            fifth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
@@ -311,10 +313,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
       returnTree->imm = make_new_int(fourth_token->immediateToken.value);
-      if(fifth_token != NULL && sixth_token != NULL)
-      returnTree->shift =
-          makeShiftStruct(fifth_token->instructionToken,
-                          sixth_token->immediateToken);
+      if (fifth_token != NULL && sixth_token != NULL)
+        returnTree->shift =
+            makeShiftStruct(fifth_token->instructionToken,
+                            sixth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
@@ -332,10 +334,10 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           makeRegStruct(third_token->registerToken.register_name);
       returnTree->R3 =
           makeRegStruct(fourth_token->registerToken.register_name);
-      if(fifth_token != NULL && sixth_token != NULL)
-      returnTree->shift =
-          makeShiftStruct(fifth_token->instructionToken,
-                          sixth_token->immediateToken);
+      if (fifth_token != NULL && sixth_token != NULL)
+        returnTree->shift =
+            makeShiftStruct(fifth_token->instructionToken,
+                            sixth_token->immediateToken);
 
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&

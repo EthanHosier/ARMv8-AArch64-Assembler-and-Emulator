@@ -251,7 +251,7 @@ static ArrayList *tokenize_line(char *line) {
 ArrayList *tokenize(ArrayList *lines) {
   ArrayList *new = create_ArrayList(print_ArrayList_elements, free_ArrayList);
   for (int i = 0; i < lines->size; i++) {// maybe works
-    void *element= get_ArrayList_element(lines, i);
+    void *element = get_ArrayList_element(lines, i);
     ArrayList *tokens = tokenize_line(element);
     add_ArrayList_element(new, tokens);
     print_ArrayList_elements(tokens);
