@@ -9,7 +9,7 @@ static int get_program_counter(void) {
 }
 
 static int increment_program_counter(void) {
-  program_counter++;
+  return ++program_counter;
 };
 
 static Register *createZeroRegister(bool is64Bit) {
@@ -298,6 +298,9 @@ uint32_t *decoder(Parser_Tree *tree) {
   put_map_int_key(map, Type_neg_imm, neg_negs_imm);
   put_map_int_key(map, Type_negs_imm, neg_negs_imm);
 
+  put_map_int_key(map, Type_neg_reg, neg_negs_reg);
+  put_map_int_key(map, Type_negs_reg, neg_negs_reg);
+
   put_map_int_key(map, Type_and, buildAndAndsBicBicsEorOrrEonOrn);
   put_map_int_key(map, Type_ands, buildAndAndsBicBicsEorOrrEonOrn);
   put_map_int_key(map, Type_bic, buildAndAndsBicBicsEorOrrEonOrn);
@@ -322,6 +325,8 @@ uint32_t *decoder(Parser_Tree *tree) {
 
   put_map_int_key(map, Type_mul, mul_mneg);
   put_map_int_key(map, Type_mneg, mul_mneg);
+
+  put_map_int_key(map, Type_b, b);
 
   put_map_int_key(map, Type_beq, b_cond);
   put_map_int_key(map, Type_bne, b_cond);
