@@ -45,6 +45,10 @@ uint32_t *buildBinaryLoadLiteral(uint32_t sf,
                                 uint32_t simm19,
                                 uint32_t rt);
 
+uint32_t *buildBinaryBranchUnconditional(uint32_t simm26);
+uint32_t *buildBinaryBranchRegister(uint32_t xn);
+uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond);
+
 static Register *createZeroRegister(bool is64Bit);
 
 #endif

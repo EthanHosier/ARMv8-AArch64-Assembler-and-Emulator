@@ -17,7 +17,9 @@ int main(int argc, char **argv) {
   PARSE(tokenized_lines);
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
   ArrayList *binaryLines = create_ArrayList(NULL, free);
+  int programCounter = 0;
   for (int i = 0; i < trees->size; i++) {
+    programCounter += 4;
     Parser_Tree *tree = get_ArrayList_element(trees, i);
     tree_type type = tree->type;
     uint32_t outputVal = 0;
@@ -79,6 +81,19 @@ int main(int argc, char **argv) {
       tree->type = (type == Type_mul) ? Type_madd : Type_msub;
       tree->R4 = createZeroRegister(tree->R1->is_64_bit);
       buildMaddMsub(tree);
+
+    } else if (type == Type_b) {
+      uint32_t simm26 = (*tree->imm - programCounter) / 4;
+      buildBinaryBranchUnconditional(simm26);
+
+    } else if (type == Type_beq || type == Type_bne || type == Type_bge || type == Type_blt || type == Type_bgt || type == Type_ble || type == Type_bal) {
+      uint32_t simm19 = (*tree->imm - programCounter) / 4;
+      uint32_t cond = (type == Type_beq) ? 0 : (type == Type_bne) ? 1 : type - Type_bge;//enum
+      buildBinaryBranchConditional(simm19, cond);
+
+    } else if (type == Type_br) {
+      uint32_t xn = tree->R1->register_number;
+      buildBinaryBranchRegister(xn);
 
     } else {
 
