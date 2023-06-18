@@ -101,6 +101,14 @@ static void discriminator4(Parser_Tree *tree, Token token) {
   put_map_int(map, "subs", Type_subs_reg);
   put_map_int(map, "mul", Type_mul);
   put_map_int(map, "mneg", Type_mneg);
+  put_map_int(map, "and", Type_and);
+  put_map_int(map, "bic", Type_bic);
+  put_map_int(map, "orr", Type_orr);
+  put_map_int(map, "orn", Type_orn);
+  put_map_int(map, "eor", Type_eor);
+  put_map_int(map, "eon", Type_eon);
+  put_map_int(map, "ands", Type_ands);
+  put_map_int(map, "bics", Type_bics);
   tree->type = get_map_int(map, token->instructionToken.instruction);
   free_map(map);
 }
@@ -259,7 +267,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->R1 =
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->imm = make_new_int(third_token->immediateToken.value);
-      if (returnTree->type != Type_ldr_literal)
+      if (fourth_token != NULL && fifth_token != NULL)
         returnTree->shift =
             makeShiftStruct(fourth_token->instructionToken,
                             fifth_token->immediateToken);
@@ -276,6 +284,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->R1 =
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
+      if(fourth_token != NULL && fifth_token != NULL)
       returnTree->shift = makeShiftStruct(
           fourth_token->instructionToken,
           fifth_token->immediateToken);
@@ -294,6 +303,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           makeRegStruct(second_token->registerToken.register_name);
       returnTree->R2 = makeRegStruct(third_token->registerToken.register_name);
       returnTree->imm = make_new_int(fourth_token->immediateToken.value);
+      if(fifth_token != NULL && sixth_token != NULL)
       returnTree->shift =
           makeShiftStruct(fifth_token->instructionToken,
                           sixth_token->immediateToken);
@@ -314,6 +324,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
           makeRegStruct(third_token->registerToken.register_name);
       returnTree->R3 =
           makeRegStruct(fourth_token->registerToken.register_name);
+      if(fifth_token != NULL && sixth_token != NULL)
       returnTree->shift =
           makeShiftStruct(fifth_token->instructionToken,
                           sixth_token->immediateToken);

@@ -36,10 +36,11 @@ void readFileToArray(char *fileName, ArrayList *lines) {
     exit(EXIT_FAILURE);
   }
   char* buffer = malloc(256*sizeof (char));
-  while (fgets(buffer, sizeof(buffer), fileIn) != NULL) {
+  while (fgets(buffer, 256, fileIn) != NULL) {
     if(buffer[0]=='\n') continue;
     buffer[strlen(buffer)-1]='\0';
-    add_ArrayList_element(lines, buffer); // read from files
+    add_ArrayList_element(lines, strdup(buffer)); // read from files
   }
+  free(buffer);
   fclose(fileIn);
 }

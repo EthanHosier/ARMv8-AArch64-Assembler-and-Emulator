@@ -27,6 +27,5 @@ int main(int argc, char **argv) {
   }
   free_ArrayList(trees);
   printBinary(binaryLines, argv[2]);
-  free_ArrayList(trees);
   return EXIT_SUCCESS;
 }

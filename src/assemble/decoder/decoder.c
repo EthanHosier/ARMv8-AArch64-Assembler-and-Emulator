@@ -76,7 +76,7 @@ static uint32_t *buildAndAndsBicBicsEorOrrEonOrn(Parser_Tree *tree) {
   uint32_t opr =
       ((tree->shift == NULL) ? 0 : tree->shift->type) << 1 | (opc_n & 1);//enum
   uint32_t rm = tree->R3->register_number;
-  uint32_t operand = tree->shift->amount;
+  uint32_t operand = (tree->shift!=NULL) ? (tree->shift->amount) : 0;
   uint32_t rn = tree->R2->register_number;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPReg(sf, opc, m, opr, rm, operand, rn, rd);
@@ -278,7 +278,7 @@ static uint32_t *buildMovkMovnMovz(Parser_Tree *tree) {
 
 uint32_t *decoder(Parser_Tree *tree) {
   uint32_t *outputVal;
-  TreeMap *map = create_map(free, free, compare_ints_map);
+  TreeMap *map = create_map(free, NULL, compare_ints_map);
   put_map_int_key(map, Type_add_imm, buildAddAddsSubSubsImm);
   put_map_int_key(map, Type_adds_imm, buildAddAddsSubSubsImm);
   put_map_int_key(map, Type_sub_imm, buildAddAddsSubSubsImm);
