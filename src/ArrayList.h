@@ -16,7 +16,7 @@ typedef struct {
   free_ArrayList_element free_element;
 } ArrayList;
 
-extern void print_ArrayList_elements(ArrayList *);
+extern void print_ArrayList_elements(void *);
 
 extern void free_ArrayList(void *);
 

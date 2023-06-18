@@ -4,7 +4,8 @@
 #include "global.h"
 #include <stdio.h>
 
-void print_ArrayList_elements(ArrayList *list) {
+void print_ArrayList_elements(void *input) {
+  ArrayList *list = (ArrayList*)input;
   assert(list->print_element != NULL);
   putc('[', stdout);
   for (int i = 0; i < list->size; i++) {
