@@ -140,6 +140,18 @@ static void discriminator9(Parser_Tree *tree, Token token) {
   else tree->type = Type_str_reg;
 }
 
+static shift_type discriminator10(char *shift) {
+  // Type_lsl_lsr_asr_ror
+  TreeMap *map = create_map(NULL, free, compare_strings_map);
+  put_map_int(map, "lsl", Type_lsl);
+  put_map_int(map, "lsr", Type_lsr);
+  put_map_int(map, "asr", Type_asr);
+  put_map_int(map, "ror", Type_ror);
+  shift_type type = get_map_int(map, shift);
+  free_map(map);
+  return type;
+}
+
 static Register *makeRegStruct(char *regString) {
   Register *reg = malloc(sizeof(Register));
   if (reg == NULL) {
@@ -156,7 +168,7 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   if (shift == NULL) {
     IRREPARABLE_MEMORY_ERROR;
   }
-  shift->type = shiftType.instruction;
+  shift->type = discriminator10(shiftType.instruction);
   shift->amount = magnitude.value;
   return shift;
 }
