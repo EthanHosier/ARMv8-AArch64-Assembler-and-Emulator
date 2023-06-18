@@ -1,0 +1,42 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <inttypes.h>
+#include "../../ArrayList.h"
+
+static void printBinaryHelper(uint32_t val, FILE *fileOut) {
+  uint32_t mask = 1;
+  for (int i = 0; i < sizeof(uint32_t); i++) {
+      mask <<= 8;
+      for (int j= 0; j < 8; j++) {
+          fprintf(fileOut, "%"PRId32, mask & val);
+          mask >>= 1;
+      }
+      mask <<= 8;
+  }
+}
+
+void printBinary(ArrayList *binaryLines, char *fileName) {
+  FILE *fileOut = fopen(fileName, "w");
+  if (fileOut == NULL) {
+    printf("Failed to open the file.\n");
+      exit(EXIT_FAILURE);
+  }
+
+  for (int i = 0; i < binaryLines->size; i++) {
+      printBinaryHelper(*(uint32_t*) get_ArrayList_element(binaryLines, i), fileOut);
+  }
+  fclose(fileOut);
+}
+
+void readFileToArray(char *fileName, ArrayList *lines) {
+  FILE *fileIn = fopen(fileName, "r");
+  if (fileIn == NULL) {
+    printf("Failed to open the file.\n");
+    exit(EXIT_FAILURE);
+  }
+  char buffer[256];
+  while (fgets(buffer, sizeof(buffer), fileIn) != NULL) {
+    add_ArrayList_element(lines, buffer); // read from files
+  }
+  fclose(fileIn);
+}
