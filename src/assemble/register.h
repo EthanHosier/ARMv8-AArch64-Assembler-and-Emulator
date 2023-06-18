@@ -18,10 +18,10 @@ typedef struct {
 } Register_or_immediate;
 
 typedef enum {
-    Type_lsl,
-    Type_lsr,
-    Type_asr,
-    Type_ror
+  Type_lsl,
+  Type_lsr,
+  Type_asr,
+  Type_ror
 } shift_type;
 
 typedef struct {

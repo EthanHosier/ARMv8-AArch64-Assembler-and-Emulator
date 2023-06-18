@@ -189,91 +189,74 @@ static Token string_to_token(char *str) {
 
 static AddressCodePossibilities
 check_if_address_code(char *str) {
-    if (str[0] != '[') {
-        return ADDRESS_CODE_POSSIBILITIES_NOT;
-    }
+  if (str[0] != '[') {
+    return ADDRESS_CODE_POSSIBILITIES_NOT;
+  }
 
-    int length = (int) strlen(str);
+  int length = (int) strlen(str);
 
-    if (str[length - 1] == ']') {
-        return ADDRESS_CODE_POSSIBILITIES_ONE;
-    }
+  if (str[length - 1] == ']') {
+    return ADDRESS_CODE_POSSIBILITIES_ONE;
+  }
 
-    return ADDRESS_CODE_POSSIBILITIES_TWO;
+  return ADDRESS_CODE_POSSIBILITIES_TWO;
 }
 
-static void trimStrHandleExclamation(char *str, bool *exclamation){
-    int len = (int) strlen(str);
-    if (str[len - 1] == '!') {
-        *exclamation = 1;
-        str[len - 2] = '\0';
+static ArrayList *tokenize_line(char *line) {
+  initialiseInstructionsBST();
+
+  ArrayList *tokens = create_ArrayList(print_Token, free_token);
+  char *tokenStr;
+
+  tokenStr = strtok(line, " ");
+  while (true) {
+    // Create a copy of the token
+    char *tokenStrCopy = strdup(tokenStr);
+
+    AddressCodePossibilities
+        result = check_if_address_code(tokenStrCopy);
+    Token t;
+
+    if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
+      t = string_to_token(tokenStrCopy);
     } else {
-        str[len - 1] = '\0';
+      t = NEW(struct Token);
+      assert(t != NULL);
+      char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
+      Token t1 = string_to_token(new_value);
+      free(tokenStrCopy);
+      if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
+        t->addressToken.pT2 = NULL;
+        new_value[strlen(new_value) - 1] = '\0';
+      } else {
+        //ADDRESS_CODE_POSSIBILITIES_TWO
+        tokenStr = strtok(NULL, " ,]");
+        tokenStrCopy = strdup(tokenStr);
+        Token t2 = string_to_token(tokenStrCopy);
+
+        t->addressToken.pT2 = t2;
+
+      }
+      t->addressToken.t1 = t1;
+      t->addressToken.exclamation = false;
+      t->type = TOKEN_ADDRESS_CODE;
     }
-}
-
-ArrayList *tokenize_line(char *line) {
-    initialiseInstructionsBST();
-
-    ArrayList *tokens = create_ArrayList(print_Token, &free);
-    char *tokenStr;
-
-    tokenStr = strtok(line, " ");
-    while (tokenStr != NULL) {
-        // Create a copy of the token
-        char *tokenStrCopy = strdup(tokenStr);
-
-        bool exclamation = 0;
-        AddressCodePossibilities
-                result = check_if_address_code(tokenStrCopy);
-        Token t;
-
-        if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
-            t = string_to_token(tokenStrCopy);
-        } else {
-            t = NEW(struct Token);
-            assert(t != NULL);
-
-            AddressCodeToken *act = NEW (AddressCodeToken);
-            assert(act != NULL);
-            tokenStrCopy++; //remove the "\["
-            if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
-                trimStrHandleExclamation(tokenStrCopy, &exclamation);
-
-            }
-
-            Token t1 = string_to_token(tokenStrCopy);
-
-            if (result == ADDRESS_CODE_POSSIBILITIES_TWO) {
-                //ADDRESS_CODE_POSSIBILITIES_TWO
-                tokenStr = strtok(NULL, " ,");
-                tokenStrCopy = strdup(tokenStr);
-
-                strtok(tokenStrCopy, " ,");
-                tokenStrCopy = strdup(tokenStr);
-
-                trimStrHandleExclamation(tokenStrCopy, &exclamation);
-
-                Token t2 = string_to_token(tokenStrCopy);
-                act->pT2 = t2;
-
-            }
-            act->exclamation = exclamation;
-            act->t1 = t1;
-            t->type = TOKEN_ADDRESS_CODE;
-            t->addressToken = *act;
-        }
-        add_ArrayList_element(tokens, t);
-        tokenStr = strtok(NULL, " ,");
+    add_ArrayList_element(tokens, t);
+    tokenStr = strtok(NULL, " ,");
+    if (tokenStr == NULL) break;
+    if (strcmp(tokenStr, "!") == 0) {
+      t->addressToken.exclamation = true;
+      break;
     }
-    free_map(instructionsBST);
-    return tokens;
+  }
+  free_map(instructionsBST);
+  return tokens;
 
 }
 
 
 ArrayList *tokenize(ArrayList *lines) {
-  ArrayList *new = create_ArrayList(NULL, &free_ArrayList);
+  ArrayList *new = create_ArrayList(print_ArrayList_elements, free_ArrayList);
   for (int i = 0; i < lines->size; i++) {// maybe works
     ArrayList *tokens = tokenize_line(get_ArrayList_element(lines, i));
     add_ArrayList_element(new, tokens);

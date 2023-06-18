@@ -61,6 +61,5 @@ struct Token {
 
 
 extern ArrayList *tokenize(ArrayList *line);
-extern ArrayList *tokenize_line(char *);
 
 #endif

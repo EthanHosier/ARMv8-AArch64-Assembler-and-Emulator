@@ -157,7 +157,7 @@ static Register *createZeroRegister(bool is64Bit) {
 
 uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t opc =  tree->type - Type_add_imm;//enum
+  uint32_t opc = tree->type - Type_add_imm;//enum
   uint32_t opi = 2;
   uint32_t sh = tree->shift != NULL;
   uint32_t imm12 = *(tree->imm);
@@ -169,7 +169,8 @@ uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
 
 uint32_t *buildMovkMovnMovz(Parser_Tree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t opc =  (tree->type == Type_movn) ? 0 : (tree->type == Type_movz) ? 2 : 3;
+  uint32_t
+      opc = (tree->type == Type_movn) ? 0 : (tree->type == Type_movz) ? 2 : 3;
   uint32_t opi = 5;
   uint32_t hw = ((tree->shift == NULL) ? 0 : tree->shift->amount) / 16;//enum;
   uint32_t imm16 = *(tree->imm);
@@ -180,12 +181,12 @@ uint32_t *buildMovkMovnMovz(Parser_Tree *tree) {
 
 
 uint32_t *buildBinaryDPImm(uint32_t sf,
-                          uint32_t opc,
-                          uint32_t opi,
-                          uint32_t operand,
-                          uint32_t rd) {
+                           uint32_t opc,
+                           uint32_t opi,
+                           uint32_t operand,
+                           uint32_t rd) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val =  sf << 31
+  *val = sf << 31
       | opc << 29
       | 1 << 28
       | opi << 23
@@ -196,7 +197,7 @@ uint32_t *buildBinaryDPImm(uint32_t sf,
 
 uint32_t *buildAddAddsSubSubsReg(Parser_Tree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t opc =  tree->type - Type_add_reg;//enum
+  uint32_t opc = tree->type - Type_add_reg;//enum
   uint32_t m = 0;
   uint32_t opr = 8 | ((tree->shift == NULL) ? 0 : tree->shift->type) << 1;//enum
   uint32_t rm = tree->R3->register_number;
@@ -211,7 +212,8 @@ uint32_t *buildAndAndsBicBicsEorOrrEonOrn(Parser_Tree *tree) {
   uint32_t opc_n = tree->type - Type_and;//enum
   uint32_t opc = opc_n >> 1;
   uint32_t m = 0;
-  uint32_t opr = ((tree->shift == NULL) ? 0 : tree->shift->type) << 1 | (opc_n & 1);//enum
+  uint32_t opr =
+      ((tree->shift == NULL) ? 0 : tree->shift->type) << 1 | (opc_n & 1);//enum
   uint32_t rm = tree->R3->register_number;
   uint32_t operand = tree->shift->amount;
   uint32_t rn = tree->R2->register_number;
@@ -234,13 +236,13 @@ uint32_t *buildMaddMsub(Parser_Tree *tree) {
 }
 
 uint32_t *buildBinaryDPReg(uint32_t sf,
-                          uint32_t opc,
-                          uint32_t m,
-                          uint32_t opr,
-                          uint32_t rm,
-                          uint32_t operand,
-                          uint32_t rn,
-                          uint32_t rd) {
+                           uint32_t opc,
+                           uint32_t m,
+                           uint32_t opr,
+                           uint32_t rm,
+                           uint32_t operand,
+                           uint32_t rn,
+                           uint32_t rd) {
   uint32_t *val = malloc(sizeof(uint32_t));
   *val = sf << 31
       | opc << 29
@@ -255,13 +257,13 @@ uint32_t *buildBinaryDPReg(uint32_t sf,
 }
 
 uint32_t *buildBinarySDT(uint32_t sf,
-                        uint32_t u,
-                        uint32_t l,
-                        uint32_t offset,
-                        uint32_t xn,
-                        uint32_t rt) {
+                         uint32_t u,
+                         uint32_t l,
+                         uint32_t offset,
+                         uint32_t xn,
+                         uint32_t rt) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val =  1 << 31
+  *val = 1 << 31
       | sf << 30
       | 7 << 27
       | u << 24
@@ -274,7 +276,7 @@ uint32_t *buildBinarySDT(uint32_t sf,
 
 uint32_t *buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val =  sf << 30
+  *val = sf << 30
       | 3 << 27
       | simm19 << 5
       | rt;
@@ -283,22 +285,22 @@ uint32_t *buildBinaryLoadLiteral(uint32_t sf, uint32_t simm19, uint32_t rt) {
 
 uint32_t *buildBinaryBranchUnconditional(uint32_t simm26) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val =  5 << 26
-          | simm26;
+  *val = 5 << 26
+      | simm26;
   return val;
 }
 
 uint32_t *buildBinaryBranchRegister(uint32_t xn) {
   uint32_t *val = malloc(sizeof(uint32_t));
   *val = 0xD61F
-          | xn << 5;
+      | xn << 5;
   return val;
 }
 
 uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond) {
   uint32_t *val = malloc(sizeof(uint32_t));
   *val = 0x15
-         | simm19 << 5
-         | cond;
+      | simm19 << 5
+      | cond;
   return val;
 }
