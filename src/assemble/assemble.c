@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "string.h"
+#include <stdio.h>
 
 int main(int argc, char **argv) {
   char line[] = "ldr x20, [x5] #8"; // post-index test
@@ -11,6 +12,11 @@ int main(int argc, char **argv) {
   //char line1[] = "foo";
   //char line2[] = "ldr x0, foo";
   ArrayList *lines = create_ArrayList(NULL, NULL);
+  FILE *file = fopen(argv[1], "r");
+  if (file == NULL) {
+    printf("Failed to open the file.\n");
+    return EXIT_FAILURE;
+  }
   add_ArrayList_element(lines, line); // read from files
   ArrayList *tokenized_lines = tokenize(lines);
   free_ArrayList(lines);
@@ -22,84 +28,109 @@ int main(int argc, char **argv) {
     programCounter += 4;
     Parser_Tree *tree = get_ArrayList_element(trees, i);
     tree_type type = tree->type;
-    uint32_t outputVal = 0;
+    uint32_t *outputVal = 0;
     if (type == Type_add_imm || type == Type_adds_imm || type == Type_sub_imm || type == Type_subs_imm) {
-      buildAddAddsSubSubsImm(tree);
+      outputVal = buildAddAddsSubSubsImm(tree);
 
     } else if (type == Type_add_reg || type == Type_adds_reg || type == Type_sub_reg || type == Type_subs_reg) {
-      buildAddAddsSubSubsReg(tree);
+      outputVal = buildAddAddsSubSubsReg(tree);
 
     } else if (type == Type_cmp_imm || type == Type_cmn_imm) {
       tree->type = (type == Type_cmp_imm) ? Type_subs_imm : Type_adds_imm;
       tree->R2 = tree->R1;
       tree->R1 = createZeroRegister(tree->R1->is_64_bit);
-      buildAddAddsSubSubsImm(tree);
+      outputVal = buildAddAddsSubSubsImm(tree);
 
     } else if (type == Type_cmp_reg || type == Type_cmn_reg) {
       tree->type = (type == Type_cmp_reg) ? Type_subs_imm : Type_adds_imm;
       tree->R2 = tree->R1;
       tree->R1 = createZeroRegister(tree->R1->is_64_bit);
-      buildAddAddsSubSubsReg(tree);
+      outputVal = buildAddAddsSubSubsReg(tree);
 
     } else if (type == Type_neg_imm || type == Type_negs_imm) {
       tree->type = (type == Type_neg_imm) ? Type_sub_imm : Type_subs_imm;
       tree->R2 = createZeroRegister(tree->R1->is_64_bit);
-      buildAddAddsSubSubsImm(tree);
+      outputVal = buildAddAddsSubSubsImm(tree);
 
     } else if (type == Type_neg_reg || type == Type_negs_reg) {
       tree->type = (type == Type_neg_reg) ? Type_sub_reg : Type_subs_reg;
       tree->R2 = createZeroRegister(tree->R1->is_64_bit);
-      buildAddAddsSubSubsReg(tree);
+      outputVal = buildAddAddsSubSubsReg(tree);
 
     } else if (type == Type_and || type == Type_ands || type == Type_bic || type == Type_bics || type == Type_eor || type == Type_orr || type == Type_eon || type == Type_orn) {
-      buildAndAndsBicBicsEorOrrEonOrn(tree);
+      outputVal = buildAndAndsBicBicsEorOrrEonOrn(tree);
 
     } else if (type == Type_tst) {
       tree->type = Type_ands;
       tree->R2 = tree->R1;
       tree->R1 = createZeroRegister(tree->R1->is_64_bit);
-      buildAndAndsBicBicsEorOrrEonOrn(tree);
+      outputVal = buildAndAndsBicBicsEorOrrEonOrn(tree);
 
     } else if (type == Type_movk || type == Type_movn || type == Type_movz) {
-      buildMovkMovnMovz(tree);
+      outputVal = buildMovkMovnMovz(tree);
 
     } else if (type == Type_mov) {
       tree->type = Type_orr;
       tree->R3 = tree->R2;
       tree->R2 = createZeroRegister(tree->R1->is_64_bit);
-      buildAndAndsBicBicsEorOrrEonOrn(tree);
+      outputVal = buildAndAndsBicBicsEorOrrEonOrn(tree);
 
     } else if (type == Type_mvn) {
       tree->type = Type_orn;
       tree->R2 = createZeroRegister(tree->R1->is_64_bit);
-      buildAndAndsBicBicsEorOrrEonOrn(tree);
+      outputVal = buildAndAndsBicBicsEorOrrEonOrn(tree);
 
     } else if (type == Type_madd || type == Type_msub) {
-      buildMaddMsub(tree);
+      outputVal = buildMaddMsub(tree);
 
     } else if (type == Type_mul || type == Type_mneg) {
       tree->type = (type == Type_mul) ? Type_madd : Type_msub;
       tree->R4 = createZeroRegister(tree->R1->is_64_bit);
-      buildMaddMsub(tree);
+      outputVal = buildMaddMsub(tree);
 
     } else if (type == Type_b) {
       uint32_t simm26 = (*tree->imm - programCounter) / 4;
-      buildBinaryBranchUnconditional(simm26);
+      outputVal = buildBinaryBranchUnconditional(simm26);
 
     } else if (type == Type_beq || type == Type_bne || type == Type_bge || type == Type_blt || type == Type_bgt || type == Type_ble || type == Type_bal) {
       uint32_t simm19 = (*tree->imm - programCounter) / 4;
       uint32_t cond = (type == Type_beq) ? 0 : (type == Type_bne) ? 1 : type - Type_bge;//enum
-      buildBinaryBranchConditional(simm19, cond);
+      outputVal = buildBinaryBranchConditional(simm19, cond);
 
     } else if (type == Type_br) {
       uint32_t xn = tree->R1->register_number;
-      buildBinaryBranchRegister(xn);
+      outputVal = buildBinaryBranchRegister(xn);
 
-    } else {
+    } else if (type == Type_ldr_unsigned || type == Type_str_unsigned || type == Type_ldr_pre || type == Type_str_pre || type == Type_ldr_post || type == Type_str_post || type == Type_ldr_reg || type == Type_str_reg){
+      uint32_t sf = tree->R1->is_64_bit;
+      uint32_t u = type == Type_ldr_unsigned || type == Type_str_unsigned;
+      uint32_t l = type == Type_ldr_unsigned || type == Type_ldr_pre || type == Type_ldr_post || type == Type_ldr_reg || type == Type_str_reg;
+      uint32_t offset = (type == Type_ldr_unsigned || type == Type_str_unsigned) ? *tree->imm :
+                        (type == Type_ldr_reg || type == Type_str_reg) ? tree->R1->register_number << 6 | 13 << 1 :
+                        *tree->imm << 2 | (type == Type_ldr_pre || type == Type_str_pre) << 1 | 1;
+      uint32_t xn = tree->R2->register_number;
+      uint32_t rt = tree->R1->register_number;
+      outputVal = buildBinarySDT(sf, u, l, offset, xn, rt);
+
+    } else if (type == Type_ldr_literal) {
+      uint32_t sf = tree->R1->is_64_bit;
+      uint32_t simm19 = *tree->imm;
+      uint32_t rt = tree->R1->register_number;
+      outputVal = buildBinaryLoadLiteral(sf, simm19, rt);
+
+    } else if (type == Type_dot_int) {
+      outputVal = tree->imm;
+
+    } else {//nop
+      uint32_t *val = malloc(sizeof(uint32_t));
+      *val = 0xD503201F;
+      outputVal = val;
 
     }
+    add_ArrayList_element(binaryLines, outputVal);
   }
   free_ArrayList(trees);
+
   return EXIT_SUCCESS;
 }
 
@@ -257,8 +288,4 @@ uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond) {
          | simm19 << 5
          | cond;
   return val;
-}
-
-uint32_t buildNOP(void) {
-  return 0xD503201F;
 }
