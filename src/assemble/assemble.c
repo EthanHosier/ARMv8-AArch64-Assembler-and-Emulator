@@ -12,12 +12,16 @@ int main(int argc, char **argv) {
   //char line1[] = "foo";
   //char line2[] = "ldr x0, foo";
   ArrayList *lines = create_ArrayList(NULL, NULL);
-  FILE *file = fopen(argv[1], "r");
-  if (file == NULL) {
+  FILE *fileIn = fopen(argv[1], "r");
+  if (fileIn == NULL) {
     printf("Failed to open the file.\n");
     return EXIT_FAILURE;
   }
-  add_ArrayList_element(lines, line); // read from files
+  char buffer[256];
+  while (fgets(buffer, sizeof(line), fileIn) != NULL) {
+    add_ArrayList_element(lines, buffer); // read from files
+  }
+  fclose(fileIn);
   ArrayList *tokenized_lines = tokenize(lines);
   free_ArrayList(lines);
   PARSE(tokenized_lines);
@@ -130,7 +134,16 @@ int main(int argc, char **argv) {
     add_ArrayList_element(binaryLines, outputVal);
   }
   free_ArrayList(trees);
-
+  FILE *fileOut = fopen(argv[2], "w");
+  if (fileOut == NULL) {
+    printf("Failed to open the file.\n");
+    return EXIT_FAILURE;
+  }
+  for (int i = 0; i < binaryLines->size; i++) {
+    for (int j = 0; j < 32; j++) {
+      fprintf(fileOut, "%b", *((uint32_t *) get_ArrayList_element(binaryLines, i)));
+    }
+  }
   return EXIT_SUCCESS;
 }
 
