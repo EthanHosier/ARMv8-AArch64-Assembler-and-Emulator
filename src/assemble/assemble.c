@@ -4,8 +4,18 @@
 #include <stdio.h>
 #include "decoder/decoder.h"
 #include "io/io.h"
+#include <inttypes.h>
+
+static void print_binary(void *input) {
+  uint32_t number = *(uint32_t *) input;
+  printf("%"PRIx32, number);
+}
 
 int main(int argc, char **argv) {
+  if (argc != 3) {
+    fprintf(stderr, "Invalid number of arguments!");
+    return 1;
+  }
   //char line[] = "ldr x20, [x5] #8"; // post-index test
   //char line[] = "ldr x20, [x5, #8]!"; // pre-index test
   //char line[] = "ldr x20, [x5, #8]"; // unsigned offset test
@@ -19,13 +29,14 @@ int main(int argc, char **argv) {
   free_ArrayList(lines);
   PARSE(tokenized_lines);
   // TODO: Make map of Parser_Tree.type to function pointers that do final step
-  ArrayList *binaryLines = create_ArrayList(NULL, free);
+  ArrayList *binaryLines = create_ArrayList(print_binary, free);
   for (int i = 0; i < trees->size; i++) {
     Parser_Tree *tree = get_ArrayList_element(trees, i);
     uint32_t *outputVal = decoder(tree);
     add_ArrayList_element(binaryLines, outputVal);
   }
   free_ArrayList(trees);
-  printBinary(binaryLines, argv[2]);
+  print_ArrayList_elements(binaryLines); // prints instructions to stdout
+  printBinary(binaryLines, argv[2]); //prints instructions to bin file
   return EXIT_SUCCESS;
 }
