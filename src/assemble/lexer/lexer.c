@@ -118,7 +118,7 @@ static void print_Token(void *element) {
       printf("%s",
              t->instructionToken.instruction);
     else if (t->type == TOKEN_TYPE_REGISTER)
-      printf("%s: ", t->registerToken.register_name);
+      printf("%s", t->registerToken.register_name);
     else if (t->type == TOKEN_TYPE_IMMEDIATE)
       printf("%"PRIu32, t->immediateToken.value);
     else if (t->type == TOKEN_TYPE_LABEL)

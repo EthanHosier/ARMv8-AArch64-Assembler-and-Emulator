@@ -10,13 +10,18 @@
 TreeMap *first_pass(ArrayList *list) {
   if (list == NULL || list->size == 0) return NULL;
   TreeMap *found_labels = create_map(NULL, free, compare_strings_map);
+  int instruction_number = 0;
   for (int i = 0; i < list->size; i++) {
     ArrayList *line = get_ArrayList_element(list, i);
     if (line == NULL || line->size == 0) return NULL;
     Token first_token = get_ArrayList_element(line, 0);
     if (first_token->type == TOKEN_TYPE_LABEL) {
+      size_t length = strlen(first_token->labelToken.label);
+      first_token->labelToken.label[length-1]='\0';
       put_map_int(found_labels, first_token->labelToken.label, i * 4);
+      continue;
     }
+    instruction_number++;
   }
   return found_labels;
 }
