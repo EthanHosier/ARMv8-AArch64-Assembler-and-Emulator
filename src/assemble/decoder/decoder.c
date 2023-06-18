@@ -10,7 +10,7 @@ static int get_program_counter(void) {
 
 static int increment_program_counter(void) {
   return ++program_counter;
-};
+}
 
 static Register *createZeroRegister(bool is64Bit) {
   Register *reg = malloc(sizeof(Register));
@@ -47,7 +47,7 @@ static uint32_t *buildBinaryDPReg(uint32_t sf,
   *val = sf << 31
       | opc << 29
       | m << 28
-      | 5 << 26
+      | 5 << 25
       | opr << 21
       | rm << 16
       | operand << 10
@@ -153,7 +153,7 @@ static uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
   uint32_t sh = tree->shift != NULL;
   uint32_t imm12 = *(tree->imm);
   uint32_t rn = tree->R2->register_number;
-  uint32_t operand = sh << 22 | imm12 << 10 | rn;
+  uint32_t operand = sh << (22-5) | imm12 << (10-5) | rn;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPImm(sf, opc, opi, operand, rd);
 }
@@ -352,7 +352,8 @@ uint32_t *decoder(Parser_Tree *tree) {
   put_map_int_key(map, Type_dot_int, dot_int);
 
   put_map_int_key(map, Type_nop, nop);
-  outputVal = ((decode_function) (get_map_int_key(map, tree->type)))(tree);
+  decode_function function = get_map_int_key(map, tree->type);
+  outputVal = (function)(tree);
   free_map(map);
   increment_program_counter();
   return outputVal;

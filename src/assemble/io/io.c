@@ -17,14 +17,15 @@ static void printBinaryHelper(uint32_t val, FILE *fileOut) {
 }
 
 void printBinary(ArrayList *binaryLines, char *fileName) {
-  FILE *fileOut = fopen(fileName, "w");
+  FILE *fileOut = fopen(fileName, "wb");
   if (fileOut == NULL) {
     printf("Failed to open the file.\n");
       exit(EXIT_FAILURE);
   }
 
   for (int i = 0; i < binaryLines->size; i++) {
-      printBinaryHelper(*(uint32_t*) get_ArrayList_element(binaryLines, i), fileOut);
+    uint32_t element = *(uint32_t*)get_ArrayList_element(binaryLines, i);
+      printBinaryHelper(element, fileOut);
   }
   fclose(fileOut);
 }
