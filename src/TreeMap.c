@@ -136,3 +136,11 @@ void put_map_int_key(TreeMap *map, int key, void *value) {
 void *get_map_int_key(TreeMap *map, int key) {
   return get_map(map, &key);
 }
+
+int compare_ints_map(void *input1, void *input2) {
+  int *int1 = (int *) input1;
+  int *int2 = (int *) input2;
+  if (*int1 < *int2) return -1;
+  if (*int1 > *int2) return 1;
+  return 0;
+}

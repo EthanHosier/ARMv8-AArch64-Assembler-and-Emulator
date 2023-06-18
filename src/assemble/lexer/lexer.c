@@ -83,18 +83,10 @@ static void initialiseInstructionsBST(void) {
   }
 }
 
-static int compare_ints(void *input1, void *input2) {
-  int *int1 = (int *) input1;
-  int *int2 = (int *) input2;
-  if (*int1 < *int2) return -1;
-  if (*int1 > *int2) return 1;
-  return 0;
-}
-
 static void print_Token(void *element) {
   Token t = (Token) element;
 
-  TreeMap *map = create_map(free, NULL, compare_ints);
+  TreeMap *map = create_map(free, NULL, compare_ints_map);
   put_map_int_key(map, TOKEN_TYPE_IMMEDIATE, "Immediate");
   put_map_int_key(map, TOKEN_TYPE_INSTRUCTION, "Instruction");
   put_map_int_key(map, TOKEN_TYPE_REGISTER, "Register");

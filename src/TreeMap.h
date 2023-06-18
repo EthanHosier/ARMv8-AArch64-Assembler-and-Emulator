@@ -42,4 +42,6 @@ extern void put_map_int_key(TreeMap *map, int key, void *value);
 
 extern void *get_map_int_key(TreeMap *map, int key);
 
+extern int compare_ints_map(void *int1, void *int2);
+
 #endif
