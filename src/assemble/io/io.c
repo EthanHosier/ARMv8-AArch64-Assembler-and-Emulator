@@ -5,15 +5,17 @@
 #include <string.h>
 
 static void printBinaryHelper(uint32_t val, FILE *fileOut) {
-  uint32_t mask = 1;
-  for (int i = 0; i < sizeof(uint32_t); i++) {
-      mask <<= 8;
-      for (int j= 0; j < 8; j++) {
-          fprintf(fileOut, "%"PRId32, mask & val);
-          mask >>= 1;
-      }
-      mask <<= 8;
+  uint64_t mask = 1;
+  uint32_t res = 0;
+  for (int i = 0; i < 4; i++) {
+    mask <<= 8;
+    for (int j = 0; j < 8; j++) {
+      mask >>= 1;
+      res = res | (mask & val);
+    }
+    mask <<= 8;
   }
+  fwrite(&res, sizeof(uint32_t), 1, fileOut);
 }
 
 void printBinary(ArrayList *binaryLines, char *fileName) {
