@@ -17,8 +17,15 @@ typedef struct {
   };
 } Register_or_immediate;
 
+typedef enum {
+    Type_lsl,
+    Type_lsr,
+    Type_asr,
+    Type_ror
+} shift_type;
+
 typedef struct {
-  char *type;
+  shift_type type;
   uint32_t amount;
 } Shift;
 
