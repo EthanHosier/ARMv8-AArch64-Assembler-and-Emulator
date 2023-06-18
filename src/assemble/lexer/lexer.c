@@ -76,7 +76,8 @@ static void initialiseInstructionsBST(void) {
       "b",
       "br",
       "ldr",
-      "str"
+      "str",
+      "nop"
   };
   for (int i = 0; i < sizeof(instructions) / sizeof(instructions[0]); i++) {
     put_map_int(instructionsBST, instructions[i], -1);
@@ -201,7 +202,7 @@ static ArrayList *tokenize_line(char *line) {
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
-  while (true) {
+  while (tokenStr != NULL) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
 
@@ -250,7 +251,8 @@ static ArrayList *tokenize_line(char *line) {
 ArrayList *tokenize(ArrayList *lines) {
   ArrayList *new = create_ArrayList(print_ArrayList_elements, free_ArrayList);
   for (int i = 0; i < lines->size; i++) {// maybe works
-    ArrayList *tokens = tokenize_line(get_ArrayList_element(lines, i));
+    void *element= get_ArrayList_element(lines, i);
+    ArrayList *tokens = tokenize_line(element);
     add_ArrayList_element(new, tokens);
     print_ArrayList_elements(tokens);
   }

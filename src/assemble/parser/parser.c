@@ -13,12 +13,13 @@ TreeMap *first_pass(ArrayList *list) {
   int instruction_number = 0;
   for (int i = 0; i < list->size; i++) {
     ArrayList *line = get_ArrayList_element(list, i);
-    if (line == NULL || line->size == 0) return NULL;
+    if (line == NULL) return NULL;
+    if(line->size==0) continue;
     Token first_token = get_ArrayList_element(line, 0);
     if (first_token->type == TOKEN_TYPE_LABEL) {
       size_t length = strlen(first_token->labelToken.label);
       first_token->labelToken.label[length-1]='\0';
-      put_map_int(found_labels, first_token->labelToken.label, i * 4);
+      put_map_int(found_labels, first_token->labelToken.label, instruction_number*4);
       continue;
     }
     instruction_number++;
@@ -208,6 +209,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     Token fourth_token = get_ArrayList_element(line, 3);
     Token fifth_token = get_ArrayList_element(line, 4);
     Token sixth_token = get_ArrayList_element(line, 5);
+    if(first_token==NULL) continue;
     if (first_token->type == TOKEN_TYPE_LABEL &&
         second_token == NULL &&
         third_token == NULL &&
@@ -229,7 +231,8 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         free(old_label_string);
       }
     }
-    if (first_token == NULL &&
+    if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
+    strcmp(first_token->instructionToken.instruction,"nop")==0 &&
         second_token == NULL &&
         third_token == NULL &&
         fourth_token == NULL &&
