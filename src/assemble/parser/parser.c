@@ -287,6 +287,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       tempToken = get_ArrayList_element(line, ++n);
     }
     if (tempToken != NULL && tempToken->type == TOKEN_TYPE_IMMEDIATE) {
+      if(returnTree->imm != NULL) free(returnTree->imm);
       returnTree->imm = make_new_int(tempToken->immediateToken.value);
       tempToken = get_ArrayList_element(line, ++n);
     }
