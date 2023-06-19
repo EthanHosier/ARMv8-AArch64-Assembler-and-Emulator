@@ -263,7 +263,7 @@ static ArrayList *tokenize_line(char *line) {
       t->addressToken.exclamation = true;
       break;
     }
-  } while(tokenStr == NULL);
+  } while(tokenStr != NULL);
   free_map(instructionsBST);
   return tokens;
 
