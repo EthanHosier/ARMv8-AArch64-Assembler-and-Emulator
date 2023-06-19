@@ -219,7 +219,7 @@ static ArrayList *tokenize_line(char *line) {
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
-  while (tokenStr != NULL) {
+  for(;;) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
 
