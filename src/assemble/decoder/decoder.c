@@ -151,7 +151,7 @@ static uint32_t *buildAddAddsSubSubsImm(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t opc = tree->type - Type_add_imm;//enum
   uint32_t opi = 2;
-  uint32_t sh = tree->shift != NULL;
+  uint32_t sh = tree->shift != NULL && tree->shift->amount != 0;
   uint32_t imm12 = *(tree->imm);
   uint32_t rn = tree->R2->register_number;
   uint32_t operand = sh << (22 - 5) | imm12 << (10 - 5) | rn;
