@@ -280,7 +280,7 @@ static uint32_t *buildMovkMovnMovz(ParserTree *tree) {
   uint32_t opi = 5;
   uint32_t hw = ((tree->shift == NULL) ? 0 : tree->shift->amount) / 16;//enum;
   uint32_t imm16 = *(tree->imm);
-  uint32_t operand = hw << 21 | imm16;
+  uint32_t operand = hw << 16 | imm16;
   uint32_t rd = tree->R1->register_number;
   return buildBinaryDPImm(sf, opc, opi, operand, rd);
 }
