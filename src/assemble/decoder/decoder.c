@@ -167,7 +167,7 @@ static uint32_t *cmp_cmn_imm(ParserTree *tree) {
 }
 
 static uint32_t *cmp_cmn_reg(ParserTree *tree) {
-  tree->type = (tree->type == Type_cmp_reg) ? Type_subs_imm : Type_adds_imm;
+  tree->type = (tree->type == Type_cmp_reg) ? Type_subs_reg : Type_adds_reg;
   Register *temp = tree->R2;
   tree->R2 = tree->R1;
   tree->R3 = temp;
