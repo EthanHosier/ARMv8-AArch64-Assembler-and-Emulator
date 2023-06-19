@@ -224,7 +224,7 @@ static ArrayList *tokenize_line(char *line) {
   ArrayList *tokens = create_ArrayList(print_Token, free_token);
   char *tokenStr;
 
-  tokenStr = strtok(line, " ");
+  tokenStr = strtok(line, " ");;
   while(tokenStr != NULL) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
