@@ -242,13 +242,14 @@ static uint32_t *sdt(ParserTree *tree) {
       u = tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned;
   uint32_t l = tree->type == Type_ldr_unsigned || tree->type == Type_ldr_pre
       || tree->type == Type_ldr_post || tree->type == Type_ldr_reg;
-  uint32_t offset =
-      (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned)
-      ? *tree->imm :
-      (tree->type == Type_ldr_reg || tree->type == Type_str_reg) ?
-      1 << 11 | tree->R3->register_number << 6 | 13 << 1 :
-      *tree->imm << 2
-          | (tree->type == Type_ldr_pre || tree->type == Type_str_pre) << 1 | 1;
+  uint32_t offset = 0;
+  if (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned) {
+    offset = *tree->imm;
+  } else if (tree->type == Type_ldr_reg || tree->type == Type_str_reg) {
+    offset = 1 << 11 | tree->R3->register_number << 6 | 13 << 1;
+  } else {//pre/post
+    offset = (0x1FF & *tree->imm) << 2 | (tree->type == Type_ldr_pre || tree->type == Type_str_pre) << 1 | 1;
+  }
   uint32_t xn = tree->R2->register_number;
   uint32_t rt = tree->R1->register_number;
   return buildBinarySDT(sf, u, l, offset, xn, rt);
