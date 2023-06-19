@@ -133,6 +133,7 @@ static uint32_t *is_convertible_to_int(const char *str) {
   uint32_t *num = malloc(sizeof(uint32_t));
   *num = strtol(str, &endptr, 10);
   if (str == endptr || *endptr != '\0') {
+    free(num);
     return NULL;
   }
   return num;
@@ -143,7 +144,7 @@ static Token string_to_token(char *str) {
 
   Token t = NEW(struct Token);
   assert(t != NULL);
-
+  uint32_t *num;
   if (strcmp(str, ".int") == 0) {
     t->type = TOKEN_TYPE_DOT_INT;
     free(str);
@@ -175,9 +176,11 @@ static Token string_to_token(char *str) {
           && ((int) str[1] <= 57 && (int) str[1] >= 48))) {
     t->registerToken.register_name = str;
     t->type = TOKEN_TYPE_REGISTER;
-  } else if (is_convertible_to_int(str)) {
+  }
+
+    // 'immediate' value of a .int directive
+  else if ((num = is_convertible_to_int(str)) != NULL) {
     t->type = TOKEN_TYPE_IMMEDIATE;
-    uint32_t *num = is_convertible_to_int(str);
     t->immediateToken.value = *num;
     free(num);
   }
@@ -188,7 +191,6 @@ static Token string_to_token(char *str) {
     t->labelToken.label = str;
     t->type = TOKEN_TYPE_LABEL;
   }
-
 
   return t;
 
