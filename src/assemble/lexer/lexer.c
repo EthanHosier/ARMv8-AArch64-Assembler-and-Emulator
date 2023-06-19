@@ -225,7 +225,7 @@ static ArrayList *tokenize_line(char *line) {
   char *tokenStr;
 
   tokenStr = strtok(line, " ");
-  for(;;) {
+  do {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
 
@@ -259,12 +259,11 @@ static ArrayList *tokenize_line(char *line) {
     }
     add_ArrayList_element(tokens, t);
     tokenStr = strtok(NULL, " ,");
-    if (tokenStr == NULL) break;
     if (strcmp(tokenStr, "!") == 0) {
       t->addressToken.exclamation = true;
       break;
     }
-  }
+  } while(tokenStr != NULL);
   free_map(instructionsBST);
   return tokens;
 
