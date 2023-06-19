@@ -8,7 +8,7 @@
 
 static void print_binary(void *input) {
   uint32_t number = *(uint32_t *) input;
-  printf("%"PRIx32, number);
+  printf("%"PRIu32, number);
 }
 
 int main(int argc, char **argv) {

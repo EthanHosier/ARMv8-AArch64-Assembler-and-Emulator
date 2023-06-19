@@ -139,7 +139,7 @@ static uint32_t *is_convertible_to_int(const char *str) {
 }
 
 static Token string_to_token(char *str) {
-  fprintf(stdout, "%s\n", str);
+  //fprintf(stdout, "%s\n", str);
 
   Token t = NEW(struct Token);
   assert(t != NULL);
