@@ -140,8 +140,9 @@ static uint32_t *buildBinaryBranchRegister(uint32_t xn) {
 
 static uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val = 0x15
+  *val = 84 << 24
       | simm19 << 5
+      | 0 << 4
       | cond;
   return val;
 }
