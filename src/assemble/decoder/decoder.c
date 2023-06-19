@@ -189,6 +189,7 @@ static uint32_t *neg_negs_reg(Parser_Tree *tree) {
 
 static uint32_t *tst(Parser_Tree *tree) {
   tree->type = Type_ands;
+  tree->R3 = tree->R2;
   tree->R2 = tree->R1;
   tree->R1 = createZeroRegister(tree->R1->is_64_bit);
   return buildAndAndsBicBicsEorOrrEonOrn(tree);
