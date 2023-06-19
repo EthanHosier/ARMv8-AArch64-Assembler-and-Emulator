@@ -183,6 +183,7 @@ static Token string_to_token(char *str) {
     t->type = TOKEN_TYPE_IMMEDIATE;
     t->immediateToken.value = *num;
     free(num);
+    free(str);
   }
 
     //treat as a label
