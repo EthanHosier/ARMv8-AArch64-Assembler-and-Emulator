@@ -259,11 +259,11 @@ static ArrayList *tokenize_line(char *line) {
     }
     add_ArrayList_element(tokens, t);
     tokenStr = strtok(NULL, " ,");
-    if (strcmp(tokenStr, "!") == 0) {
+    if (tokenStr != NULL && strcmp(tokenStr, "!") == 0) {
       t->addressToken.exclamation = true;
       break;
     }
-  } while(tokenStr != NULL);
+  } while(tokenStr == NULL);
   free_map(instructionsBST);
   return tokens;
 
