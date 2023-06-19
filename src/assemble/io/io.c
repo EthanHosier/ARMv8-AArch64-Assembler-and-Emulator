@@ -32,14 +32,14 @@ void printBinary(ArrayList *binaryLines, char *fileName) {
   fclose(fileOut);
 }
 
-static bool contains_only_whitespace(const char *str) {
+static char *skip_whitespace(char *str) {
   while (*str != '\0') {
     if (*str != ' ' && *str != '\n') {
-      return false;
+      return str;
     }
     str++;
   }
-  return true;
+  return NULL;
 }
 
 void readFileToArray(char *fileName, ArrayList *lines) {
@@ -50,9 +50,10 @@ void readFileToArray(char *fileName, ArrayList *lines) {
   }
   char *buffer = malloc(256 * sizeof(char));
   while (fgets(buffer, 256, fileIn) != NULL) {
-    if (contains_only_whitespace(buffer)) continue;
-    buffer[strlen(buffer) - 1] = '\0';
-    add_ArrayList_element(lines, strdup(buffer)); // read from files
+    char *first_character = skip_whitespace(buffer);
+    if (first_character == NULL) continue;
+    first_character[strlen(first_character) - 1] = '\0';
+    add_ArrayList_element(lines, strdup(first_character)); // read from files
   }
   free(buffer);
   fclose(fileIn);

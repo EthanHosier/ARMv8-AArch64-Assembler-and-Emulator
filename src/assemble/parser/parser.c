@@ -363,6 +363,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         fifth_token == NULL &&
         sixth_token == NULL &&
         third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER &&
+        third_token->addressToken.pT2 != NULL &&
         third_token->addressToken.pT2->type == TOKEN_TYPE_IMMEDIATE
         ) {//Pre-Index, Unsigned Offset
       if (third_token->addressToken.exclamation)
@@ -385,6 +386,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
         fifth_token == NULL &&
         sixth_token == NULL &&
         third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER &&
+        third_token->addressToken.pT2 != NULL &&
         third_token->addressToken.pT2->type == TOKEN_TYPE_REGISTER
         ) {//Reg
 
@@ -401,7 +403,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     } else if (first_token->type == TOKEN_TYPE_INSTRUCTION &&
         second_token->type == TOKEN_TYPE_REGISTER &&
         third_token->type == TOKEN_ADDRESS_CODE &&
-        fourth_token->type == TOKEN_TYPE_IMMEDIATE &&
+        (fourth_token == NULL || fourth_token->type == TOKEN_TYPE_IMMEDIATE) &&
         fifth_token == NULL &&
         sixth_token == NULL &&
         third_token->addressToken.t1->type == TOKEN_TYPE_REGISTER
@@ -413,16 +415,19 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       returnTree->R2 =
           makeRegStruct(third_token->addressToken.
               t1->registerToken.register_name);
-      returnTree->imm = make_new_int(fourth_token->immediateToken.value);
+      uint32_t
+          imm = (fourth_token == NULL) ? 0 : fourth_token->immediateToken.value;
+      returnTree->imm = make_new_int(imm);
 
     } else if (first_token->type == TOKEN_TYPE_DOT_INT &&
         second_token->type == TOKEN_TYPE_IMMEDIATE &&
         third_token == NULL &&
         fourth_token == NULL &&
         fifth_token == NULL &&
-        sixth_token == NULL)
+        sixth_token == NULL) {
       returnTree->type = Type_dot_int;
-    else {
+      returnTree->imm = make_new_int(second_token->immediateToken.value);
+    } else {
       perror("invalid syntax");
       exit(EXIT_FAILURE);
     }
