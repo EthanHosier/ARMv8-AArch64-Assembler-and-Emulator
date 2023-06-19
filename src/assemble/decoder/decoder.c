@@ -256,7 +256,7 @@ static uint32_t *sdt(ParserTree *tree) {
 
 static uint32_t *load_literal(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t simm19 = *tree->imm / 4;
+  uint32_t simm19 = 0x7FFFF & (((int64_t) *tree->imm - (int64_t) get_program_counter()) / 4);
   uint32_t rt = tree->R1->register_number;
   return buildBinaryLoadLiteral(sf, simm19, rt);
 }
