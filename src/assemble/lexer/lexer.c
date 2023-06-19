@@ -218,12 +218,49 @@ check_if_address_code(char *str) {
   return ADDRESS_CODE_POSSIBILITIES_TWO;
 }
 
+static char *stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) {
+	int len = strlen(str);
+//	printf("len: %d\n", len);
+//	printf("in multiline: %d\n", *inMultiline);
+
+	char *newStr = malloc(len);
+	newStr[0] = '\0';
+
+	for (int i = 0; i < len - 1; i++) {
+		if (!*inSingleLine && str[i] == '/' && str[i+1] == '*') {
+			*inMultiline = true;
+			i++;
+		} else if (*inMultiline && !*inSingleLine && str[i] == '*' && str[i+1] == '/') {
+			*inMultiline = false;
+			i++;
+		} else if (!*inMultiline && str[i] == '/' && str[i+1] == '/') {
+			*inSingleLine = true;
+			return newStr;
+		} else {
+			if (!*inMultiline && !*inSingleLine) {
+				//printf("%c", str[i]);
+				strncat(newStr, &str[i], 1);
+			}
+		}
+	}
+	//To account for last character in the string
+	if (!*inMultiline && ! (str[len-1] == '/' && str[len-2] == '*')) {
+		strncat(newStr, &str[len-1], 1);
+	}
+
+	if (strlen(newStr) == 0){
+		return NULL;
+	}
+	return newStr;
+}
+
 static ArrayList *tokenize_line(char *line) {
+  static bool inMultilineComment = false;
+	bool inSingleLineComment = false;
   initialiseInstructionsBST();
 
   ArrayList *tokens = create_ArrayList(print_Token, free_token);
   char *tokenStr;
-
   tokenStr = strtok(line, " ");;
   while(tokenStr != NULL) {
     // Create a copy of the token
@@ -234,12 +271,28 @@ static ArrayList *tokenize_line(char *line) {
     Token t;
 
     if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
+			char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
+			if(inSingleLineComment) return tokens;
+
+			if(stripped == NULL){
+				tokenStr = strtok(NULL, " ,");
+				continue;
+			}
       t = string_to_token(tokenStrCopy);
     } else {
       t = NEW(struct Token);
       assert(t != NULL);
       char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
-      Token t1 = string_to_token(new_value);
+
+			char *stripped = stripOutComments(new_value, &inMultilineComment, &inSingleLineComment);
+			if(inSingleLineComment) return tokens;
+
+			if(stripped == NULL){
+				tokenStr = strtok(NULL, " ,");
+				continue;
+			}
+
+			Token t1 = string_to_token(stripped);
       free(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         t->addressToken.pT2 = NULL;
@@ -248,7 +301,16 @@ static ArrayList *tokenize_line(char *line) {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
-        Token t2 = string_to_token(tokenStrCopy);
+
+				char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
+				if(inSingleLineComment) return tokens;
+
+				if(stripped == NULL){
+					tokenStr = strtok(NULL, " ,");
+					continue;
+				}
+
+        Token t2 = string_to_token(stripped);
 
         t->addressToken.pT2 = t2;
 
@@ -257,7 +319,9 @@ static ArrayList *tokenize_line(char *line) {
       t->addressToken.exclamation = false;
       t->type = TOKEN_ADDRESS_CODE;
     }
-    add_ArrayList_element(tokens, t);
+
+			add_ArrayList_element(tokens, t);
+
     tokenStr = strtok(NULL, " ,");
     if (tokenStr != NULL && strcmp(tokenStr, "!") == 0) {
       t->addressToken.exclamation = true;
@@ -280,4 +344,13 @@ ArrayList *tokenize(ArrayList *lines) {
   }
   return new;
 }
+
+//int main(void) {
+//	bool inMultiline = false;
+//	bool inSingleLine = false;
+//	char *str = "//*do*/n/g wil*ly //bum";
+//	//char *newStr = stripOutMultilineComment(str, &inMultiline, &inSingleLine);
+//	//printf("string: %s\nmultiline: %d\nsingle line: %d", newStr, inMultiline, inSingleLine);
+//	return 0;
+//}
 
