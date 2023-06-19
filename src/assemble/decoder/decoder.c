@@ -133,7 +133,7 @@ static uint32_t *buildBinaryBranchUnconditional(uint32_t simm26) {
 
 static uint32_t *buildBinaryBranchRegister(uint32_t xn) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val = 0xD61F
+  *val = 0xD61F << 16
       | xn << 5;
   return val;
 }
