@@ -232,12 +232,15 @@ static uint32_t *br(Parser_Tree *tree) {
 }
 
 static uint32_t *sdt(Parser_Tree *tree) {
+  if (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned) {
+    if (tree->R1->is_64_bit) *tree->imm = *tree->imm / 8;
+    else *tree->imm = *tree->imm / 4;
+  }
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t
       u = tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned;
   uint32_t l = tree->type == Type_ldr_unsigned || tree->type == Type_ldr_pre
-      || tree->type == Type_ldr_post || tree->type == Type_ldr_reg
-      || tree->type == Type_str_reg;
+      || tree->type == Type_ldr_post || tree->type == Type_ldr_reg;
   uint32_t offset =
       (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned)
       ? *tree->imm :
@@ -252,13 +255,15 @@ static uint32_t *sdt(Parser_Tree *tree) {
 
 static uint32_t *load_literal(Parser_Tree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t simm19 = *tree->imm;
+  uint32_t simm19 = *tree->imm / 4;
   uint32_t rt = tree->R1->register_number;
   return buildBinaryLoadLiteral(sf, simm19, rt);
 }
 
 static uint32_t *dot_int(Parser_Tree *tree) {
-  return tree->imm;
+  uint32_t *val = malloc(sizeof(uint32_t));
+  *val = *tree->imm;
+  return val;
 }
 
 static uint32_t *nop(Parser_Tree *tree) {
