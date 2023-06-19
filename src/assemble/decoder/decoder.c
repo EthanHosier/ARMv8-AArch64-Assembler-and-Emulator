@@ -246,7 +246,7 @@ static uint32_t *sdt(ParserTree *tree) {
       (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned)
       ? *tree->imm :
       (tree->type == Type_ldr_reg || tree->type == Type_str_reg) ?
-      tree->R1->register_number << 6 | 13 << 1 :
+      1 << 11 | tree->R3->register_number << 6 | 13 << 1 :
       *tree->imm << 2
           | (tree->type == Type_ldr_pre || tree->type == Type_str_pre) << 1 | 1;
   uint32_t xn = tree->R2->register_number;
