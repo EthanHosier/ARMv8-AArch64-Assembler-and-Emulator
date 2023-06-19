@@ -117,9 +117,7 @@ static void bigBoyDiscriminator(Parser_Tree *tree,
                                 Token first_token,
                                 Token third_token,
                                 Token fourth_token) {
-  TreeMap *map = create_map(NULL, free, compare_strings_map);
   char *instr = first_token->instructionToken.instruction;
-
   if (strcmp(instr, "add") == 0 || strcmp(instr, "adds") == 0
       || strcmp(instr, "sub") == 0 || strcmp(instr, "subs") == 0) {
     discriminator3args(tree, instr, fourth_token->type == TOKEN_TYPE_IMMEDIATE);
@@ -129,6 +127,7 @@ static void bigBoyDiscriminator(Parser_Tree *tree,
   } else if (strcmp(instr, "ldr") == 0 || strcmp(instr, "str") == 0) {
     discriminatorLdrStr(tree, instr, third_token, fourth_token);
   } else {
+    TreeMap *map = create_map(NULL, free, compare_strings_map);
     put_map_int(map, "and", Type_and);
     put_map_int(map, "ands", Type_ands);
     put_map_int(map, "bic", Type_bic);

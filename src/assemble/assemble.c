@@ -28,7 +28,6 @@ int main(int argc, char **argv) {
   ArrayList *tokenized_lines = tokenize(lines);
   free_ArrayList(lines);
   PARSE(tokenized_lines);
-  // TODO: Make map of Parser_Tree.type to function pointers that do final step
   ArrayList *binaryLines = create_ArrayList(print_binary, free);
   for (int i = 0; i < trees->size; i++) {
     Parser_Tree *tree = get_ArrayList_element(trees, i);
@@ -38,5 +37,6 @@ int main(int argc, char **argv) {
   free_ArrayList(trees);
   print_ArrayList_elements(binaryLines); // prints instructions to stdout
   printBinary(binaryLines, argv[2]); //prints instructions to bin file
+  free_ArrayList(binaryLines);
   return EXIT_SUCCESS;
 }
