@@ -18,7 +18,7 @@ static void printBinaryHelper(uint32_t val, FILE *fileOut) {
   fwrite(&res, sizeof(uint32_t), 1, fileOut);
 }
 
-void printBinary(ArrayList *binaryLines, char *fileName) {
+void write_binary(ArrayList *binaryLines, char *fileName) {
   FILE *fileOut = fopen(fileName, "wb");
   if (fileOut == NULL) {
     printf("Failed to open the file.\n");
@@ -42,7 +42,8 @@ static char *skip_whitespace(char *str) {
   return NULL;
 }
 
-void readFileToArray(char *fileName, ArrayList *lines) {
+void read_file(char *fileName, ArrayList *lines) {
+
   FILE *fileIn = fopen(fileName, "r");
   if (fileIn == NULL) {
     printf("Failed to open the file.\n");

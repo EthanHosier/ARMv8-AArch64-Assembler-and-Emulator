@@ -80,17 +80,17 @@ typedef enum {//dont change order (matters in assemble.c)
 
   Type_nop,
   Type_dot_int
-} tree_type;
+} TreeType;
 
 typedef struct {
-  tree_type type;
+  TreeType type;
   Register *R1;
   Register *R2;
   Register *R3;
   Register *R4;
   uint32_t *imm;
   Shift *shift;
-} Parser_Tree;
+} ParserTree;
 
 extern TreeMap *first_pass(ArrayList *tokens);
 

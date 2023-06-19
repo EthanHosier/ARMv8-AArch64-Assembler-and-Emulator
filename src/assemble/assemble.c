@@ -1,4 +1,3 @@
-#include "assemble.h"
 #include <stdlib.h>
 #include "string.h"
 #include <stdio.h>
@@ -22,21 +21,21 @@ int main(int argc, char **argv) {
   //char line[] = "ldr x20, [x5, x8]"; // reg test
   //char line1[] = "foo";
   //char line2[] = "ldr x0, foo";
-  ArrayList *lines = create_ArrayList(NULL, NULL);
+  ArrayList *lines = create_ArrayList(NULL, free);
   //add_ArrayList_element(lines, line);
-  readFileToArray(argv[1], lines);
+  read_file(argv[1], lines);
   ArrayList *tokenized_lines = tokenize(lines);
   free_ArrayList(lines);
   PARSE(tokenized_lines);
   ArrayList *binaryLines = create_ArrayList(print_binary, free);
   for (int i = 0; i < trees->size; i++) {
-    Parser_Tree *tree = get_ArrayList_element(trees, i);
+    ParserTree *tree = get_ArrayList_element(trees, i);
     uint32_t *outputVal = decoder(tree);
     add_ArrayList_element(binaryLines, outputVal);
   }
   free_ArrayList(trees);
   print_ArrayList_elements(binaryLines); // prints instructions to stdout
-  printBinary(binaryLines, argv[2]); //prints instructions to bin file
+  write_binary(binaryLines, argv[2]); //prints instructions to bin file
   free_ArrayList(binaryLines);
   return EXIT_SUCCESS;
 }

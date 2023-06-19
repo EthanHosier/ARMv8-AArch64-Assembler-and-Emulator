@@ -56,7 +56,7 @@ static uint32_t *buildBinaryDPReg(uint32_t sf,
   return val;
 }
 
-static uint32_t *buildAddAddsSubSubsReg(Parser_Tree *tree) {
+static uint32_t *buildAddAddsSubSubsReg(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t opc = tree->type - Type_add_reg;//enum
   uint32_t m = 0;
@@ -68,7 +68,7 @@ static uint32_t *buildAddAddsSubSubsReg(Parser_Tree *tree) {
   return buildBinaryDPReg(sf, opc, m, opr, rm, operand, rn, rd);
 }
 
-static uint32_t *buildAndAndsBicBicsEorOrrEonOrn(Parser_Tree *tree) {
+static uint32_t *buildAndAndsBicBicsEorOrrEonOrn(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t opc_n = tree->type - Type_and;//enum
   uint32_t opc = opc_n >> 1;
@@ -82,7 +82,7 @@ static uint32_t *buildAndAndsBicBicsEorOrrEonOrn(Parser_Tree *tree) {
   return buildBinaryDPReg(sf, opc, m, opr, rm, operand, rn, rd);
 }
 
-static uint32_t *buildMaddMsub(Parser_Tree *tree) {
+static uint32_t *buildMaddMsub(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t opc = 0;
   uint32_t m = 1;
@@ -147,7 +147,7 @@ static uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond) {
   return val;
 }
 
-static uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
+static uint32_t *buildAddAddsSubSubsImm(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t opc = tree->type - Type_add_imm;//enum
   uint32_t opi = 2;
@@ -159,14 +159,14 @@ static uint32_t *buildAddAddsSubSubsImm(Parser_Tree *tree) {
   return buildBinaryDPImm(sf, opc, opi, operand, rd);
 }
 
-static uint32_t *cmp_cmn_imm(Parser_Tree *tree) {
+static uint32_t *cmp_cmn_imm(ParserTree *tree) {
   tree->type = (tree->type == Type_cmp_imm) ? Type_subs_imm : Type_adds_imm;
   tree->R2 = tree->R1;
   tree->R1 = createZeroRegister(tree->R1->is_64_bit);
   return buildAddAddsSubSubsImm(tree);
 }
 
-static uint32_t *cmp_cmn_reg(Parser_Tree *tree) {
+static uint32_t *cmp_cmn_reg(ParserTree *tree) {
   tree->type = (tree->type == Type_cmp_reg) ? Type_subs_imm : Type_adds_imm;
   Register *temp = tree->R2;
   tree->R2 = tree->R1;
@@ -175,19 +175,19 @@ static uint32_t *cmp_cmn_reg(Parser_Tree *tree) {
   return buildAddAddsSubSubsReg(tree);
 }
 
-static uint32_t *neg_negs_imm(Parser_Tree *tree) {
+static uint32_t *neg_negs_imm(ParserTree *tree) {
   tree->type = (tree->type == Type_neg_imm) ? Type_sub_imm : Type_subs_imm;
   tree->R2 = createZeroRegister(tree->R1->is_64_bit);
   return buildAddAddsSubSubsImm(tree);
 }
 
-static uint32_t *neg_negs_reg(Parser_Tree *tree) {
+static uint32_t *neg_negs_reg(ParserTree *tree) {
   tree->type = (tree->type == Type_neg_reg) ? Type_sub_reg : Type_subs_reg;
   tree->R2 = createZeroRegister(tree->R1->is_64_bit);
   return buildAddAddsSubSubsReg(tree);
 }
 
-static uint32_t *tst(Parser_Tree *tree) {
+static uint32_t *tst(ParserTree *tree) {
   tree->type = Type_ands;
   tree->R3 = tree->R2;
   tree->R2 = tree->R1;
@@ -195,31 +195,31 @@ static uint32_t *tst(Parser_Tree *tree) {
   return buildAndAndsBicBicsEorOrrEonOrn(tree);
 }
 
-static uint32_t *mov(Parser_Tree *tree) {
+static uint32_t *mov(ParserTree *tree) {
   tree->type = Type_orr;
   tree->R3 = tree->R2;
   tree->R2 = createZeroRegister(tree->R1->is_64_bit);
   return buildAndAndsBicBicsEorOrrEonOrn(tree);
 }
 
-static uint32_t *mvn(Parser_Tree *tree) {
+static uint32_t *mvn(ParserTree *tree) {
   tree->type = Type_orn;
   tree->R2 = createZeroRegister(tree->R1->is_64_bit);
   return buildAndAndsBicBicsEorOrrEonOrn(tree);
 }
 
-static uint32_t *mul_mneg(Parser_Tree *tree) {
+static uint32_t *mul_mneg(ParserTree *tree) {
   tree->type = (tree->type == Type_mul) ? Type_madd : Type_msub;
   tree->R4 = createZeroRegister(tree->R1->is_64_bit);
   return buildMaddMsub(tree);
 }
 
-static uint32_t *b(Parser_Tree *tree) {
+static uint32_t *b(ParserTree *tree) {
   uint32_t simm26 = (*tree->imm - get_program_counter()) / 4;
   return buildBinaryBranchUnconditional(simm26);
 }
 
-static uint32_t *b_cond(Parser_Tree *tree) {
+static uint32_t *b_cond(ParserTree *tree) {
   uint32_t simm19 = (*tree->imm - get_program_counter()) / 4;
   uint32_t cond =
       (tree->type == Type_beq) ? 0 : (tree->type == Type_bne) ? 1 : tree->type
@@ -227,12 +227,12 @@ static uint32_t *b_cond(Parser_Tree *tree) {
   return buildBinaryBranchConditional(simm19, cond);
 }
 
-static uint32_t *br(Parser_Tree *tree) {
+static uint32_t *br(ParserTree *tree) {
   uint32_t xn = tree->R1->register_number;
   return buildBinaryBranchRegister(xn);
 }
 
-static uint32_t *sdt(Parser_Tree *tree) {
+static uint32_t *sdt(ParserTree *tree) {
   if (tree->type == Type_ldr_unsigned || tree->type == Type_str_unsigned) {
     if (tree->R1->is_64_bit) *tree->imm = *tree->imm / 8;
     else *tree->imm = *tree->imm / 4;
@@ -254,26 +254,26 @@ static uint32_t *sdt(Parser_Tree *tree) {
   return buildBinarySDT(sf, u, l, offset, xn, rt);
 }
 
-static uint32_t *load_literal(Parser_Tree *tree) {
+static uint32_t *load_literal(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t simm19 = *tree->imm / 4;
   uint32_t rt = tree->R1->register_number;
   return buildBinaryLoadLiteral(sf, simm19, rt);
 }
 
-static uint32_t *dot_int(Parser_Tree *tree) {
+static uint32_t *dot_int(ParserTree *tree) {
   uint32_t *val = malloc(sizeof(uint32_t));
   *val = *tree->imm;
   return val;
 }
 
-static uint32_t *nop(Parser_Tree *tree) {
+static uint32_t *nop(ParserTree *tree) {
   uint32_t *val = malloc(sizeof(uint32_t));
   *val = 0xD503201F;
   return val;
 }
 
-static uint32_t *buildMovkMovnMovz(Parser_Tree *tree) {
+static uint32_t *buildMovkMovnMovz(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
   uint32_t
       opc = (tree->type == Type_movn) ? 0 : (tree->type == Type_movz) ? 2 : 3;
@@ -285,7 +285,7 @@ static uint32_t *buildMovkMovnMovz(Parser_Tree *tree) {
   return buildBinaryDPImm(sf, opc, opi, operand, rd);
 }
 
-uint32_t *decoder(Parser_Tree *tree) {
+uint32_t *decoder(ParserTree *tree) {
   uint32_t *outputVal;
   TreeMap *map = create_map(free, NULL, compare_ints_map);
   put_map_int_key(map, Type_add_imm, buildAddAddsSubSubsImm);

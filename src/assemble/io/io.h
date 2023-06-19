@@ -2,8 +2,8 @@
 #define IO_H
 #include "../../ArrayList.h"
 
-extern void printBinary(ArrayList *binaryLines, char *fileName);
+extern void write_binary(ArrayList *binaryLines, char *fileName);
 
-extern void readFileToArray(char *fileName, ArrayList *lines);
+extern void read_file(char *fileName, ArrayList *lines);
 
 #endif

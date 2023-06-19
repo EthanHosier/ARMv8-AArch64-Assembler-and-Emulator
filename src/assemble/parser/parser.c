@@ -30,7 +30,7 @@ TreeMap *first_pass(ArrayList *list) {
 }
 
 void free_parser_tree(void *input) {
-  Parser_Tree *tree = (Parser_Tree *) input;
+  ParserTree *tree = (ParserTree *) input;
   if (tree == NULL) return;
   FREE_REGISTER(tree->R1);
   FREE_REGISTER(tree->R2);
@@ -60,7 +60,7 @@ static shift_type discriminatorShift(char *shift) {
 }
 
 static void
-discriminator3args(Parser_Tree *tree, char *instr, bool isImmediate) {
+discriminator3args(ParserTree *tree, char *instr, bool isImmediate) {
   TreeMap *map = create_map(NULL, free, compare_strings_map);
   if (isImmediate) {
     put_map_int(map, "add", Type_add_imm);
@@ -78,7 +78,7 @@ discriminator3args(Parser_Tree *tree, char *instr, bool isImmediate) {
 }
 
 static void
-discriminator2args(Parser_Tree *tree, char *instr, bool isImmediate) {
+discriminator2args(ParserTree *tree, char *instr, bool isImmediate) {
   TreeMap *map = create_map(NULL, free, compare_strings_map);
   if (isImmediate) {
     put_map_int(map, "cmp", Type_cmp_imm);
@@ -95,7 +95,7 @@ discriminator2args(Parser_Tree *tree, char *instr, bool isImmediate) {
   free_map(map);
 }
 
-static void discriminatorLdrStr(Parser_Tree *tree,
+static void discriminatorLdrStr(ParserTree *tree,
                                 char *instr,
                                 Token third_token,
                                 Token fourth_token) {
@@ -113,7 +113,7 @@ static void discriminatorLdrStr(Parser_Tree *tree,
         (strcmp(instr, "ldr") == 0) ? Type_ldr_unsigned : Type_str_unsigned;
   }
 }
-static void bigBoyDiscriminator(Parser_Tree *tree,
+static void bigBoyDiscriminator(ParserTree *tree,
                                 Token first_token,
                                 Token third_token,
                                 Token fourth_token) {
@@ -182,8 +182,8 @@ makeShiftStruct(InstructionToken shiftType, ImmediateToken magnitude) {
   return shift;
 }
 
-static Parser_Tree *make_parser_tree(void) {
-  Parser_Tree *returnTree = malloc(sizeof(Parser_Tree));
+static ParserTree *make_parser_tree(void) {
+  ParserTree *returnTree = malloc(sizeof(ParserTree));
   assert(returnTree != NULL);
   returnTree->R1 = NULL;
   returnTree->R2 = NULL;
@@ -217,7 +217,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       continue;
 
     //create return tree
-    Parser_Tree *returnTree = make_parser_tree();
+    ParserTree *returnTree = make_parser_tree();
 
     //check for label reference in line (replace with memory location of label def)
     if (second_token != NULL
@@ -287,7 +287,7 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
       tempToken = get_ArrayList_element(line, ++n);
     }
     if (tempToken != NULL && tempToken->type == TOKEN_TYPE_IMMEDIATE) {
-      if(returnTree->imm != NULL) free(returnTree->imm);
+      if (returnTree->imm != NULL) free(returnTree->imm);
       returnTree->imm = make_new_int(tempToken->immediateToken.value);
       tempToken = get_ArrayList_element(line, ++n);
     }
