@@ -223,7 +223,7 @@ static uint32_t *b_cond(ParserTree *tree) {
   uint32_t simm19 = (*tree->imm - get_program_counter()) / 4;
   uint32_t cond =
       (tree->type == Type_beq) ? 0 : (tree->type == Type_bne) ? 1 : tree->type
-          - Type_bge;//enum
+          - Type_bge + 10;//enum
   return buildBinaryBranchConditional(simm19, cond);
 }
 
