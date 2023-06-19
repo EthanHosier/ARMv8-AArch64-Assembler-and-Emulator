@@ -158,17 +158,15 @@ static Token string_to_token(char *str) {
 
     //check for '#' immediate token
   else if (str[0] == '#' || str[0] == '0') {
-    if (str[0] == '#') {
-      t->immediateToken.value = (uint32_t) atoi(++str); //get rid of '#'
-      free(--str);
+    char *numStr= (str[0] == '#') ? str+1 : str;
+    if (strlen(numStr) > 1 && numStr[1] == 'x') {
+      t->immediateToken.value = (uint32_t) strtol(numStr, NULL, 16);
     } else {
-      //str[0] == '0'
-      t->immediateToken.value = (uint32_t) strtol(str, NULL, 16);
-      free(str);
+      t->immediateToken.value = (uint32_t) strtol(numStr, NULL, 10);
     }
+    free(str);
     t->type = TOKEN_TYPE_IMMEDIATE;
   }
-
 
     //check for register token
   else if (strcmp("xzr", str) == 0 || strcmp("wzr", str) == 0
