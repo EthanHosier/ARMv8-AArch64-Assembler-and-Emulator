@@ -140,9 +140,8 @@ static uint32_t *buildBinaryBranchRegister(uint32_t xn) {
 
 static uint32_t *buildBinaryBranchConditional(uint32_t simm19, uint32_t cond) {
   uint32_t *val = malloc(sizeof(uint32_t));
-  *val = 84 << 24
+  *val = 0x15 << 26
       | simm19 << 5
-      | 0 << 4
       | cond;
   return val;
 }
@@ -220,7 +219,7 @@ static uint32_t *b(ParserTree *tree) {
 }
 
 static uint32_t *b_cond(ParserTree *tree) {
-  uint32_t simm19 = (*tree->imm - get_program_counter()) / 4;
+  uint32_t simm19 = 0x7FFFF & ((uint32_t) (((int64_t) *tree->imm - (int64_t) get_program_counter()) / 4));
   uint32_t cond =
       (tree->type == Type_beq) ? 0 : (tree->type == Type_bne) ? 1 : tree->type
           - Type_bge + 10;//enum
