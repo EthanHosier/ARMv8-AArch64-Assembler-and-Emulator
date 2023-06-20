@@ -219,7 +219,9 @@ static uint32_t *b(ParserTree *tree) {
 }
 
 static uint32_t *b_cond(ParserTree *tree) {
-  uint32_t simm19 = 0x7FFFF & ((uint32_t) (((int64_t) *tree->imm - (int64_t) get_program_counter()) / 4));
+  uint32_t simm19 = 0x7FFFF
+      & ((uint32_t) (((int64_t) *tree->imm - (int64_t) get_program_counter())
+          / 4));
   uint32_t cond =
       (tree->type == Type_beq) ? 0 : (tree->type == Type_bne) ? 1 : tree->type
           - Type_bge + 10;//enum
@@ -247,7 +249,8 @@ static uint32_t *sdt(ParserTree *tree) {
   } else if (tree->type == Type_ldr_reg || tree->type == Type_str_reg) {
     offset = 1 << 11 | tree->R3->register_number << 6 | 13 << 1;
   } else {//pre/post
-    offset = (0x1FF & *tree->imm) << 2 | (tree->type == Type_ldr_pre || tree->type == Type_str_pre) << 1 | 1;
+    offset = (0x1FF & *tree->imm) << 2
+        | (tree->type == Type_ldr_pre || tree->type == Type_str_pre) << 1 | 1;
   }
   uint32_t xn = tree->R2->register_number;
   uint32_t rt = tree->R1->register_number;
@@ -256,7 +259,8 @@ static uint32_t *sdt(ParserTree *tree) {
 
 static uint32_t *load_literal(ParserTree *tree) {
   uint32_t sf = tree->R1->is_64_bit;
-  uint32_t simm19 = 0x7FFFF & (((int64_t) *tree->imm - (int64_t) get_program_counter()) / 4);
+  uint32_t simm19 =
+      0x7FFFF & (((int64_t) *tree->imm - (int64_t) get_program_counter()) / 4);
   uint32_t rt = tree->R1->register_number;
   return buildBinaryLoadLiteral(sf, simm19, rt);
 }
