@@ -224,7 +224,7 @@ stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) {
 //	printf("len: %d\n", len);
 //	printf("in multiline: %d\n", *inMultiline);
 
-  char *newStr = malloc(len);
+  char *newStr = malloc(len + 1);
   newStr[0] = '\0';
 
   for (int i = 0; i < len - 1; i++) {
