@@ -326,20 +326,19 @@ ArrayList *tokenize_line(char *line) {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
-        free(stripped);
-        stripped = stripOutComments(tokenStrCopy,
-                                          &inMultilineComment,
-                                          &inSingleLineComment);
+        char *stripped_t2 = stripOutComments(tokenStrCopy,
+                                             &inMultilineComment,
+                                             &inSingleLineComment);
         free(tokenStrCopy);
         if (inSingleLineComment) {
-          if (stripped != NULL) {
-            t = string_to_token(stripped);
+          if (stripped_t2 != NULL) {
+            t = string_to_token(stripped_t2);
             add_ArrayList_element(tokens, t);
           }
           return tokens;
         }
 
-        Token t2 = string_to_token(stripped);
+        Token t2 = string_to_token(stripped_t2);
 
         t->addressToken.pT2 = t2;
 
