@@ -220,7 +220,7 @@ check_if_address_code(char *str) {
 
 static char *
 stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) {
-  int len = strlen(str);
+  int len = (int)strlen(str);
 //	printf("len: %d\n", len);
 //	printf("in multiline: %d\n", *inMultiline);
 
@@ -326,8 +326,8 @@ ArrayList *tokenize_line(char *line) {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
-
-        char *stripped = stripOutComments(tokenStrCopy,
+        free(stripped);
+        stripped = stripOutComments(tokenStrCopy,
                                           &inMultilineComment,
                                           &inSingleLineComment);
         free(tokenStrCopy);

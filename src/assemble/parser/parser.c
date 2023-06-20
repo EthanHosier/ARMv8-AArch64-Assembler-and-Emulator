@@ -169,7 +169,7 @@ static Register *makeRegStruct(char *regString) {
   reg->is_64_bit = regString[0] == 'x';
   reg->register_number =
       (strcmp(regString, "xzr") == 0 || strcmp(regString, "wzr") == 0) ? 31
-                                                                       : strtol(
+                                                                       : (int)strtol(
           ++regString,
           NULL,
           10);

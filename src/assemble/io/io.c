@@ -1,7 +1,6 @@
 #include "io.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
 #include <string.h>
 
 static void printBinaryHelper(uint32_t val, FILE *fileOut) {
