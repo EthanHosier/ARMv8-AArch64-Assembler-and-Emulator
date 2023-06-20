@@ -359,6 +359,10 @@ ArrayList *tokenize(ArrayList *lines) {
 	for (int i = 0; i < lines->size; i++) {// maybe works
 		void *element = get_ArrayList_element(lines, i);
 		ArrayList *tokens = tokenize_line(element);
+        if(tokens->size==0) {
+            free_ArrayList(tokens);
+            continue;
+        }
 		add_ArrayList_element(new, tokens);
 		print_ArrayList_elements(tokens);
 	}
