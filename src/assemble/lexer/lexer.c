@@ -365,13 +365,13 @@ ArrayList *tokenize(ArrayList *lines) {
 	return new;
 }
 
-int main(void) {
-	bool inMultiline = false;
-	bool inSingleLine = false;
-	char str[] = "and x0, x0, x0";
-	ArrayList *tokens = tokenize_line(str);
-	print_ArrayList_elements(tokens);
-
-	return 0;
-}
+//int main(void) {
+//	bool inMultiline = false;
+//	bool inSingleLine = false;
+//	char str[] = "and x0, x0, x0";
+//	ArrayList *tokens = tokenize_line(str);
+//	print_ArrayList_elements(tokens);
+//
+//	return 0;
+//}
 
