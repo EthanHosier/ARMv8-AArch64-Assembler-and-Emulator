@@ -235,7 +235,10 @@ static char *stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) 
 			i++;
 		} else if (!*inMultiline && str[i] == '/' && str[i+1] == '/') {
 			*inSingleLine = true;
-			return newStr;
+            if (strlen(newStr) == 0){
+                return NULL;
+            }
+            return newStr;
 		} else {
 			if (!*inMultiline && !*inSingleLine) {
 				//printf("%c", str[i]);
@@ -254,14 +257,14 @@ static char *stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) 
 	return newStr;
 }
 
-static ArrayList *tokenize_line(char *line) {
+ArrayList *tokenize_line(char *line) {
   static bool inMultilineComment = false;
 	bool inSingleLineComment = false;
   initialiseInstructionsBST();
 
   ArrayList *tokens = create_ArrayList(print_Token, free_token);
-  char *tokenStr;
-  tokenStr = strtok(line, " ");;
+  char *tokenStr = NULL;
+  tokenStr = strtok(line, " ");
   while(tokenStr != NULL) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
@@ -272,20 +275,36 @@ static ArrayList *tokenize_line(char *line) {
 
     if (result == ADDRESS_CODE_POSSIBILITIES_NOT) {
 			char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
-			if(inSingleLineComment) return tokens;
+
+            if(inSingleLineComment){
+                if (stripped != NULL){
+                    t = string_to_token(stripped);
+                    add_ArrayList_element(tokens, t);
+                }
+                return tokens;
+            }
+
 
 			if(stripped == NULL){
 				tokenStr = strtok(NULL, " ,");
 				continue;
 			}
-      t = string_to_token(tokenStrCopy);
+
+      t = string_to_token(stripped);
     } else {
       t = NEW(struct Token);
       assert(t != NULL);
       char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
 
-			char *stripped = stripOutComments(new_value, &inMultilineComment, &inSingleLineComment);
-			if(inSingleLineComment) return tokens;
+        char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
+
+        if(inSingleLineComment){
+            if (stripped != NULL){
+                t = string_to_token(stripped);
+                add_ArrayList_element(tokens, t);
+            }
+            return tokens;
+        }
 
 			if(stripped == NULL){
 				tokenStr = strtok(NULL, " ,");
@@ -302,13 +321,15 @@ static ArrayList *tokenize_line(char *line) {
         tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
 
-				char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
-				if(inSingleLineComment) return tokens;
+          char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
 
-				if(stripped == NULL){
-					tokenStr = strtok(NULL, " ,");
-					continue;
-				}
+          if(inSingleLineComment){
+              if (stripped != NULL){
+                  t = string_to_token(stripped);
+                  add_ArrayList_element(tokens, t);
+              }
+              return tokens;
+          }
 
         Token t2 = string_to_token(stripped);
 
