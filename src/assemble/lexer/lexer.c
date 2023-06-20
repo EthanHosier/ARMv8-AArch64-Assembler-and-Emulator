@@ -279,14 +279,12 @@ ArrayList *tokenize_line(char *line) {
       char *stripped = stripOutComments(tokenStrCopy,
                                         &inMultilineComment,
                                         &inSingleLineComment);
-
+      free(tokenStrCopy);
       if (inSingleLineComment) {
         if (stripped != NULL) {
-          free(tokenStrCopy);
           t = string_to_token(stripped);
           add_ArrayList_element(tokens, t);
         }
-        free(stripped);
         return tokens;
       }
 
@@ -300,28 +298,27 @@ ArrayList *tokenize_line(char *line) {
       t = NEW(struct Token);
       assert(t != NULL);
       char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
-
+      free(tokenStrCopy);
       char *stripped = stripOutComments(new_value,
                                         &inMultilineComment,
                                         &inSingleLineComment);
 
       if (inSingleLineComment) {
+        free(new_value);
         if (stripped != NULL) {
-          free(tokenStrCopy);
           t = string_to_token(stripped);
           add_ArrayList_element(tokens, t);
         }
-        free(stripped);
         return tokens;
       }
 
       if (stripped == NULL) {
+        free(new_value);
         tokenStr = strtok(NULL, " ,");
         continue;
       }
 
       Token t1 = string_to_token(stripped);
-      free(tokenStrCopy);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         t->addressToken.pT2 = NULL;
         new_value[strlen(new_value) - 1] = '\0';
@@ -333,15 +330,12 @@ ArrayList *tokenize_line(char *line) {
         char *stripped = stripOutComments(tokenStrCopy,
                                           &inMultilineComment,
                                           &inSingleLineComment);
-
-
+        free(tokenStrCopy);
         if (inSingleLineComment) {
           if (stripped != NULL) {
-            free(tokenStrCopy);
             t = string_to_token(stripped);
             add_ArrayList_element(tokens, t);
           }
-          free(stripped);
           return tokens;
         }
 
