@@ -264,7 +264,7 @@ ArrayList *tokenize_line(char *line) {
 
   ArrayList *tokens = create_ArrayList(print_Token, free_token);
   char *tokenStr = NULL;
-  tokenStr = strtok(line, " ");
+  tokenStr = strtok(line, " ,");
   while(tokenStr != NULL) {
     // Create a copy of the token
     char *tokenStrCopy = strdup(tokenStr);
@@ -296,7 +296,7 @@ ArrayList *tokenize_line(char *line) {
       assert(t != NULL);
       char *new_value = strdup(tokenStrCopy + 1); //remove the "\["
 
-        char *stripped = stripOutComments(tokenStrCopy, &inMultilineComment, &inSingleLineComment);
+        char *stripped = stripOutComments(new_value, &inMultilineComment, &inSingleLineComment);
 
         if(inSingleLineComment){
             if (stripped != NULL){
