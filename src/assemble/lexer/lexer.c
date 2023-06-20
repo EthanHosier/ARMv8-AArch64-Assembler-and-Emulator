@@ -302,9 +302,8 @@ ArrayList *tokenize_line(char *line) {
       char *stripped = stripOutComments(new_value,
                                         &inMultilineComment,
                                         &inSingleLineComment);
-
+      free(new_value);
       if (inSingleLineComment) {
-        free(new_value);
         if (stripped != NULL) {
           t = string_to_token(stripped);
           add_ArrayList_element(tokens, t);
@@ -313,7 +312,6 @@ ArrayList *tokenize_line(char *line) {
       }
 
       if (stripped == NULL) {
-        free(new_value);
         tokenStr = strtok(NULL, " ,");
         continue;
       }
@@ -321,7 +319,6 @@ ArrayList *tokenize_line(char *line) {
       Token t1 = string_to_token(stripped);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         t->addressToken.pT2 = NULL;
-        new_value[strlen(new_value) - 1] = '\0';
       } else {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]");
