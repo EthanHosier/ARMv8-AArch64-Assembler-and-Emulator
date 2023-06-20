@@ -167,7 +167,12 @@ static Register *makeRegStruct(char *regString) {
     IRREPARABLE_MEMORY_ERROR;
   }
   reg->is_64_bit = regString[0] == 'x';
-  reg->register_number = (strcmp(regString, "xzr") == 0 || strcmp(regString, "wzr") == 0) ? 31 : strtol(++regString, NULL, 10);
+  reg->register_number =
+      (strcmp(regString, "xzr") == 0 || strcmp(regString, "wzr") == 0) ? 31
+                                                                       : (int)strtol(
+          ++regString,
+          NULL,
+          10);
   return reg;
 }
 
