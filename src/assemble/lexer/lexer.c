@@ -116,6 +116,10 @@ static void print_Token(void *element) {
         printf(", %s: %d",
                pt2Type,
                t->addressToken.pT2->immediateToken.value);
+      } else if (t->addressToken.pT2->type == TOKEN_TYPE_LABEL) {
+        printf(", %s: %s",
+               pt2Type,
+               t->addressToken.pT2->labelToken.label);
       }
     }
     printf("]");
