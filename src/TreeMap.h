@@ -10,6 +10,7 @@ struct binary_search_tree {
   void *value;
   Binary_search_tree *left;
   Binary_search_tree *right;
+  int height;
 };
 typedef void (*free_map_element)(void *);
 typedef int (*compare_map_keys)(void *, void *);

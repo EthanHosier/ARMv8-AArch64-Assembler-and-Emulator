@@ -9,7 +9,7 @@
 #define CHECK_CHILD_NODE(t)\
 if((t) == NULL) {\
   (t) = new;\
-  return;\
+  executing = false;\
 }\
 current = (t)
 
@@ -36,33 +36,36 @@ TreeMap *create_map(free_map_element free_keys,
   return new;
 }
 
+static Binary_search_tree *avl_rebalance(Binary_search_tree *);
+
 void put_map(TreeMap *map, void *key, void *value) {
   assert(value != NULL);
   Binary_search_tree *new = create_node(key, value);
   if (new == NULL) {
     IRREPARABLE_MEMORY_ERROR;
   }
+  bool executing = true;
   if (map->root == NULL) {
     map->root = new;
-    return;
+    executing = false;
   }
   Binary_search_tree *current = map->root;
-  for (;;) {
+  while (executing) {
     int compared = (map->compare_keys)(key, current->key);
     if (compared == 0) {
       current->value = value;
-      return;
-    }
-    if (compared < 0) {
+      executing = false;
+    } else if (compared < 0) {
       CHECK_CHILD_NODE(current->left);
     } else {
       CHECK_CHILD_NODE(current->right);
     }
   }
+  map->root = avl_rebalance(map->root);
 }
 
 void put_map_int(TreeMap *map, void *key, int value) {
-  int *pointer = malloc(sizeof(uint64_t));
+  int *pointer = malloc(sizeof(int));
   *pointer = value;
   put_map(map, key, pointer);
 }
@@ -143,4 +146,70 @@ int compare_ints_map(void *input1, void *input2) {
   if (*int1 < *int2) return -1;
   if (*int1 > *int2) return 1;
   return 0;
+}
+
+static int get_height(Binary_search_tree *node) {
+  if (node == NULL)
+    return 0;
+  return node->height;
+}
+
+static int max(int a, int b) {
+  return (a > b) ? a : b;
+}
+
+static void update_height(Binary_search_tree *node) {
+  if (node == NULL) return;
+  node->height = 1 + max(get_height(node->left), get_height(node->right));
+}
+
+static Binary_search_tree *rotate_left(Binary_search_tree *node) {
+  Binary_search_tree *new_root = node->right;
+  node->right = new_root->left;
+  new_root->left = node;
+  update_height(node);
+  update_height(new_root);
+  return new_root;
+}
+
+static Binary_search_tree *rotate_right(Binary_search_tree *node) {
+  Binary_search_tree *new_root = node->left;
+  node->left = new_root->right;
+  new_root->right = node;
+  update_height(node);
+  update_height(new_root);
+  return new_root;
+}
+
+static Binary_search_tree *avl_rebalance(Binary_search_tree *node) {
+  if (node == NULL) return NULL;
+  node->left = avl_rebalance(node->left);
+  node->right = avl_rebalance(node->right);
+  update_height(node);
+  int balance_factor = get_height(node->left) - get_height(node->right);
+  // Left-Left case
+  if (balance_factor > 1
+      && get_height(node->left->left) >= get_height(node->left->right))
+    return rotate_right(node);
+
+  // Right-Right case
+  if (balance_factor < -1
+      && get_height(node->right->right) >= get_height(node->right->left))
+    return rotate_left(node);
+
+  // Left-Right case
+  if (balance_factor > 1
+      && get_height(node->left->left) < get_height(node->left->right)) {
+    node->left = rotate_left(node->left);
+    return rotate_right(node);
+  }
+
+  // Right-Left case
+  if (balance_factor < -1
+      && get_height(node->right->right) < get_height(node->right->left)) {
+    node->right = rotate_right(node->right);
+    return rotate_left(node);
+  }
+
+  return node; // No rebalancing needed
 }
