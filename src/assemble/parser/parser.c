@@ -169,7 +169,7 @@ static Register *makeRegStruct(char *regString) {
   reg->is_64_bit = regString[0] == 'x';
   reg->register_number =
       (strcmp(regString, "xzr") == 0 || strcmp(regString, "wzr") == 0) ? 31
-                                                                       : (int)strtol(
+                                                                       : (int) strtol(
           ++regString,
           NULL,
           10);
@@ -207,7 +207,8 @@ static void replaceLabel(Token currTok, TreeMap *tree) {
   free(old_label_string);
 }
 
-ArrayList *second_pass(ArrayList *file, TreeMap *label_map) {//why return pointer?
+ArrayList *
+second_pass(ArrayList *file, TreeMap *label_map) {//why return pointer?
   ArrayList *returnArray = create_ArrayList(NULL, free_parser_tree);
   for (int i = 0; i < file->size; i++) {
 
@@ -231,7 +232,9 @@ ArrayList *second_pass(ArrayList *file, TreeMap *label_map) {//why return pointe
     if (third_token != NULL
         && third_token->type == TOKEN_TYPE_LABEL)
       replaceLabel(third_token, label_map);
-    if (third_token != NULL && third_token->type == TOKEN_ADDRESS_CODE && third_token->addressToken.pT2->type == TOKEN_TYPE_LABEL) {
+    if (third_token != NULL && third_token->type == TOKEN_ADDRESS_CODE
+        && third_token->addressToken.pT2 != NULL
+        && third_token->addressToken.pT2->type == TOKEN_TYPE_LABEL) {
       replaceLabel(third_token->addressToken.pT2, label_map);
     }
 

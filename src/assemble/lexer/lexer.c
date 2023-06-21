@@ -224,7 +224,7 @@ check_if_address_code(char *str) {
 
 static char *
 stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) {
-  int len = (int)strlen(str);
+  int len = (int) strlen(str);
 //	printf("len: %d\n", len);
 //	printf("in multiline: %d\n", *inMultiline);
 
