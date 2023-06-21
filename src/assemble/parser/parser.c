@@ -231,6 +231,9 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     if (third_token != NULL
         && third_token->type == TOKEN_TYPE_LABEL)
       replaceLabel(third_token, tree);
+    if(third_token!=NULL && third_token->type==TOKEN_ADDRESS_CODE&&third_token->addressToken.pT2->type==TOKEN_TYPE_LABEL) {
+        replaceLabel(third_token->addressToken.pT2,tree);
+    }
 
     //deal with .int
     if (first_token->type == TOKEN_TYPE_DOT_INT) {
