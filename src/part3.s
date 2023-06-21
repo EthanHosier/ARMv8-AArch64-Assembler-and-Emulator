@@ -7,7 +7,7 @@ movk w30, ON_1
 movz w28, OFF_1, lsl #16
 movk w28, OFF_1
 
-mov w29, #0x800000 // counter
+ldr w29, COUNTER
 
 
 loop:
@@ -61,14 +61,13 @@ loop:
 	bne delay2
 b loop
 
-write_full:
-  ldr w30, 
 
 
 
 
 
-
+COUNTER:
+  .int 0x00800000
 
 MAILBOX_BASE:
   .int 0x3f00b880
