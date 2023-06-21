@@ -19,7 +19,7 @@ loop:
   
   mov w4, w30 // w4 = address of request to turn on LED
   orr w4, wzr, w4, lsl #4
-  orr w4, w4, #8 // w4 = write message
+  add w4, w4, #8 // w4 = write message
   str w4, [w0, w2] // make request to turn on led
   wait_for_response: // wait for response to be in response queue
     ldr w4, [w0, w3] // w4 = status register
@@ -44,7 +44,7 @@ loop:
 
   mov w4, w28
   orr w4, wzr, w4, lsl #4
-  orr w4, w4, #8 // w4 = write message
+  add w4, w4, #8 // w4 = write message
   str w4, [w0, w2] // make request to turn off led
   
   wait_for_response_2: // wait for response to be in response queue
