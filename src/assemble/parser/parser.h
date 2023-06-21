@@ -94,7 +94,7 @@ typedef struct {
 
 extern TreeMap *first_pass(ArrayList *tokens);
 
-extern ArrayList *second_pass(ArrayList *tokens, TreeMap *tree);
+extern ArrayList *second_pass(ArrayList *tokens, TreeMap *label_map);
 
 extern void free_parser_tree(void *parser_tree);
 
