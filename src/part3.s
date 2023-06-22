@@ -1,13 +1,68 @@
-ldr w0, MAILBOX_BASE
-ldr w1, READ_REGISTER
-ldr w2, WRITE_REGISTER
-ldr w3, STATUS_REGISTER
-movz w30, ON_1, lsl #16
-movk w30, ON_1
-movz w28, OFF_1, lsl #16
-movk w28, OFF_1
+b start
 
-ldr w29, COUNTER
+COUNTER:
+  .int 0x00800000
+
+MAILBOX_BASE:
+  .int 0x3f00b880
+
+READ_REGISTER: // Read = MAILBOX_BASE + READ_REGISTER
+  .int 0x00
+
+WRITE_REGISTER:// Write = MAILBOX_BASE + WRITE_REGISTER
+  .int 0x20
+
+STATUS_REGISTER: // Status = MAILBOX_BASE + STATUS_REGISTER
+  .int 0x38
+
+CHANNEL:
+  .int 8
+nop
+ON_1:
+  .int 0x00000020      // 32
+  .int 0x00000000      // 0
+ON_2:
+  .int 0x00038041
+  .int 0x00000008      // 8
+ON_3:
+  .int 0x00000000
+  .int 0x00000082      // 130
+ON_4:
+  .int 0x00000001
+  .int 0x00000000
+OFF_1:
+  .int 0x00000020      // 32
+  .int 0x00000000      // 0
+OFF_2:
+  .int 0x00038041
+  .int 0x00000008      // 8
+OFF_3:
+  .int 0x00000000
+  .int 0x00000082      // 130
+OFF_4:
+  .int 0x00000000
+  .int 0x00000000
+
+
+start:
+  ldr w0, MAILBOX_BASE
+  ldr w1, READ_REGISTER
+  ldr w2, WRITE_REGISTER
+  ldr w3, STATUS_REGISTER
+  
+  
+  //w30 = write request to turn on
+  ldr w30, COUNTER
+  add w30, w30, 0x20
+
+
+  //w28 = write request to turn off
+  ldr w28, COUNTER
+  add, w28, w28, 0x30
+
+
+
+  ldr w29, COUNTER
 
 
 loop:
@@ -60,49 +115,3 @@ loop:
 	  cmp w10, w29
 	b.ne delay2
 b loop
-
-
-
-COUNTER:
-  .int 0x00800000
-
-MAILBOX_BASE:
-  .int 0x3f00b880
-
-READ_REGISTER: // Read = MAILBOX_BASE + READ_REGISTER
-  .int 0x00
-
-WRITE_REGISTER:// Write = MAILBOX_BASE + WRITE_REGISTER
-  .int 0x20
-
-STATUS_REGISTER: // Status = MAILBOX_BASE + STATUS_REGISTER
-  .int 0x38
-
-CHANNEL:
-  .int 8
-
-ON_1:
-  .int 0x00000020      // 32
-  .int 0x00000000      // 0
-ON_2:
-  .int 0x00038041
-  .int 0x00000008      // 8
-ON_3:
-  .int 0x00000000
-  .int 0x00000082      // 130
-ON_4:
-  .int 0x00000001
-  .int 0x00000000
-
-OFF_1:
-  .int 0x00000020      // 32
-  .int 0x00000000      // 0
-OFF_2:
-  .int 0x00038041
-  .int 0x00000008      // 8
-OFF_3:
-  .int 0x00000000
-  .int 0x00000082      // 130
-OFF_4:
-  .int 0x00000000
-  .int 0x00000000
