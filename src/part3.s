@@ -14,7 +14,7 @@ loop:
   ldr w4, [w0, w3] // w4 = status register
   orr w4, wzr, w4, lsr #31 // full flag
   cmp wzr, w4
-  bne loop // wait for write queue to not be full
+  b.ne loop // wait for write queue to not be full
   
   
   mov w4, w30 // w4 = address of request to turn on LED
@@ -25,7 +25,7 @@ loop:
     ldr w4, [w0, w3] // w4 = status register
     orr w4, wzr, w4, lsr #30 // empty flag
     cmp wzr, w4
-  bne wait_for_response // wait for read queue to not be empty
+  b.ne wait_for_response // wait for read queue to not be empty
   ldr w4, [w0, w1] // reads response
   
 
@@ -33,7 +33,7 @@ loop:
 	delay1:
 	  add w10, w10, #1
 	  cmp w10, w29
-	bne delay1
+	b.ne delay1
 
 
   //check if room for request
@@ -51,18 +51,15 @@ loop:
     ldr w4, [w0, w3] // w4 = status register
     orr w4, wzr, w4, lsr #30 // empty flag
     cmp wzr, w4
-  bne wait_for_response_2 // wait for read queue to not be empty
+  b.ne wait_for_response_2 // wait for read queue to not be empty
   ldr w4, [w0, w1] // reads response
   
   eor w10, w10, w10 // wait random time
 	delay2:
 	  add w10, w10, #1
 	  cmp w10, w29
-	bne delay2
+	b.ne delay2
 b loop
-
-
-
 
 
 
