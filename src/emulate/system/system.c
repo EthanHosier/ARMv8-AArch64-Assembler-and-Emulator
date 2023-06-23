@@ -400,7 +400,7 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   else if (rd_reg > GENERAL_PURPOSE_REGISTERS) {
     generalPurposeRegisterNotFound(rd_reg);
   }
-  uint8_t rn_reg = getBitsSubsetUnsigned(bits,9,5);
+  uint8_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
   uint8_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
   int64_t rn_dat;
   int64_t rm_dat;
@@ -807,14 +807,14 @@ int execute(SystemState *state,
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
   ZERO_ARRAY((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
-  state->programCounter=524288;
+  ZERO_ARRAY(&(*state).programCounter, 1);
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;
   (*state).pState.overflow = false;
   ZERO_ARRAY((*state).primaryMemory.primaryMemory, MEMORY_SIZE_BYTES)
-  for (uint64_t i = 0; i < numberOfInstructions; i++) {
-    writeNBytes(&(*state).primaryMemory, instructions[i], i*4+524288, 4);
+  for (int i = 0; i < numberOfInstructions; i++) {
+    writeNBytes(&(*state).primaryMemory, instructions[i], i * 4, 4);
   }
 }
 
