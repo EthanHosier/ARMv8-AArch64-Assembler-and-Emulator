@@ -1,30 +1,88 @@
 \documentclass[11pt]{article}
 
 \usepackage{fullpage}
+\usepackage[a4paper, margin=2.8cm]{geometry}
 
 \begin{document}
 
-\title{ARM Checkpoint... }
-\author{TODO}
+\title{ARM Checkpoint}
+\author{Ethan, Kamil, Dillan, Alex}
 
 \maketitle
 
-\section{Group Organisation}
+\section{Work coordination}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+When implementing Part I, the AArch64 emulator, we decided to break down the project into
+smaller sub-projects and allocated them to each group member. This included each group member
+focussing on different instruction sets, and also producing the code for different utilities, such as
+file reading, output etc. During the debugging phase, each member predominantly focused on the
+bugs surrounding the code which they had written. Here is a brief outline of some of the tasks each
+member undertook:
+\\
+\\
+Kamil: Debugged and fixed code issues related to outputting VM state. Refactored and reorganized code. Developed base structure including instruction decoding, structure initialization, and
+FDE cycle. Created functions for reading bytes from memory. Merged memory pools into one module with non-static access functions. Modified program counter to handle non-standard memory
+addresses.
+\\
+\\
+Ethan: Implemented code to read instructions from a file and store them in memory. Coded
+wide move instructions and collaborated with Dillan on arithmetic DPIs. Developed mathematical
+utility functions, including ROR and ASR shifts. Contributed to design decisions, such as formatting the system state struct and storing register values as unsigned ints.
+\\
+\\
+Alex: Created the structure for different instruction types using selected bits and a switch statement for processing them in their integer form. Eliminated code duplication by implementing the
+getBitsSubset function, which was extensively used throughout the project. Started processing instructions such as branch, register logic, single data transfer, and load literal. Collaborated with the
+team to test and debug the code, identifying and fixing errors related to the zero register, casting
+errors, and incorrect code logic.
+\\
+\\
+Dillan: Initially designed the code to read instructions from a file, but this was later rewritten
+by Ethan to better suit project needs; Implemented arithmetic instructions (add, adds, etc.) supporting immediate and register access; Collaborated with Ethan to program move instructions for
+data transfer between registers; Tested and debugged the instructions, focusing on addressing unexpected behavior of the movk instruction, which required a complete code overhaul to fix; Made
+minor changes as a team and reran tests to eliminate unexpected behavior, as the majority of the
+code was already written
 
-\section{Implementation Strategies}
+\section{Effectiveness of group approaches}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+As a group, we would meet everyday in-person in someone’s kitchen. This allowed us to communicate
+effectively, and figure out solutions to the problems we had together. At the end of the session, we
+would then allocate further tasks which were to be completed by each group member during the
+evening. They would then commit the relevant changes, and we would go over these the next day.
+We have found our method of group work very effective, and while we had a slow start, our
+efficiency increased exponentially as the project continued. For future tasks, we will adopt a similar
+style; however, there will be some minor changes. As a group, we may have a few days where,
+instead of meeting in person, we all meet on a call for a few hours. This is as it is not always
+feasible to travel to each other’s kitchens. Furthermore, we will improve our communication when
+making individual changes in the evenings.
+
+\section{Effectiveness of group approaches}
+Within our emulate.c file, we have the main program loop and basic argument counter checks. The
+logic is then abstracted into io.c, memory.c and system.c modules. The io.c file contains utility
+functions for reading the binary instruction file, and for formatting the output of each register and
+memory location. We are storing each instruction as an unsigned int, so these must be converted
+and printed out in hex form. The memory.c file contains utility files for storing the instructions
+in the binary file in our simulated instruction memory, while our system.c file contains functions
+for handling each instruction set. We have abstracted each instruction set into their own execution
+function.
+Our system state is stored in a single struct. This struct then also contains a struct for storing
+the PSTATE registers. We also have a consts.h file containing constants defining unique instruction
+codes such as HALT, and important constants such as the number of general purpose registers (31).
+Our emulator includes logic for decoding exactly what instruction is being referred to by machine
+code. An assembler will make use of a lexer and parser to determine what instruction a line
+of assembly refers to, at which point we will be able to essentially reuse the logic that decodes
+machine code but in reverse. We also believe that we will be able to use some of our I/O code in
+our assembler. As we will be dealing with a lot of binary, our binary formatting code will also be
+helpful. We will also take a similar approach to instruction management as we did in our emulator.
+
+
+\section{ Future implementation challenges, mitigation.}
+
+We believe that implementing the assembler may come with some difficulties. This is as we understand that the test cases provided by Imperial do not cover every possible edge case, or instance
+where our code could be buggy. Thus we are cautious of the fact that we may face issues when
+testing our assembler, with our emulator, which are actually caused by bugs in our emulator. To
+mitigate these issues, we have written further test cases, mainly for the edge cases, for our emulator.
+Furthermore, none of our group members had any experience using a raspberry pi, so for Task III
+we had to extra research on how to set it up with our computers.
+For future tasks, we will aim to make our git commit messages clearer
 
 \end{document}

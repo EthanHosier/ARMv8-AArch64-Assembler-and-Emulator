@@ -4,18 +4,110 @@
 
 \begin{document}
 
-\title{Our Extension...}
-\author{TODO}
+\title{Final Report}
+\author{Ethan, Alex, Kamil, Dillan}
 
 \maketitle
 
-\section{Introduction}
+\section{Structure and implementation of the Assembler
+}
 
-Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor
-incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis
-nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
-fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
-culpa qui officia deserunt mollit anim id est laborum.
+As a direct response to our previous report (for the interim), we realised that before we started coding, it would be beneficial to make a detailed plan of what we were going to do. This allowed us to effectively make implementation decisions, and mitigate future issues that would possibly occur. In hindsight, this significantly reduced the amount of debugging we had to do in comparison to the emulator.
+
+To implement the assembler, we thus decided to develop a lexer and a parser. The instructions are read from the assembly file, then line by line the assembly is read by the lexer; the corresponding tokens are then returned. The parser first passes over the whole file, creating a map from labels to memory addresses. It will then do a second pass where it replaces label tokens with immediate tokens containing the corresponding memory addresses from the map. Next, it interprets each line of tokens and turns them into syntax trees that contain all the information necessary for the instruction or directive to be converted into a 32-bit word. Finally, we have a decoder which turns these trees into the actual words.
+
+In our solution, we have utilised two additional abstract data structures which we created from scratch: an Arraylist and an AVL tree. The arraylist was used frequently throughout the assembler, for example for storing the strings and storing the tokens, but also as a stack for certain algorithms such as a post-order search (which was used for freeing the AVL tree). The AVL tree is also used for checking whether each instruction supplied is valid (within a predefined set of instructions), and also used as the map of labels in the parser. Thus, the AVL tree is used as both a map and a set. We made use of void pointers, allowing us to store different data types within these structures, in a similar way to how generics work in Java. The only difference being we would have to be very careful with casting pointers when using these structures.
+
+
+
+\section{Extension overview}
+For our extension we extended our assembler to allow comments within assembly files. We used C-style comments, so both multiline and single line comments were supported. This also prevented the parser from accidentally parsing hashtag comments as immediate values. By enabling comments, we increased the readability and maintainability of the assembly code. This section of the report will focus on our approach to implementing this extension, details of the modifications we made to our previous codebase and the challenges we encountered.
+
+\section{Our approach}
+The extension is handled by the lexer. This had to be modified so that every pair of characters within each token is checked for the slash delimiters (‘//’, ‘/*’ and ‘*/’). By identifying these delimiters, and based on previous states, it could be computed which portions of text were comments, and thus should be extracted from the input assembly.
+
+Each token is checked for comments one by one, line by line. If the start of a multiline comment (/*) is identified, a static boolean variable within the function is set. This permitted us to maintain state between individual function calls. All characters in all other tokens are ignored until an end character is identified (*/), at which point the static variable is unset. If a line comment is detected (//), the rest of the tokens in the given line could be discarded, and we could jump to the next line of assembly.
+
+The method we used was particularly useful for handling special cases; for instance, in the case where a single line comment was identified within a multiline comment (such as /* comment // comment */). Here, by use of the static boolean variable keeping track of whether we are in a multiline comment, the lexer would know not to discard all tokens following the “//” delimiter.
+
+
+Our extension enabled us to add documentation to our code, which was particularly useful in Part III of our project. Here is a snippet of some code which utilised this comments: 
+
+
+\begin{verbatim}
+  loop:
+  ldr w4, [w0, w3] // w4 = status register
+  orr w4, wzr, w4, lsr #31 // full flag
+  cmp wzr, w4
+  b.ne loop // wait for write queue to not be full
+ 
+ 
+  mov w4, w30 // w4 = address of request to turn on LED
+  orr w4, wzr, w4, lsl #4
+  add w4, w4, #8 // w4 = write message
+  str w4, [w0, w2] // make request to turn on led
+ 
+ 
+  wait_for_response: // wait for response to be in response queue
+    ldr w4, [w0, w3] // w4 = status register
+    orr w4, wzr, w4, lsr #30 // empty flag
+    cmp wzr, w4
+  b.ne wait_for_response // wait for read queue to not be empty
+  ldr w4, [w0, w1] // reads response
+ 
+/* delay unnecessary for testing purposes
+
+
+  eor w10, w10, w10 // wait random time
+  delay1:
+    add w10, w10, #1
+    cmp w10, w29
+  b.ne delay1
+ 
+*/
+
+
+\end{verbatim}
+
+
+Our extension also enabled us to add comments within the tokens themselves. For instance:
+‘a/*this is a comment*/dd x0 x0 x0’, would be correctly tokenised by the lexer as [add,x0,x0,x0]. Of course, we didn’t utilise this as much.
+
+\section{Testing of extension}
+As most of the code used for our extension is contained within the stripOutComments function, which is responsible for removing the comment portion of assembly code lines and setting the boolean values inSingleLine and inMultiline accordingly. We decided we would test this as thoroughly as possible before attaching it to the main code for the lexer.
+
+This was done by setting up a main function, passing individual lines of assembly into stripOutComments and viewing the altered variables in a debugger to make sure there were what we expected. We also tested the case where the lexer would currently still be within a multiline comment and another line was passed into the function. We achieved this by setting the static variable inMultiline to true and passing in several more strings just as before. When deciding what strings to pass into our function, we made sure to test all edge cases like: with comments starting at the start and end of lines; with and without spaces before our comment delimiters as well as in, right before and immediately after actual tokens.
+
+Once we were confident our function always behaved correctly, we proceeded to integrate it within the lexer as detailed above. Testing this code turned out to be very easy, to begin with we just ran the testsuite as it was provided in order to make sure we hadn’t introduced any unintended changes.  
+
+Followed by testing individual files with a plethora of different comment cases including:
+Comments in comments (single line an multiline)
+Unterminated block comments
+Comments starting at the very start and end of lines
+Block comments within tokens
+As well as all the cases with/without spaces before and after delimiters for all of the above
+
+
+\section{Individual reflections} 
+Kamil:
+Though my knowledge of C at the beginning of part 1 was initially quite poor, it grew over time as I stayed up many nights debugging our code for part 1. By the start of part 2, I was very happy with where I was at. I organised our first session of the assembler where we created the header files for the assembler and the overall structure for how we were to organise it. This allowed us to be far more efficient with our coding for the assembler as we organised Ethan to code the lexer, and Alex and I to pair-code the parser. It was also my responsibility to ensure all code is memory safe (which I am very proud of achieving due to there being over one-thousand-three-hundred memory allocations when running the code with some of the test files).
+\\
+\\
+Alex:
+My role was to organise the group, get the structure of the code sorted, implement the main logic of the code, help others when necessary due to my deep understanding of the spec, and debug major parts of the code when some of the tests failed. Weaknesses that I had were that initially my knowledge of C was poor and we weren’t the best at structuring and planning ahead, however this was greatly improved with the experience we gained throughout the project.
+\\
+\\
+Ethan:
+I think I provided lots of valuable input to this group. This was particularly in part 2, where I created most of the lexer. I also helped Dillan with the extension. I feel that I helped manage people, and ensured that people were coming to the meetings everyday, and were completing the code they were meant to be. My weakness was that I would sometimes get distracted on things which weren’t to do with the project. Also me and Kamil had conflicting ideas at multiple points; however, we were able to bounce ideas off of each other to achieve a better solution overall. My knowledge of C definitely improved as the project went on.
+\\
+\\
+Dillan:
+I worked very well as a part of the team and completed all tasks to the best of my ability. In part one I completed all the arithmetic operations, and I also did a lot of debugging. I was responsible for a fix to the arithmetic flags which increased the passed test cases by 93. I also came up with a lot of the logic for the extension, and played a key role in its implementation. One way in which I think I could have improved is being more present with the group, as I did miss quite a few meetings.
+
+
+\section{Group Reflection}
+As a group, we are very satisfied with how we undertook this project. While we couldn’t complete Part III entirely,  we have completed the other 3 parts to a very high level. We found that we naturally fit in together, and our skill sets complemented each other. Leaders naturally emerged at different stages, and our method of meeting everyday in person (which we have been doing since the very start) has been effective. This enabled fast, two-way communication. Furthermore, being able to see each other’s computer screens was invaluable when debugging. 
+
+We believe that the way we split tasks between each member was also effective, at least for Parts II, II and the extension. While in part I we often had different members working on the same code (which would be confusing when one member made a change), for these later parts we broke the problem into smaller subproblems, which allowed us to solve the problems modularly; each member would work on separate tasks. We were able to learn from our mistakes in the Emulator.
 
 \end{document}
