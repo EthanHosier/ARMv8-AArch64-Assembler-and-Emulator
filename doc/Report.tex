@@ -21,7 +21,7 @@ In our solution, we have utilised two additional abstract data structures which 
 
 
 \section{Extension overview}
-For our extension we extended our assembler to allow comments within assembly files. We used C-style comments, so both multiline and single line comments were supported. This also prevented the parser from accidentally parsing hashtag comments as immediate values. By enabling comments, we increased the readability and maintainability of the assembly code. This section of the report will focus on our approach to implementing this extension, details of the modifications we made to our previous codebase and the challenges we encountered.
+For our extension we extended our assembler to allow comments within assembly files. We used C-style comments, so both multiline and single line comments were supported. This also prevented the parser from accidentally parsing typical assembly comments (which start with a hashtag) as immediate values. By enabling comments, we increased the readability and maintainability of the assembly code. This section of the report will focus on our approach to implementing this extension, details of the modifications we made to our previous codebase and the challenges we encountered.
 
 \section{Our approach}
 The extension is handled by the lexer. This had to be modified so that every pair of characters within each token is checked for the slash delimiters (‘//’, ‘/*’ and ‘*/’). By identifying these delimiters, and based on previous states, it could be computed which portions of text were comments, and thus should be extracted from the input assembly.
@@ -71,7 +71,7 @@ Our extension enabled us to add documentation to our code, which was particularl
 
 
 Our extension also enabled us to add comments within the tokens themselves. For instance:
-‘a/*this is a comment*/dd x0 x0 x0’, would be correctly tokenised by the lexer as [add,x0,x0,x0]. Of course, we didn’t utilise this as much.
+‘a/*this is a comment*/nd x0 x0 x0’, would be correctly tokenised by the lexer as [and,x0,x0,x0]. Of course, we didn’t utilise this as much.
 
 \section{Testing of extension}
 As most of the code used for our extension is contained within the stripOutComments function, which is responsible for removing the comment portion of assembly code lines and setting the boolean values inSingleLine and inMultiline accordingly. We decided we would test this as thoroughly as possible before attaching it to the main code for the lexer.
@@ -108,6 +108,6 @@ I worked very well as a part of the team and completed all tasks to the best of 
 \section{Group Reflection}
 As a group, we are very satisfied with how we undertook this project. While we couldn’t complete Part III entirely,  we have completed the other 3 parts to a very high level. We found that we naturally fit in together, and our skill sets complemented each other. Leaders naturally emerged at different stages, and our method of meeting everyday in person (which we have been doing since the very start) has been effective. This enabled fast, two-way communication. Furthermore, being able to see each other’s computer screens was invaluable when debugging. 
 
-We believe that the way we split tasks between each member was also effective, at least for Parts II, II and the extension. While in part I we often had different members working on the same code (which would be confusing when one member made a change), for these later parts we broke the problem into smaller subproblems, which allowed us to solve the problems modularly; each member would work on separate tasks. We were able to learn from our mistakes in the Emulator.
+We believe that the way we split tasks between each member was also effective, at least for Parts II, III and the extension. While in part I we often had different members working on the same code (which would be confusing when one member made a change), for these later parts we broke the problem into smaller subproblems, which allowed us to solve the problems modularly; each member would work on separate tasks. We were able to learn from our mistakes in the Emulator.
 
 \end{document}
