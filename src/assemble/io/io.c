@@ -1,7 +1,7 @@
 #include "io.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdint.h>
 #include <string.h>
 
 static void printBinaryHelper(uint32_t val, FILE *fileOut) {
@@ -34,7 +34,7 @@ void write_binary(ArrayList *binaryLines, char *fileName) {
 
 static char *skip_whitespace(char *str) {
   while (*str != '\0') {
-    if (*str != ' ' && *str != '\n') {
+    if (*str != ' ' && *str != '\n' && *str != '\t') {
       return str;
     }
     str++;

@@ -116,6 +116,10 @@ static void print_Token(void *element) {
         printf(", %s: %d",
                pt2Type,
                t->addressToken.pT2->immediateToken.value);
+      } else if (t->addressToken.pT2->type == TOKEN_TYPE_LABEL) {
+        printf(", %s: %s",
+               pt2Type,
+               t->addressToken.pT2->labelToken.label);
       }
     }
     printf("]");
@@ -220,7 +224,7 @@ check_if_address_code(char *str) {
 
 static char *
 stripOutComments(char *str, bool *inMultiline, bool *inSingleLine) {
-  int len = strlen(str);
+  int len = (int) strlen(str);
 //	printf("len: %d\n", len);
 //	printf("in multiline: %d\n", *inMultiline);
 
@@ -302,9 +306,8 @@ ArrayList *tokenize_line(char *line) {
       char *stripped = stripOutComments(new_value,
                                         &inMultilineComment,
                                         &inSingleLineComment);
-
+      free(new_value);
       if (inSingleLineComment) {
-        free(new_value);
         if (stripped != NULL) {
           t = string_to_token(stripped);
           add_ArrayList_element(tokens, t);
@@ -313,7 +316,6 @@ ArrayList *tokenize_line(char *line) {
       }
 
       if (stripped == NULL) {
-        free(new_value);
         tokenStr = strtok(NULL, " ,");
         continue;
       }
@@ -321,25 +323,23 @@ ArrayList *tokenize_line(char *line) {
       Token t1 = string_to_token(stripped);
       if (result == ADDRESS_CODE_POSSIBILITIES_ONE) {
         t->addressToken.pT2 = NULL;
-        new_value[strlen(new_value) - 1] = '\0';
       } else {
         //ADDRESS_CODE_POSSIBILITIES_TWO
         tokenStr = strtok(NULL, " ,]");
         tokenStrCopy = strdup(tokenStr);
-
-        char *stripped = stripOutComments(tokenStrCopy,
-                                          &inMultilineComment,
-                                          &inSingleLineComment);
+        char *stripped_t2 = stripOutComments(tokenStrCopy,
+                                             &inMultilineComment,
+                                             &inSingleLineComment);
         free(tokenStrCopy);
         if (inSingleLineComment) {
-          if (stripped != NULL) {
-            t = string_to_token(stripped);
+          if (stripped_t2 != NULL) {
+            t = string_to_token(stripped_t2);
             add_ArrayList_element(tokens, t);
           }
           return tokens;
         }
 
-        Token t2 = string_to_token(stripped);
+        Token t2 = string_to_token(stripped_t2);
 
         t->addressToken.pT2 = t2;
 

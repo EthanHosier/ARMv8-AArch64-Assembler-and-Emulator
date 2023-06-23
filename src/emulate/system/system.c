@@ -68,6 +68,11 @@
   (*state).pState.overflow = checkOverUnderflow##bits(\
       (int##bits##_t) ((*state).generalPurpose[rn]), subtrahend);
 
+#define GET_REGISTER_VALUE(rx)\
+  if(rx##_reg == 31) rx##_dat = 0;\
+  else if(rx##_reg > GENERAL_PURPOSE_REGISTERS) generalPurposeRegisterNotFound(rx##_reg);\
+  else rx##_dat = (int64_t) (*state).generalPurpose[rx##_reg]
+
 static int invalidInstruction(void) {
   fprintf(stderr, "Invalid instruction!");
   return 1;
@@ -388,21 +393,19 @@ static int executeRegisterDP(SystemState *state, const bool bits[]) {
   bool sf = bits[31];
 
   uint32_t rd_reg = getBitsSubsetUnsigned(bits, 4, 0);
+  uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
+  uint32_t operand = getBitsSubsetUnsigned(bits, 15, 10);
   if (rd_reg
       == 31); // if rd is 11111 in binary (rd thus codes for the zero register)
   else if (rd_reg > GENERAL_PURPOSE_REGISTERS) {
     generalPurposeRegisterNotFound(rd_reg);
   }
-  uint32_t shift = getBitsSubsetUnsigned(bits, 23, 22);
-  uint32_t operand = getBitsSubsetUnsigned(bits, 15, 10);
-  int64_t
-      rn_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                                       9,
-                                                                       5)];
-  int64_t
-      rm_dat = (int64_t) (*state).generalPurpose[getBitsSubsetUnsigned(bits,
-                                                                       20,
-                                                                       16)];
+  uint8_t rn_reg = getBitsSubsetUnsigned(bits, 9, 5);
+  uint8_t rm_reg = getBitsSubsetUnsigned(bits, 20, 16);
+  int64_t rn_dat;
+  int64_t rm_dat;
+  GET_REGISTER_VALUE(rn);
+  GET_REGISTER_VALUE(rm);
   switch (m_opr) {
     case 8:
     case 10:
@@ -804,7 +807,7 @@ int execute(SystemState *state,
 void initialiseSystemState(SystemState *state, int numberOfInstructions,
                            const uint32_t instructions[]) {
   ZERO_ARRAY((*state).generalPurpose, GENERAL_PURPOSE_REGISTERS)
-  ZERO_ARRAY(&(*state).programCounter, 1)
+  ZERO_ARRAY(&(*state).programCounter, 1);
   (*state).pState.negative = false;
   (*state).pState.zero = true;
   (*state).pState.carry = false;

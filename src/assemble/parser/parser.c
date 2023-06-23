@@ -169,7 +169,7 @@ static Register *makeRegStruct(char *regString) {
   reg->is_64_bit = regString[0] == 'x';
   reg->register_number =
       (strcmp(regString, "xzr") == 0 || strcmp(regString, "wzr") == 0) ? 31
-                                                                       : strtol(
+                                                                       : (int) strtol(
           ++regString,
           NULL,
           10);
@@ -207,7 +207,8 @@ static void replaceLabel(Token currTok, TreeMap *tree) {
   free(old_label_string);
 }
 
-ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
+ArrayList *
+second_pass(ArrayList *file, TreeMap *label_map) {//why return pointer?
   ArrayList *returnArray = create_ArrayList(NULL, free_parser_tree);
   for (int i = 0; i < file->size; i++) {
 
@@ -221,16 +222,21 @@ ArrayList *second_pass(ArrayList *file, TreeMap *tree) {//why return pointer?
     if (first_token->type == TOKEN_TYPE_LABEL)
       continue;
 
-    //create return tree
+    //create return label_map
     ParserTree *returnTree = make_parser_tree();
 
     //check for label reference in line (replace with memory location of label def)
     if (second_token != NULL
         && second_token->type == TOKEN_TYPE_LABEL)
-      replaceLabel(second_token, tree);
+      replaceLabel(second_token, label_map);
     if (third_token != NULL
         && third_token->type == TOKEN_TYPE_LABEL)
-      replaceLabel(third_token, tree);
+      replaceLabel(third_token, label_map);
+    if (third_token != NULL && third_token->type == TOKEN_ADDRESS_CODE
+        && third_token->addressToken.pT2 != NULL
+        && third_token->addressToken.pT2->type == TOKEN_TYPE_LABEL) {
+      replaceLabel(third_token->addressToken.pT2, label_map);
+    }
 
     //deal with .int
     if (first_token->type == TOKEN_TYPE_DOT_INT) {
